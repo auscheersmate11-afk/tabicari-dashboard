@@ -606,12 +606,12 @@ td.z .c { color: var(--muted); font-weight: 500; }
 
   // ===== いまの状況（遅れ・目標まで・1日のペース） =====
   // 目標の期間。ふだんは「その月に500通」。2026年10月だけ特別で、10月の分も11月に入れて「11月末までに500通」
-  // （目安の線は送信が始まった10/27から引く。12月からは毎月500通で、前の月の分は足さない）
+  // （今日までの目標は11/1から数える。10月中に送った分は先取り扱い。12月からは毎月500通で、前の月の分は足さない）
   function goalPeriod() {
     var t = new Date(); t.setHours(0, 0, 0, 0);
     var y = t.getFullYear(), m = t.getMonth();
     if (y === 2026 && (m === 9 || m === 10))
-      return { today: t, from: new Date(2026, 9, 1), pace: new Date(2026, 9, 27), end: new Date(2026, 10, 30), label: '11月末までの目標', special: true };
+      return { today: t, from: new Date(2026, 9, 1), pace: new Date(2026, 10, 1), end: new Date(2026, 10, 30), label: '11月末までの目標', special: true };
     return { today: t, from: new Date(y, m, 1), pace: new Date(y, m, 1), end: new Date(y, m + 1, 0), label: (m + 1) + '月の目標', special: false };
   }
   function dayDiff(a, b) { return Math.round((b - a) / 86400000); }
@@ -623,32 +623,35 @@ td.z .c { color: var(--muted); font-weight: 500; }
     var sent = my.filter(function (r) { return r.sent && r.date && r.date >= fromS && r.date <= endS; }).length;
     var toDay = my.filter(function (r) { return r.sent && r.date === todayS; }).length;
     var noDate = my.filter(function (r) { return r.sent && !r.date; }).length;
-    var elapsed = dayDiff(gp.pace, gp.today) + 1;
-    var perDay = +(GOAL / paceDays(gp)).toFixed(1), avg = +(sent / elapsed).toFixed(1);
+    var before = gp.today < gp.pace, elapsed = before ? 0 : dayDiff(gp.pace, gp.today) + 1;
+    var perDay = +(GOAL / paceDays(gp)).toFixed(1), avg = elapsed ? +(sent / elapsed).toFixed(1) : 0;
     var expect = Math.round(GOAL * elapsed / paceDays(gp));
     var lag = sent - expect, remain = Math.max(0, GOAL - sent), remDays = dayDiff(gp.today, gp.end) + 1;
     var gapDay = +(avg - perDay).toFixed(1);
     $('nowScope').textContent = md(gp.today) + ' 時点';
 
+    var vsGoal = '今日までの目標に対して';
     var main = sent >= GOAL ? ['ahead', '目標達成！', fmt(sent), '通 🎉', 'おめでとうございます！']
-      : lag < 0 ? ['behind', 'いまの遅れ', fmt(-lag), '通 遅れ', '今日あと <b>' + fmt(-lag) + '</b>通 で追いつきます']
-      : lag > 0 ? ['ahead', '遅れなし！', fmt(lag), '通 先行', 'このペースでいけば目標に届きます']
-      : ['ahead', '遅れなし！', '0', '通', '今日の目安ぴったりです'];
+      : before ? ['ahead', vsGoal, fmt(sent), sent ? '通 先取り' : '通', '10月に送った分は11月の数に入ります<br>目標は <b>' + md(gp.pace) + '</b> から数え始めます']
+      : lag < 0 ? ['behind', vsGoal, fmt(-lag), '通 遅れ', '今日あと <b>' + fmt(-lag) + '</b>通 で追いつきます']
+      : lag > 0 ? ['ahead', vsGoal, fmt(lag), '通 先行', 'このペースでいけば目標に届きます']
+      : ['ahead', vsGoal, '0', '通', '今日の目標ぴったりです'];
     function cell(cls, k, v, u, d) { return '<div class="card pace-cell ' + cls + '"><div class="k">' + k + '</div><div class="v">' + v + '<span>' + u + '</span></div><div class="d">' + d + '</div></div>'; }
     $('pace').innerHTML =
-      cell('main ' + main[0], main[1], main[2], main[3], '今日までの目安 <b>' + fmt(expect) + '</b>通 ／ 送った <b>' + fmt(sent) + '</b>通<br>' + main[4]) +
-      cell('', '目標まであと', fmt(remain), '通', md(gp.end) + 'まで 残り <b>' + remDays + '</b>日') +
-      cell(gapDay < 0 ? 'behind' : gapDay > 0 ? 'ahead' : '', '1日のペース', signed(gapDay), '通',
-        '送るべき数 <b>' + perDay.toFixed(1) + '</b>通<br>いまの平均 <b>' + avg.toFixed(1) + '</b>通<br>今日 <b>' + fmt(toDay) + '</b>通');
+      cell('main ' + main[0], main[1], main[2], main[3], (before ? '' : '今日までの目標 <b>' + fmt(expect) + '</b>通 ／ 送った <b>' + fmt(sent) + '</b>通<br>') + main[4]) +
+      cell('', '目標まであと', fmt(remain), '通', '目標 <b>' + GOAL + '</b>通<br>' + md(gp.end) + 'まで 残り <b>' + remDays + '</b>日') +
+      (before ? cell('', '1日に送るべき数', perDay.toFixed(1), '通', md(gp.pace) + 'から毎日この数<br>今日 <b>' + fmt(toDay) + '</b>通')
+        : cell(gapDay < 0 ? 'behind' : gapDay > 0 ? 'ahead' : '', '1日のペース', signed(gapDay), '通',
+          '送るべき数 <b>' + perDay.toFixed(1) + '</b>通<br>いまの平均 <b>' + avg.toFixed(1) + '</b>通<br>今日 <b>' + fmt(toDay) + '</b>通'));
 
     $('goal').innerHTML =
       '<div class="goal-top"><span class="k">' + gp.label + ' ' + GOAL + '通</span>' +
       '<span class="n">' + fmt(sent) + '<small> / ' + GOAL + '通</small><span class="pc">' + Math.floor(sent / GOAL * 100) + '%</span></span></div>' +
       '<div class="goal-bar" role="img" aria-label="' + gp.label + GOAL + '通のうち' + sent + '通"><span class="fill" style="width:' + Math.min(100, sent / GOAL * 100).toFixed(1) + '%"></span>' +
-      '<span class="mark" style="left:' + Math.min(100, expect / GOAL * 100).toFixed(1) + '%"></span></div>' +
-      '<div class="goal-sub"><i></i>今日の目安 <b>' + fmt(expect) + '</b>通</div>' +
+      (before ? '' : '<span class="mark" style="left:' + Math.min(100, expect / GOAL * 100).toFixed(1) + '%"></span>') + '</div>' +
+      '<div class="goal-sub"><i></i>' + (before ? '今日までの目標は <b>' + md(gp.pace) + '</b> から' : '今日までの目標 <b>' + fmt(expect) + '</b>通') + '</div>' +
       (noDate ? '<div class="goal-warn">⚠ 日付が空の行が' + fmt(noDate) + '件あります。日付を入れると数に入ります。</div>' : '') +
-      '<div class="goal-note">※目安は、' + (gp.special ? md(gp.pace) + 'の送信スタートから' + md(gp.end) : '月末') + 'に' + GOAL + '通届くように、毎日同じ数ずつ送った場合の数です。' +
+      '<div class="goal-note">※今日までの目標は、' + (gp.special ? md(gp.pace) + 'から毎日同じ数ずつ送って' + md(gp.end) : '毎日同じ数ずつ送って月末') + 'に' + GOAL + '通届く数です。' +
       (gp.special ? '10月だけ特別に、10月に送った分も11月の数に入れています。12月からは毎月' + GOAL + '通です（前の月の分は足しません）。' : '') + '</div>';
   }
 
