@@ -159,12 +159,12 @@ h1 span { display: inline-block; }
 .ctb-msg { display: flex; align-items: center; gap: 10px; font-weight: 900; color: var(--head); font-size: 16px; line-height: 1.45; word-break: auto-phrase; }
 .ctb-msg .big { flex: none; font-size: 28px; line-height: 1; }
 .ctb-msg small { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); }
-.ctb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 760px) { .ctb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ctb-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .ctb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ctb-tile:first-child { grid-column: 1 / -1; } }
 .ctb-tile { position: relative; display: grid; justify-items: center; align-content: start; text-align: center; gap: 2px; padding: 16px 8px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
 .ctb-tile .emo { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: var(--sky-soft); font-size: 28px; line-height: 1; animation: pop .7s cubic-bezier(.3, 1.6, .5, 1) both; }
 .ctb-tile:nth-child(2n) .emo { background: var(--yellow-soft); }
-.ctb-tile:nth-child(2) .emo { animation-delay: .08s; } .ctb-tile:nth-child(3) .emo { animation-delay: .16s; } .ctb-tile:nth-child(4) .emo { animation-delay: .24s; }
+.ctb-tile:nth-child(2) .emo { animation-delay: .08s; } .ctb-tile:nth-child(3) .emo { animation-delay: .16s; }
 .ctb-tile .v { font: 700 34px/1.05 var(--font-num); color: var(--head); margin-top: 6px; font-variant-numeric: tabular-nums; }
 .ctb-tile .v span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 2px; }
 .ctb-tile .k { font-size: 13px; font-weight: 900; color: var(--head); }
@@ -512,9 +512,9 @@ td.z .c { color: var(--muted); font-weight: 500; }
   }
   function demoComm() {
     return { updated: new Date().toISOString(), people: {
-      demo: { c: 14, cw: 5, r: 6, rw: 2, s: 31, sw: 9, g: 18, top: ['👏', '❤️', '🎉'] },
-      x1: { c: 6, cw: 1, r: 2, rw: 0, s: 12, sw: 3, g: 7, top: [] }, x2: { c: 3, cw: 0, r: 1, rw: 0, s: 5, sw: 1, g: 2, top: [] },
-      x3: { c: 0, cw: 0, r: 0, rw: 0, s: 2, sw: 0, g: 0, top: [] } } };
+      demo: { c: 14, cw: 5, s: 31, sw: 9, g: 18, top: ['👏', '❤️', '🎉'] },
+      x1: { c: 6, cw: 1, s: 12, sw: 3, g: 7, top: [] }, x2: { c: 3, cw: 0, s: 5, sw: 1, g: 2, top: [] },
+      x3: { c: 0, cw: 0, s: 2, sw: 0, g: 0, top: [] } } };
   }
 
   // ===== 状態 =====
@@ -590,7 +590,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
     var ppl = S.comm && S.comm.people ? S.comm.people : null;
     if (!ppl || !ppl[S.tok]) return null;
     var keys = Object.keys(ppl), avg = {};
-    ['c', 'r', 's', 'g'].forEach(function (k) { avg[k] = keys.reduce(function (a, t) { return a + (ppl[t][k] || 0); }, 0) / (keys.length || 1); });
+    ['c', 's', 'g'].forEach(function (k) { avg[k] = keys.reduce(function (a, t) { return a + (ppl[t][k] || 0); }, 0) / (keys.length || 1); });
     return { me: ppl[S.tok], avg: avg, n: keys.length };
   }
   function countUp(el) {
@@ -614,14 +614,13 @@ td.z .c { color: var(--muted); font-weight: 500; }
       return;
     }
     var m = cs.me, a = cs.avg;
-    var msg = m.c + m.r + m.s === 0 ? ['👋', 'まずは、みんなの投稿にスタンプを1つ押してみよう！']
+    var msg = m.c + m.s === 0 ? ['👋', 'まずは、みんなの投稿にスタンプを1つ押してみよう！']
       : m.s >= a.s && m.c >= a.c && m.s > 0 ? ['🌟', 'チームを盛り上げてくれています！']
       : m.s > m.c ? ['👏', 'スタンプでみんなを応援してくれています！']
       : ['💬', 'コメントでチームに参加してくれています！'];
     var sub = m.g ? 'みんなから 🎁 ' + fmt(m.g) + '個 のスタンプが届いています' : '投稿すると、みんなからスタンプが届くかも';
     var tiles = [
       ['💬', 'コメント', m.c, '回', '今週 <b>+' + fmt(m.cw || 0) + '</b>', a.c],
-      ['💌', '返信', m.r, '回', '今週 <b>+' + fmt(m.rw || 0) + '</b>', a.r],
       ['👏', '押したスタンプ', m.s, '個', '今週 <b>+' + fmt(m.sw || 0) + '</b>', a.s],
       ['🎁', 'もらったスタンプ', m.g, '個', 'チーム平均 <b>' + a.g.toFixed(1) + '</b>個', a.g]
     ];
@@ -772,7 +771,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
     ];
     var cs = commStats();
     if (cs) cards.push(
-      ['💌 グループでの返信', cs.me.r || 0, cs.avg.r, function (v) { return (v % 1 ? v.toFixed(1) : fmt(v)) + '回'; }, 'Discord・これまで'],
+      ['💬 グループでのコメント', cs.me.c || 0, cs.avg.c, function (v) { return (v % 1 ? v.toFixed(1) : fmt(v)) + '回'; }, 'Discord・これまで'],
       ['👏 押したスタンプ', cs.me.s || 0, cs.avg.s, function (v) { return (v % 1 ? v.toFixed(1) : fmt(v)) + '個'; }, 'Discord・これまで']
     );
     $('cmp').innerHTML = cards.map(function (c) {
