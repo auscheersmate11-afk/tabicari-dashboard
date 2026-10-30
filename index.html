@@ -160,6 +160,47 @@ h1 span { display: inline-block; }
 .fix li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 .fix .rows { font: 600 12px var(--font-num); color: var(--muted); }
 
+/* みんなへの貢献ランキング（Discord） */
+.ctb { display: grid; gap: 16px; background: linear-gradient(160deg, var(--surface) 55%, var(--yellow-soft)); }
+.ctb .rk-tools { margin-top: 0; }
+#ctbBody { display: grid; gap: 14px; }
+.ctb-total { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 14px; font-weight: 900; color: var(--head); }
+.ctb-total .big { font-size: 24px; line-height: 1; }
+.ctb-total b { font: 700 20px var(--font-num); color: var(--head); margin: 0 2px; }
+.podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; padding-top: 26px; }
+.pod { position: relative; display: grid; justify-items: center; align-content: end; text-align: center; gap: 4px; padding: 16px 8px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); animation: rise .7s cubic-bezier(.2, 1.3, .4, 1) both; }
+.pod.p1 { padding-top: 30px; padding-bottom: 22px; border-color: var(--yellow); background: linear-gradient(180deg, var(--yellow-soft), var(--surface) 75%); box-shadow: 0 6px 0 rgba(253, 200, 5, .35); }
+.pod.p2 { animation-delay: .12s; } .pod.p3 { animation-delay: .24s; }
+.pod .crown { position: absolute; top: -24px; font-size: 28px; line-height: 1; animation: bob 2.6s ease-in-out infinite; }
+.pod .medal { font-size: 34px; line-height: 1; }
+.pod.p1 .medal { font-size: 44px; }
+.pod .nm { font-size: 14px; line-height: 1.3; word-break: auto-phrase; }
+.pod .pt { font: 700 30px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.pod.p1 .pt { font-size: 40px; color: var(--gold-ink); }
+.pod .pt span { font: 700 12px var(--font-jp); color: var(--muted); margin-left: 2px; }
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+.chip2 { display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); font: 700 12px var(--font-num); color: var(--ink); white-space: nowrap; }
+.clist { display: grid; gap: 6px; }
+.crow { display: grid; grid-template-columns: 30px minmax(6em, 10em) minmax(0, 1fr) auto 5.5em; grid-template-areas: "rk nm bar chips pt"; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); animation: fade .5s ease both; }
+.crow .rank { grid-area: rk; margin: 0; }
+.crow .nm { grid-area: nm; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crow .cbar { grid-area: bar; height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+.crow .cbar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--sky), #8cc2ee); }
+.crow .chips { grid-area: chips; justify-content: flex-end; }
+.crow .pt { grid-area: pt; text-align: right; font: 700 18px var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.crow .pt span { font: 700 11.5px var(--font-jp); color: var(--muted); margin-left: 2px; }
+.pod.sel, .crow.sel { outline: 2px solid var(--sky); outline-offset: 1px; }
+.ctb-note { font-size: 11.5px; color: var(--muted); }
+@media (max-width: 600px) {
+  .podium { gap: 6px; } .pod { padding-left: 4px; padding-right: 4px; } .pod .pt { font-size: 24px; } .pod.p1 .pt { font-size: 30px; } .pod .medal { font-size: 28px; } .pod.p1 .medal { font-size: 36px; }
+  .crow { grid-template-columns: 26px minmax(0, 1fr) auto; grid-template-areas: "rk nm pt" ". chips chips"; row-gap: 4px; }
+  .crow .cbar { display: none; } .crow .chips { justify-content: flex-start; }
+}
+@keyframes rise { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-5px) rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .pod, .crow, .pod .crown { animation: none; } }
+
 /* ランキング */
 .rk-tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 12px; }
 .rk-tools input[type=search] { flex: 1 1 200px; max-width: 280px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 7px 12px; font-size: 14px; }
@@ -264,6 +305,21 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
     <div class="card fix" id="fix"></div>
   </section>
 
+  <section class="sec" aria-labelledby="ctbH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+      <h2 id="ctbH">みんなへの貢献ランキング</h2><span class="badge zero" id="ctbBadge">0</span>
+      <span class="scope" id="ctbScope">Discord</span>
+    </div>
+    <div class="card ctb" id="ctb">
+      <div class="rk-tools">
+        <div class="seg2" role="group" aria-label="期間" id="ctbMode"><button type="button" data-v="all">これまで</button><button type="button" data-v="7">直近7日</button></div>
+        <div class="seg2" role="group" aria-label="並び順" id="ctbSort"><button type="button" data-k="pt">🏆 貢献ポイント</button><button type="button" data-k="c">💬 コメント</button><button type="button" data-k="s">👏 スタンプ</button><button type="button" data-k="g">🎁 もらった</button></div>
+      </div>
+      <div id="ctbBody"><div class="empty">読み込み中…</div></div>
+    </div>
+  </section>
+
   <section class="sec" aria-labelledby="rkH">
     <div class="sec-h">
       <span class="ic"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>
@@ -311,7 +367,7 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
     </div>
   </section>
 
-  <p class="foot" id="foot">数字は共有顧客リストの「顧客リスト」タブから、このページを開いたときに読み込んでいます。ユーザー名などの個人の情報はこのページには表示しません。</p>
+  <p class="foot" id="foot">数字は共有顧客リストの「顧客リスト」タブから、このページを開いたときに読み込んでいます（みんなへの貢献はDiscordの数・毎朝更新）。ユーザー名などの個人の情報はこのページには表示しません。</p>
 </div>
 
 <script>
@@ -427,6 +483,9 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
 
   // ===== 状態 =====
   var S = { rows: [], period: 'all', who: '', sortKey: 'sent', sortDir: -1, q: '', showAll: false, demo: false };
+  // みんなへの貢献（Discord）。個別専用ページと同じ me/community.json（~/cm-discord-archive/tabi_community.py が毎朝作る）
+  var COMM_URL = 'me/community.json';
+  var CT = { data: null, err: false, mode: 'all', sort: 'pt' };
   try { var saved = JSON.parse(localStorage.getItem('tc-shared-dash') || '{}'); if (saved.period) S.period = saved.period; } catch (e) {}
   function save() { try { localStorage.setItem('tc-shared-dash', JSON.stringify({ period: S.period })); } catch (e) {} }
 
@@ -634,6 +693,57 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
     $('stgTbl').innerHTML = html + ref + '</tbody>';
   }
 
+  // ===== みんなへの貢献ランキング =====
+  function normKey(n) {
+    return String(n || '').normalize('NFKC').replace(/\([^)]*\)/g, '').replace(/\s+/g, '').replace(/髙/g, '高').replace(/﨑/g, '崎').toLowerCase();
+  }
+  function loadContrib() {
+    fetch(COMM_URL + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('http_' + r.status); return r.json(); })
+      .then(function (j) { CT.data = j; CT.err = false; renderContrib(); })
+      .catch(function () { CT.err = true; renderContrib(); });
+  }
+  function renderContrib() {
+    var wk = CT.mode === '7';
+    if (wk && CT.sort === 'g') CT.sort = 'pt';   // もらったスタンプは「これまで」だけ
+    Array.prototype.forEach.call($('ctbMode').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === CT.mode)); });
+    Array.prototype.forEach.call($('ctbSort').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === CT.sort)); b.hidden = wk && b.dataset.k === 'g'; });
+    $('ctbScope').textContent = 'Discord・' + (wk ? '直近7日' : 'これまで');
+    var body = $('ctbBody'), badge = $('ctbBadge');
+    if (!CT.data) { body.innerHTML = '<div class="empty">' + (CT.err ? 'Discordの数を読み込めませんでした' : '読み込み中…') + '</div>'; badge.textContent = 0; badge.className = 'badge zero'; return; }
+    var key = CT.sort, unit = { pt: 'pt', c: '回', s: '個', g: '個' }[key];
+    var ppl = Object.keys(CT.data.people || {}).map(function (t) {
+      var p = CT.data.people[t], c = (wk ? p.cw : p.c) || 0, st = (wk ? p.sw : p.s) || 0;
+      return { name: p.n || '', c: c, s: st, g: wk ? null : (p.g || 0), pt: c + st };
+    }).filter(function (p) { return p.name && (p.pt > 0 || p.g > 0); });
+    ppl.sort(function (a, b) { return (b[key] - a[key]) || (b.pt - a.pt) || a.name.localeCompare(b.name, 'ja'); });
+    var prev = null, rank = 0;
+    ppl.forEach(function (p, i) { if (p[key] !== prev) rank = i + 1; p.rank = rank; prev = p[key]; });   // 同じ数は同じ順位
+    badge.textContent = ppl.length; badge.className = 'badge' + (ppl.length ? '' : ' zero');
+    if (!ppl.length) { body.innerHTML = '<div class="empty">この期間のコメント・スタンプはまだありません</div>'; return; }
+    var selKey = S.who ? normKey(S.who) : '';
+    function sel(p) { return selKey && normKey(p.name) === selKey ? ' sel' : ''; }
+    function chips(p) { return '<span class="chip2">💬 ' + fmt(p.c) + '</span><span class="chip2">👏 ' + fmt(p.s) + '</span>' + (p.g === null ? '' : '<span class="chip2">🎁 ' + fmt(p.g) + '</span>'); }
+    var medal = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    var top = ppl.slice(0, 3), order = [top[1], top[0], top[2]].filter(Boolean);
+    var tc = ppl.reduce(function (a, p) { return a + p.c; }, 0), ts = ppl.reduce(function (a, p) { return a + p.s; }, 0);
+    var max = ppl[0][key] || 1, up = CT.data.updated ? new Date(CT.data.updated) : null;
+    body.innerHTML =
+      '<div class="ctb-total"><span class="big">🎉</span><span>チーム合計</span><span>💬<b>' + fmt(tc) + '</b>コメント</span><span>👏<b>' + fmt(ts) + '</b>スタンプ</span></div>' +
+      '<div class="podium" style="grid-template-columns:repeat(' + order.length + ',minmax(0,1fr))">' + order.map(function (p) {
+        var i = ppl.indexOf(p);
+        return '<div class="pod p' + (i + 1) + sel(p) + '">' + (i === 0 ? '<span class="crown" aria-hidden="true">👑</span>' : '') +
+          '<span class="medal" aria-label="' + p.rank + '位">' + (medal[p.rank] || p.rank) + '</span><span class="nm">' + esc(p.name) + '</span>' +
+          '<span class="pt">' + fmt(p[key]) + '<span>' + unit + '</span></span><div class="chips">' + chips(p) + '</div></div>';
+      }).join('') + '</div>' +
+      (ppl.length > 3 ? '<div class="clist">' + ppl.slice(3).map(function (p, j) {
+        return '<div class="crow' + sel(p) + '" style="animation-delay:' + Math.min(j * 0.04, 0.6).toFixed(2) + 's"><span class="rank">' + p.rank + '</span><span class="nm">' + esc(p.name) + '</span>' +
+          '<span class="cbar"><span style="width:' + (p[key] / max * 100).toFixed(1) + '%"></span></span><div class="chips">' + chips(p) + '</div>' +
+          '<span class="pt">' + fmt(p[key]) + '<span>' + unit + '</span></span></div>';
+      }).join('') + '</div>' : '') +
+      '<div class="ctb-note">🏆 貢献ポイント＝💬コメント＋👏押したスタンプ（旅キャリDMチームのDiscord）。毎朝更新' +
+      (up ? '（' + (up.getMonth() + 1) + '/' + up.getDate() + ' ' + pad(up.getHours()) + ':' + pad(up.getMinutes()) + ' 時点）' : '') + '</div>';
+  }
+
   function render() {
     Array.prototype.forEach.call($('segPeriod').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.period)); });
     var people = peopleStats();
@@ -648,6 +758,7 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
     renderKV(c);
     renderTiles(c, people);
     renderFix();
+    renderContrib();
     renderRank(people, total);
     renderChart();
     renderStage(c);
@@ -666,6 +777,7 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
   }
   function load() {
     S.demo = false;
+    loadContrib();
     setChip('', '読み込み中…');
     fetch(CSV_URL + '&_=' + Date.now(), { cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('http_' + res.status);
@@ -705,6 +817,8 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
   });
   $('rkSearch').addEventListener('input', function () { S.q = this.value; render(); });
   $('rkMore').onclick = function () { S.showAll = !S.showAll; render(); };
+  $('ctbMode').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { CT.mode = b.dataset.v; renderContrib(); } });
+  $('ctbSort').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { CT.sort = b.dataset.k; renderContrib(); } });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(renderChart, 150); });
 
   if (/[?&]demo=1/.test(location.search)) useDemo(); else load();

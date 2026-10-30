@@ -884,7 +884,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
         if (i < 0) {
           // リストにもLINE案内にも名前がまだ無い人：Discordの集計に入っていれば「あなた」で開く（DMを送ってリストに名前が入ると名前で出る）
           var inComm = S.comm && S.comm.people && S.comm.people[want];
-          S.me = ''; S.meKey = inComm ? '#' + want : '';
+          S.me = inComm ? inComm.n || '' : ''; S.meKey = inComm ? '#' + want : '';
           show(!!inComm); return;
         }
         S.meKey = order[i]; S.me = names[order[i]];
