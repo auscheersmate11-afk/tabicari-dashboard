@@ -168,11 +168,33 @@ h1 span { display: inline-block; }
 .ctb-total .big { font-size: 24px; line-height: 1; }
 .ctb-total b { font: 700 20px var(--font-num); color: var(--head); margin: 0 2px; }
 .podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; padding-top: 26px; }
-.pod { position: relative; display: grid; justify-items: center; align-content: end; text-align: center; gap: 4px; padding: 16px 8px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); animation: rise .7s cubic-bezier(.2, 1.3, .4, 1) both; }
+.pod { position: relative; display: grid; justify-items: center; align-content: end; text-align: center; gap: 4px; padding: 16px 8px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .pod.p1 { padding-top: 30px; padding-bottom: 22px; border-color: var(--yellow); background: linear-gradient(180deg, var(--yellow-soft), var(--surface) 75%); box-shadow: 0 6px 0 rgba(253, 200, 5, .35); }
-.pod.p2 { animation-delay: .12s; } .pod.p3 { animation-delay: .24s; }
+.podium { position: relative; }
+.pod.p1 { animation: glow 2.4s ease-in-out infinite; }
+.pod.p2 { animation: floaty 3.4s ease-in-out infinite; } .pod.p3 { animation: floaty 3.4s ease-in-out .5s infinite; }
+.podium.go .pod.p1 { animation: rise .7s cubic-bezier(.2, 1.3, .4, 1) both, glow 2.4s ease-in-out .8s infinite; }
+.podium.go .pod.p2 { animation: rise .7s cubic-bezier(.2, 1.3, .4, 1) .12s both, floaty 3.4s ease-in-out .9s infinite; }
+.podium.go .pod.p3 { animation: rise .7s cubic-bezier(.2, 1.3, .4, 1) .24s both, floaty 3.4s ease-in-out 1.3s infinite; }
+.pod .shine { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
+.pod .shine::before { content: ""; position: absolute; top: -50%; left: -70%; width: 45%; height: 200%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent); transform: rotate(20deg); animation: sweep 3.8s ease-in-out infinite; }
+.pod.p2 .shine::before { animation-delay: 1.2s; } .pod.p3 .shine::before { animation-delay: 2.4s; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pod .shine::before { opacity: .22; } }
+:root[data-theme="dark"] .pod .shine::before { opacity: .22; }
+.pod .spark { position: absolute; font-size: 15px; line-height: 1; pointer-events: none; animation: twinkle 2.2s ease-in-out infinite; }
+.pod .spark.s1 { top: 12px; left: 10px; } .pod .spark.s2 { top: 44px; right: 10px; animation-delay: .55s; font-size: 12px; }
+.pod .spark.s3 { bottom: 40px; left: 12px; animation-delay: 1.1s; font-size: 12px; } .pod .spark.s4 { bottom: 14px; right: 14px; animation-delay: 1.65s; }
+.confetti { position: absolute; left: 0; right: 0; top: 0; height: 0; pointer-events: none; z-index: 5; }
+.confetti i { position: absolute; top: 8px; width: 8px; height: 12px; border-radius: 2px; opacity: 0; animation: cf 2s cubic-bezier(.2, .7, .4, 1) forwards; }
+@keyframes cf { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 25% { opacity: 1; transform: translate(calc(var(--x) * .5), -70px) rotate(calc(var(--r) * .3)); } 100% { opacity: 0; transform: translate(var(--x), 260px) rotate(var(--r)); } }
+@keyframes glow { 0%, 100% { box-shadow: 0 6px 0 rgba(253, 200, 5, .35), 0 0 0 0 rgba(253, 200, 5, 0); } 50% { box-shadow: 0 6px 0 rgba(253, 200, 5, .35), 0 0 0 9px rgba(253, 200, 5, .2); } }
+@keyframes floaty { 0%, 100% { transform: none; } 50% { transform: translateY(-4px); } }
+@keyframes swing { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
+@keyframes sweep { 0% { left: -70%; } 55%, 100% { left: 140%; } }
+@keyframes twinkle { 0%, 100% { transform: scale(0) rotate(0); opacity: 0; } 50% { transform: scale(1) rotate(35deg); opacity: 1; } }
 .pod .crown { position: absolute; top: -24px; font-size: 28px; line-height: 1; animation: bob 2.6s ease-in-out infinite; }
-.pod .medal { font-size: 34px; line-height: 1; }
+.pod .medal { display: inline-block; font-size: 34px; line-height: 1; transform-origin: 50% 0; animation: swing 2.4s ease-in-out infinite; }
+.pod.p2 .medal { animation-delay: .4s; } .pod.p3 .medal { animation-delay: .8s; }
 .pod.p1 .medal { font-size: 44px; }
 .pod .nm { font-size: 14px; line-height: 1.3; word-break: auto-phrase; }
 .pod .pt { font: 700 30px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
@@ -196,10 +218,30 @@ h1 span { display: inline-block; }
   .crow { grid-template-columns: 26px minmax(0, 1fr) auto; grid-template-areas: "rk nm pt" ". chips chips"; row-gap: 4px; }
   .crow .cbar { display: none; } .crow .chips { justify-content: flex-start; }
 }
-@keyframes rise { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes rise { 0% { transform: translateY(26px) scale(.94); } 70% { transform: translateY(-4px) scale(1.02); } 100% { transform: none; } }   /* 透明にはしない（動きが止まっても見えるように） */
+@keyframes fade { from { transform: translateY(8px); } to { transform: none; } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-5px) rotate(6deg); } }
-@media (prefers-reduced-motion: reduce) { .pod, .crow, .pod .crown { animation: none; } }
+/* グループ別 */
+.grp-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 15.5px; font-weight: 900; color: var(--head); margin-top: 6px; }
+.grp-h small { font-size: 12px; font-weight: 700; color: var(--muted); }
+.grp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding-top: 8px; }
+@media (max-width: 760px) { .grp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grp { padding: 12px 10px; } .grp .gt { gap: 6px; } .grp .gl { width: 26px; height: 26px; font-size: 13px; border-radius: 8px; } .grp .gn { font-size: 13.5px; } }
+.grp { position: relative; display: grid; gap: 8px; align-content: start; padding: 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); animation: fade .5s ease both; }
+.grp.top { border-color: var(--yellow); background: linear-gradient(180deg, var(--yellow-soft), var(--surface) 70%); }
+.grp .gt { display: flex; align-items: center; gap: 8px; }
+.grp .gl { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: var(--navy); color: var(--bg); font: 700 15px var(--font-num); flex: none; }
+.grp .gn { font-weight: 900; color: var(--head); font-size: 14.5px; white-space: nowrap; }
+.grp .gc { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+.grp .gcrown { position: absolute; top: -15px; right: 10px; font-size: 22px; line-height: 1; animation: bob 2.6s ease-in-out infinite; }
+.grp .gv { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; font-size: 12px; color: var(--muted); font-weight: 700; }
+.grp .gv b { font: 700 24px var(--font-num); color: var(--head); margin: 0 2px; }
+.grp .gp { font-size: 12px; color: var(--muted); font-weight: 700; }
+.grp .gp b { font: 700 15px var(--font-num); color: var(--gold-ink); }
+.grp .gm { font-size: 11.5px; color: var(--muted); line-height: 1.5; word-break: auto-phrase; }
+@media (prefers-reduced-motion: reduce) {
+  .pod, .podium.go .pod, .crow, .pod .crown, .pod .medal, .pod .spark, .pod .shine::before, .grp, .grp .gcrown { animation: none !important; }
+  .pod .spark, .confetti { display: none; }
+}
 
 /* ランキング */
 .rk-tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 12px; }
@@ -485,7 +527,7 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
   var S = { rows: [], period: 'all', who: '', sortKey: 'sent', sortDir: -1, q: '', showAll: false, demo: false };
   // みんなへの貢献（Discord）。個別専用ページと同じ me/community.json（~/cm-discord-archive/tabi_community.py が毎朝作る）
   var COMM_URL = 'me/community.json';
-  var CT = { data: null, err: false, mode: 'all', sort: 'pt' };
+  var CT = { data: null, err: false, mode: 'all', sort: 'pt', burst: false, lastWho: null };   // burst＝次の描画で表彰台を盛り上げる
   try { var saved = JSON.parse(localStorage.getItem('tc-shared-dash') || '{}'); if (saved.period) S.period = saved.period; } catch (e) {}
   function save() { try { localStorage.setItem('tc-shared-dash', JSON.stringify({ period: S.period })); } catch (e) {} }
 
@@ -699,11 +741,12 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
   }
   function loadContrib() {
     fetch(COMM_URL + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('http_' + r.status); return r.json(); })
-      .then(function (j) { CT.data = j; CT.err = false; renderContrib(); })
+      .then(function (j) { CT.data = j; CT.err = false; CT.burst = true; renderContrib(); })
       .catch(function () { CT.err = true; renderContrib(); });
   }
   function renderContrib() {
-    var wk = CT.mode === '7';
+    var wk = CT.mode === '7', go = CT.burst;
+    CT.burst = false; CT.lastWho = S.who;
     if (wk && CT.sort === 'g') CT.sort = 'pt';   // もらったスタンプは「これまで」だけ
     Array.prototype.forEach.call($('ctbMode').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === CT.mode)); });
     Array.prototype.forEach.call($('ctbSort').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === CT.sort)); b.hidden = wk && b.dataset.k === 'g'; });
@@ -731,17 +774,78 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
       '<div class="ctb-total"><span class="big">🎉</span><span>チーム合計</span><span>💬<b>' + fmt(tc) + '</b>コメント</span><span>👏<b>' + fmt(ts) + '</b>スタンプ</span></div>' +
       '<div class="podium" style="grid-template-columns:repeat(' + order.length + ',minmax(0,1fr))">' + order.map(function (p) {
         var i = ppl.indexOf(p);
-        return '<div class="pod p' + (i + 1) + sel(p) + '">' + (i === 0 ? '<span class="crown" aria-hidden="true">👑</span>' : '') +
+        var sp = (i === 0 ? ['s1', 's2', 's3', 's4'] : ['s1', 's4']).map(function (c) { return '<span class="spark ' + c + '" aria-hidden="true">✨</span>'; }).join('');
+        return '<div class="pod p' + (i + 1) + sel(p) + '"><span class="shine" aria-hidden="true"></span>' + sp + (i === 0 ? '<span class="crown" aria-hidden="true">👑</span>' : '') +
           '<span class="medal" aria-label="' + p.rank + '位">' + (medal[p.rank] || p.rank) + '</span><span class="nm">' + esc(p.name) + '</span>' +
-          '<span class="pt">' + fmt(p[key]) + '<span>' + unit + '</span></span><div class="chips">' + chips(p) + '</div></div>';
+          '<span class="pt"><span class="cu" data-to="' + p[key] + '" style="font:inherit;color:inherit;margin:0">' + fmt(p[key]) + '</span><span>' + unit + '</span></span><div class="chips">' + chips(p) + '</div></div>';
       }).join('') + '</div>' +
       (ppl.length > 3 ? '<div class="clist">' + ppl.slice(3).map(function (p, j) {
         return '<div class="crow' + sel(p) + '" style="animation-delay:' + Math.min(j * 0.04, 0.6).toFixed(2) + 's"><span class="rank">' + p.rank + '</span><span class="nm">' + esc(p.name) + '</span>' +
           '<span class="cbar"><span style="width:' + (p[key] / max * 100).toFixed(1) + '%"></span></span><div class="chips">' + chips(p) + '</div>' +
           '<span class="pt">' + fmt(p[key]) + '<span>' + unit + '</span></span></div>';
-      }).join('') + '</div>' : '') +
+      }).join('') + '</div>' : '') + groupsHtml(wk) +
       '<div class="ctb-note">🏆 貢献ポイント＝💬コメント＋👏押したスタンプ（旅キャリDMチームのDiscord）。毎朝更新' +
       (up ? '（' + (up.getMonth() + 1) + '/' + up.getDate() + ' ' + pad(up.getHours()) + ':' + pad(up.getMinutes()) + ' 時点）' : '') + '</div>';
+    if (go) celebrate(body.querySelector('.podium'));
+  }
+  // 目標達成グループごとの合計（メンバー＝部屋に入っている人。community.json の groups）
+  function groupsHtml(wk) {
+    var gs = (CT.data.groups || []).map(function (g) {
+      var mem = g.m.map(function (t) { return CT.data.people[t]; }).filter(Boolean);
+      var c = mem.reduce(function (a, p) { return a + ((wk ? p.cw : p.c) || 0); }, 0), st = mem.reduce(function (a, p) { return a + ((wk ? p.sw : p.s) || 0); }, 0);
+      var letter = (g.name.split(/[_＿]/)[1] || g.name).toUpperCase();
+      return { letter: letter, n: mem.length, c: c, s: st, avg: mem.length ? (c + st) / mem.length : 0, names: mem.map(function (p) { return p.n; }) };
+    }).filter(function (g) { return g.n; });
+    if (!gs.length) return '';
+    var best = Math.max.apply(null, gs.map(function (g) { return g.avg; }));
+    return '<div class="grp-h">🤝 グループ別<small>👑＝1人あたりの貢献ポイントがいちばん多いグループ</small></div><div class="grp-grid">' + gs.map(function (g, i) {
+      var top = best > 0 && g.avg === best;
+      return '<div class="grp' + (top ? ' top' : '') + '" style="animation-delay:' + (i * 0.08).toFixed(2) + 's">' + (top ? '<span class="gcrown" aria-hidden="true">👑</span>' : '') +
+        '<div class="gt"><span class="gl">' + esc(g.letter) + '</span><span class="gn">グループ' + esc(g.letter) + '</span><span class="gc">' + g.n + '人</span></div>' +
+        '<div class="gv"><span>💬<b>' + fmt(g.c) + '</b>コメント</span><span>👏<b>' + fmt(g.s) + '</b>スタンプ</span></div>' +
+        '<div class="gp">1人あたり <b>' + g.avg.toFixed(1) + '</b>pt</div><div class="gm">' + g.names.map(esc).join('・') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  // 表彰台が画面に入ったら：せり上がる・紙吹雪・数が増える
+  function celebrate(podium) {
+    if (!podium) return;
+    var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function run() {
+      if (still) return;
+      podium.classList.add('go');
+      Array.prototype.forEach.call(podium.querySelectorAll('.cu'), countUp);
+      var box = document.createElement('div'), cols = ['#fdc805', '#ffdc5c', '#2f86d6', '#8cc2ee', '#031147'];
+      box.className = 'confetti';
+      for (var i = 0; i < 44; i++) {
+        var e = document.createElement('i');
+        e.style.left = (30 + Math.random() * 40).toFixed(1) + '%';
+        e.style.background = cols[i % cols.length];
+        e.style.setProperty('--x', Math.round(Math.random() * 300 - 150) + 'px');
+        e.style.setProperty('--r', Math.round(Math.random() * 720 - 360) + 'deg');
+        e.style.animationDelay = (Math.random() * 0.35).toFixed(2) + 's';
+        e.style.animationDuration = (1.6 + Math.random() * 0.9).toFixed(2) + 's';
+        if (i % 3 === 0) e.style.borderRadius = '50%';
+        box.appendChild(e);
+      }
+      podium.appendChild(box);
+      setTimeout(function () { box.remove(); }, 3400);
+    }
+    if (!('IntersectionObserver' in window)) { run(); return; }
+    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); run(); } }, { threshold: 0.35 });
+    io.observe(podium);
+  }
+  function countUp(el) {
+    var to = +el.dataset.to;
+    el.textContent = fmt(to);   // 動きが止まっても正しい数が出ているように
+    if (!to || document.hidden) return;
+    requestAnimationFrame(function (t0) {
+      (function step(t) {
+        var p = Math.min(1, (t - t0) / 900);
+        el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(step); else el.textContent = fmt(to);
+      })(t0);
+    });
+    setTimeout(function () { el.textContent = fmt(to); }, 1300);
   }
 
   function render() {
@@ -758,7 +862,7 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
     renderKV(c);
     renderTiles(c, people);
     renderFix();
-    renderContrib();
+    if (CT.lastWho !== S.who) renderContrib();   // 担当者の選択が変わったときだけ（読み込みのたびに表彰台を描き直さない）
     renderRank(people, total);
     renderChart();
     renderStage(c);
@@ -817,8 +921,8 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
   });
   $('rkSearch').addEventListener('input', function () { S.q = this.value; render(); });
   $('rkMore').onclick = function () { S.showAll = !S.showAll; render(); };
-  $('ctbMode').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { CT.mode = b.dataset.v; renderContrib(); } });
-  $('ctbSort').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { CT.sort = b.dataset.k; renderContrib(); } });
+  $('ctbMode').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { CT.mode = b.dataset.v; CT.burst = true; renderContrib(); } });
+  $('ctbSort').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { CT.sort = b.dataset.k; CT.burst = true; renderContrib(); } });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(renderChart, 150); });
 
   if (/[?&]demo=1/.test(location.search)) useDemo(); else load();
