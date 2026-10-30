@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Noto+Sans+JP:wght@900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
 <style>
 /* 担当者ひとり分のページ。?p=<トークン> で本人を決める（トークン＝名前から作るハッシュ。make_links.py と同じ計算）。
-   KV＝送信→成約の旅程、いまの状況、次にやること、日別、メッセージ別、チームとの比べ。 */
+   KV＝送信→成約の旅程、いまの状況（遅れ・目標まで・1日のペース）、みんなへの貢献、日別、メッセージ別、チームとの比べ。 */
 :root {
   --bg: #f3f6fb; --surface: #ffffff; --ink: #101a38; --muted: #5b6886; --line: #dde4f0;
   --navy: #031147; --head: #0b1d5c; --sky: #2f86d6; --sky-soft: #e6f0fb;
@@ -151,23 +151,27 @@ h1 span { display: inline-block; }
 .sec-h .ic { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--navy); color: var(--bg); flex: none; }
 .sec-h .ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .sec-h h2 { font-size: 20px; font-weight: 900; color: var(--head); }
-.badge { display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 8px; border-radius: 999px; background: var(--yellow); color: #031147; font: 700 14px var(--font-num); }
-.badge.zero { background: var(--line); color: var(--muted); }
 .sec-h .scope { margin-left: auto; font-size: 12.5px; color: var(--muted); font-weight: 700; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
 .card h3 { font-size: 16.5px; font-weight: 900; color: var(--head); }
 .card .sub { font-size: 12.5px; color: var(--muted); }
 
-/* いまの状況 */
-.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.tile { display: grid; gap: 4px; align-content: start; }
-.tile .k { font-size: 12.5px; color: var(--muted); font-weight: 700; }
-.tile .v { font: 700 36px/1.05 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
-.tile .v span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 3px; }
-.tile .d { font-size: 12px; color: var(--muted); }
-.tile .d b { font-family: var(--font-num); color: var(--ink); }
-.tile.hot { background: var(--yellow-soft); border-color: var(--yellow); }
+/* いまの状況：遅れ・目標まで・1日のペース */
+.pace { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
+@media (max-width: 760px) { .pace { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pace-cell.main { grid-column: 1 / -1; } }
+.pace-cell { display: grid; gap: 4px; align-content: start; }
+.pace-cell .k { font-size: 13.5px; color: var(--muted); font-weight: 900; }
+.pace-cell .v { font: 700 44px/1.05 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.pace-cell .v span { font: 900 15px var(--font-jp); color: var(--muted); margin-left: 4px; }
+.pace-cell .d { font-size: 12.5px; color: var(--muted); font-weight: 700; word-break: auto-phrase; }
+.pace-cell .d b { font-family: var(--font-num); font-size: 14.5px; color: var(--ink); }
+.pace-cell.main .v { font-size: 64px; line-height: 1; }
+.pace-cell.main .v span { font-size: 19px; color: inherit; }
+.pace-cell.behind .v { color: var(--warn); }
+.pace-cell.ahead .v { color: var(--ok); }
+.pace-cell.main.behind { background: var(--warn-soft); border-color: var(--warn); }
+.pace-cell.main.ahead { background: var(--ok-soft); border-color: var(--ok); }
+.pace-cell.main .k, .pace-cell.main .d { color: var(--ink); }
 
 /* みんなへの貢献 */
 .ctb { display: grid; gap: 16px; background: linear-gradient(135deg, var(--surface) 55%, var(--yellow-soft)); }
@@ -194,39 +198,23 @@ h1 span { display: inline-block; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .ctb-tile .emo, .ctb-fav .bub { animation: none; } }
 
-/* 月の目標 */
-.goal { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); margin-bottom: 16px; }
-.goal-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.goal-top .k { font-size: 13px; font-weight: 900; color: var(--head); }
-.goal-top .n { font: 700 34px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
-.goal-top .n small { font: 700 16px var(--font-num); color: var(--muted); }
-.goal-top .pc { font: 700 16px var(--font-num); color: var(--gold-ink); }
-.goal-top .tag { margin-left: auto; padding: 3px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 900; background: var(--sky-soft); color: var(--sky); }
-.goal-top .tag.ok { background: var(--ok-soft); color: var(--ok); }
-.goal-bar { position: relative; height: 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+/* 目標までの進み具合 */
+.goal { display: grid; gap: 10px; }
+.goal-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.goal-top .k { font-size: 14px; font-weight: 900; color: var(--head); }
+.goal-top .n { font: 700 24px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.goal-top .n small { font: 700 14px var(--font-num); color: var(--muted); }
+.goal-top .pc { font: 700 16px var(--font-num); color: var(--gold-ink); margin-left: 8px; }
+.goal-bar { position: relative; height: 16px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); }
 .goal-bar .fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; background: linear-gradient(90deg, var(--yellow), #ffdc5c); }
 .goal-bar .mark { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--navy); }
-.goal-sub { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.goal-sub { font-size: 12.5px; color: var(--muted); font-weight: 700; }
 .goal-sub b { font-family: var(--font-num); color: var(--ink); font-size: 14.5px; }
-.goal-note { font-size: 11px; color: var(--muted); line-height: 1.5; word-break: auto-phrase; }
 .goal-sub i { display: inline-block; width: 3px; height: 12px; border-radius: 2px; background: var(--navy); vertical-align: -1px; margin-right: 5px; }
+.goal-note { font-size: 11px; color: var(--muted); line-height: 1.5; word-break: auto-phrase; }
+.goal-warn { font-size: 12.5px; font-weight: 700; color: var(--warn); }
 .chart .goal-line { stroke: var(--gold-ink); stroke-width: 1.5; stroke-dasharray: 6 4; }
 .chart .goal-lbl { font-weight: 700; fill: var(--gold-ink); }
-
-/* 次にやること */
-.todo { display: grid; gap: 10px; }
-.todo-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; }
-.todo-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--sky-soft); color: var(--sky); }
-.todo-item.warn .todo-ic { background: var(--warn-soft); color: var(--warn); }
-.todo-item.ok .todo-ic { background: var(--ok-soft); color: var(--ok); }
-.todo-ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.todo-item h3 { font-size: 15.5px; }
-.todo-item .n { font: 700 30px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
-.todo-item .n span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 2px; }
-.rows { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-.rows a { display: inline-block; padding: 2px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font: 700 12.5px var(--font-num); color: var(--head); text-decoration: none; }
-.rows a:hover { border-color: var(--sky); }
-.rows .more { font-size: 12px; color: var(--muted); align-self: center; }
 
 /* 日別 */
 .chart-h { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; }
@@ -327,7 +315,8 @@ td.z .c { color: var(--muted); font-weight: 500; }
       <h2 id="nowH">いまの状況</h2>
       <span class="scope" id="nowScope"></span>
     </div>
-    <div class="tiles" id="tiles"></div>
+    <div class="pace" id="pace"></div>
+    <div class="card goal" id="goal"></div>
   </section>
 
   <section class="sec" aria-labelledby="ctbH">
@@ -339,14 +328,6 @@ td.z .c { color: var(--muted); font-weight: 500; }
     <div class="card ctb" id="ctb"></div>
   </section>
 
-  <section class="sec" aria-labelledby="todoH">
-    <div class="sec-h">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span>
-      <h2 id="todoH">次にやること</h2><span class="badge zero" id="todoBadge">0</span>
-    </div>
-    <div class="card todo" id="todo"></div>
-  </section>
-
   <section class="sec" aria-labelledby="dayH">
     <div class="sec-h">
       <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
@@ -354,7 +335,6 @@ td.z .c { color: var(--muted); font-weight: 500; }
       <span class="scope">直近14日</span>
     </div>
     <div class="card">
-      <div class="goal" id="goal"></div>
       <div class="chart-h">
         <h3>送った数（棒）と返信（点）</h3>
         <div class="legend"><span><i style="background:var(--sky)"></i>送信</span><span><i style="background:var(--yellow);border-radius:50%"></i>その日に送った分の返信</span><span><i style="height:0;border-top:2px dashed var(--gold-ink);border-radius:0;width:14px"></i>目標ペース</span></div>
@@ -468,7 +448,6 @@ td.z .c { color: var(--muted); font-weight: 500; }
     if (/希望しない|しない|[×✕✖]|^false$|^いいえ$|^no$|^未/i.test(v)) return false;
     return /[◯○〇✓✔☑]|^true$|済|希望する|^はい$|^yes$|^あり$|^有$|^1$/i.test(v);
   }
-  function no(v) { return /希望しない|[×✕✖]|^いいえ$/.test(String(v || '').trim()); }
   function isSent(v) {
     v = String(v || '').trim();
     return !!v && !/^未/.test(v) && !/^false$/i.test(v);
@@ -482,7 +461,6 @@ td.z .c { color: var(--muted); font-weight: 500; }
     function find(re, fb) { for (var i = 0; i < head.length; i++) if (re.test(head[i])) return i; return fb; }
     ix.date = find(/^(日付|送信日)$/, 0);
     ix.who = find(/^担当/, 1);
-    ix.user = find(/^ユーザー名$/, 2);
     ix.msg = find(/^(メッセージ|送信)$/, 4);
     STAGES.forEach(function (s, k) { if (s.col) ix[s.key] = find(s.col, 4 + k); });
     if (head.indexOf('担当者') < 0 && head.indexOf('担当') < 0) throw new Error('bad_sheet');
@@ -491,10 +469,9 @@ td.z .c { color: var(--muted); font-weight: 500; }
       var x = t[r];
       var who = String(x[ix.who] || '').trim(), msg = String(x[ix.msg] || '').trim();
       if (!who) continue;
-      var st = {}, ng = {};
-      STAGES.forEach(function (s) { if (s.col) { st[s.key] = done(x[ix[s.key]]); ng[s.key] = no(x[ix[s.key]]); } });
-      out.push({ row: r + 1, date: normDate(x[ix.date]), who: who, key: normKey(who), hasUser: !!String(x[ix.user] || '').trim(),
-        sent: isSent(msg), msg: msg, st: st, ng: ng });
+      var st = {};
+      STAGES.forEach(function (s) { if (s.col) st[s.key] = done(x[ix[s.key]]); });
+      out.push({ row: r + 1, date: normDate(x[ix.date]), who: who, key: normKey(who), sent: isSent(msg), msg: msg, st: st });
     }
     return out;
   }
@@ -519,11 +496,11 @@ td.z .c { color: var(--muted); font-weight: 500; }
           var st = {}, p = 1, rates = [0, 0.09, 0.6, 0.7, 0.8, 0.5, 0.8, 0.4];
           STAGES.forEach(function (s, si) { if (!si) return; p = p && rnd() < rates[si]; st[s.key] = !!p; });
           if (n === 'みほん' && d < 6 && st.reply && j % 2) { st.cl = false; st.fix = false; st.first = false; st.cl2 = false; st.second = false; st.deal = false; }
-          out.push({ row: 100 + out.length, date: ds, who: n, key: normKey(n), hasUser: true, sent: true, msg: 'ABCD'.charAt(Math.floor(rnd() * 4)), st: st, ng: {} });
+          out.push({ row: 100 + out.length, date: ds, who: n, key: normKey(n), sent: true, msg: 'ABCD'.charAt(Math.floor(rnd() * 4)), st: st });
         }
       });
     }
-    out.push({ row: 999, date: ymd(today), who: 'みほん', key: normKey('みほん'), hasUser: true, sent: false, msg: '未送信', st: {}, ng: {} });
+    out.push({ row: 999, date: ymd(today), who: 'みほん', key: normKey('みほん'), sent: false, msg: '未送信', st: {} });
     return out;
   }
   function demoComm() {
@@ -543,7 +520,6 @@ td.z .c { color: var(--muted); font-weight: 500; }
   function pct(a, b, d) { if (!b) return '—'; return (a / b * 100).toFixed(d == null ? 1 : d) + '%'; }
   function todayStr() { return ymd(new Date()); }
   function minus(days) { return ymd(new Date(Date.now() - (days - 1) * 86400000)); }
-  function mondayOf(off) { var t = new Date(); t.setHours(0, 0, 0, 0); var w = (t.getDay() + 6) % 7; t.setDate(t.getDate() - w + off * 7); return ymd(t); }
 
   function inPeriod(r) {
     if (S.period === 'all') return true;
@@ -574,30 +550,6 @@ td.z .c { color: var(--muted); font-weight: 500; }
       return '<li class="' + cls + '">' + (i ? '<span class="rate">' + rate + '</span>' : '') +
         '<span class="dot">' + (i + 1) + '</span><span class="cnt">' + fmt(v) + '</span><span class="lbl">' + esc(s.label) + '</span>' +
         (i ? '<span class="rate m">' + rate + '</span>' : '') + '</li>';
-    }).join('');
-  }
-
-  function renderTiles(my) {
-    var sent = my.filter(function (r) { return r.sent; });
-    var today = todayStr(), yest = ymd(new Date(Date.now() - 86400000));
-    var w0 = mondayOf(0), w1 = mondayOf(-1);
-    function n(f) { return sent.filter(f).length; }
-    var tToday = n(function (r) { return r.date === today; });
-    var tYest = n(function (r) { return r.date === yest; });
-    var tWeek = n(function (r) { return r.date >= w0 && r.date <= today; });
-    var tLast = n(function (r) { return r.date >= w1 && r.date < w0; });
-    var days = {}; sent.forEach(function (r) { if (r.date) days[r.date] = 1; });
-    var nd = Object.keys(days).length;
-    var reply = sent.filter(function (r) { return r.st.reply; }).length;
-    $('nowScope').textContent = (+today.slice(5, 7)) + '/' + (+today.slice(8)) + ' 時点';
-    var tiles = [
-      ['今日送った数', fmt(tToday), '通', '昨日 <b>' + fmt(tYest) + '</b>通', tToday > 0],
-      ['今週（月曜から）', fmt(tWeek), '通', '先週 <b>' + fmt(tLast) + '</b>通', false],
-      ['これまでの合計', fmt(sent.length), '通', '返信 <b>' + fmt(reply) + '</b>件', false],
-      ['送った日数', fmt(nd), '日', nd ? '1日平均 <b>' + (sent.length / nd).toFixed(1) + '</b>通' : 'まだありません', false]
-    ];
-    $('tiles').innerHTML = tiles.map(function (t) {
-      return '<div class="card tile' + (t[4] ? ' hot' : '') + '"><div class="k">' + t[0] + '</div><div class="v">' + t[1] + '<span>' + t[2] + '</span></div><div class="d">' + t[3] + '</div></div>';
     }).join('');
   }
 
@@ -652,72 +604,52 @@ td.z .c { color: var(--muted); font-weight: 500; }
     Array.prototype.forEach.call(box.querySelectorAll('.cu'), countUp);
   }
 
-  // ===== 月の目標 =====
+  // ===== いまの状況（遅れ・目標まで・1日のペース） =====
   // 目標の期間。ふだんは「その月に500通」。2026年10月だけ特別で、10月の分も11月に入れて「11月末までに500通」
-  // （目安の線は11/1から引く。12月からは毎月500通で、前の月の分は足さない）
+  // （目安の線は送信が始まった10/27から引く。12月からは毎月500通で、前の月の分は足さない）
   function goalPeriod() {
     var t = new Date(); t.setHours(0, 0, 0, 0);
     var y = t.getFullYear(), m = t.getMonth();
     if (y === 2026 && (m === 9 || m === 10))
-      return { today: t, from: new Date(2026, 9, 1), pace: new Date(2026, 10, 1), end: new Date(2026, 10, 30), label: '11月末までの目標', special: true };
+      return { today: t, from: new Date(2026, 9, 1), pace: new Date(2026, 9, 27), end: new Date(2026, 10, 30), label: '11月末までの目標', special: true };
     return { today: t, from: new Date(y, m, 1), pace: new Date(y, m, 1), end: new Date(y, m + 1, 0), label: (m + 1) + '月の目標', special: false };
   }
   function dayDiff(a, b) { return Math.round((b - a) / 86400000); }
   function paceDays(gp) { return dayDiff(gp.pace, gp.end) + 1; }
-  function renderGoal(my) {
-    var gp = goalPeriod(), fromS = ymd(gp.from), endS = ymd(gp.end), before = gp.today < gp.pace;
+  function md(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
+  function signed(v) { return (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1); }
+  function renderNow(my) {
+    var gp = goalPeriod(), fromS = ymd(gp.from), endS = ymd(gp.end), todayS = ymd(gp.today);
     var sent = my.filter(function (r) { return r.sent && r.date && r.date >= fromS && r.date <= endS; }).length;
-    var expect = before ? 0 : Math.round(GOAL * (dayDiff(gp.pace, gp.today) + 1) / paceDays(gp));
-    var diff = sent - expect, remain = Math.max(0, GOAL - sent), remDays = dayDiff(gp.today, gp.end) + 1;
-    var paceStart = (gp.pace.getMonth() + 1) + '/' + gp.pace.getDate();
-    var tag = sent >= GOAL ? ['ok', '目標達成🎉']
-      : before ? (sent ? ['ok', '先取り中 +' + fmt(sent) + '通✨'] : ['', '目安は' + paceStart + 'から'])
-      : diff >= 0 ? ['ok', '目安より +' + fmt(diff) + '通 先行']
-      : ['', '今日の目安まで あと' + fmt(-diff) + '通'];
+    var toDay = my.filter(function (r) { return r.sent && r.date === todayS; }).length;
+    var noDate = my.filter(function (r) { return r.sent && !r.date; }).length;
+    var elapsed = dayDiff(gp.pace, gp.today) + 1;
+    var perDay = +(GOAL / paceDays(gp)).toFixed(1), avg = +(sent / elapsed).toFixed(1);
+    var expect = Math.round(GOAL * elapsed / paceDays(gp));
+    var lag = sent - expect, remain = Math.max(0, GOAL - sent), remDays = dayDiff(gp.today, gp.end) + 1;
+    var gapDay = +(avg - perDay).toFixed(1);
+    $('nowScope').textContent = md(gp.today) + ' 時点';
+
+    var main = sent >= GOAL ? ['ahead', '目標達成！', fmt(sent), '通 🎉', 'おめでとうございます！']
+      : lag < 0 ? ['behind', 'いまの遅れ', fmt(-lag), '通 遅れ', '今日あと <b>' + fmt(-lag) + '</b>通 で追いつきます']
+      : lag > 0 ? ['ahead', '遅れなし！', fmt(lag), '通 先行', 'このペースでいけば目標に届きます']
+      : ['ahead', '遅れなし！', '0', '通', '今日の目安ぴったりです'];
+    function cell(cls, k, v, u, d) { return '<div class="card pace-cell ' + cls + '"><div class="k">' + k + '</div><div class="v">' + v + '<span>' + u + '</span></div><div class="d">' + d + '</div></div>'; }
+    $('pace').innerHTML =
+      cell('main ' + main[0], main[1], main[2], main[3], '今日までの目安 <b>' + fmt(expect) + '</b>通 ／ 送った <b>' + fmt(sent) + '</b>通<br>' + main[4]) +
+      cell('', '目標まであと', fmt(remain), '通', md(gp.end) + 'まで 残り <b>' + remDays + '</b>日') +
+      cell(gapDay < 0 ? 'behind' : gapDay > 0 ? 'ahead' : '', '1日のペース', signed(gapDay), '通',
+        '送るべき数 <b>' + perDay.toFixed(1) + '</b>通<br>いまの平均 <b>' + avg.toFixed(1) + '</b>通<br>今日 <b>' + fmt(toDay) + '</b>通');
+
     $('goal').innerHTML =
       '<div class="goal-top"><span class="k">' + gp.label + ' ' + GOAL + '通</span>' +
-      '<span class="n">' + fmt(sent) + '<small> / ' + GOAL + '通</small></span><span class="pc">' + Math.floor(sent / GOAL * 100) + '%</span>' +
-      '<span class="tag' + (tag[0] ? ' ' + tag[0] : '') + '">' + tag[1] + '</span></div>' +
+      '<span class="n">' + fmt(sent) + '<small> / ' + GOAL + '通</small><span class="pc">' + Math.floor(sent / GOAL * 100) + '%</span></span></div>' +
       '<div class="goal-bar" role="img" aria-label="' + gp.label + GOAL + '通のうち' + sent + '通"><span class="fill" style="width:' + Math.min(100, sent / GOAL * 100).toFixed(1) + '%"></span>' +
-      (before ? '' : '<span class="mark" style="left:' + Math.min(100, expect / GOAL * 100).toFixed(1) + '%"></span>') + '</div>' +
-      '<div class="goal-sub">' + (before ? '<span><i></i>今日の目安は ' + paceStart + ' から</span>' : '<span><i></i>今日の目安 <b>' + fmt(expect) + '</b>通</span>') +
-      (remain ? '<span>あと <b>' + fmt(remain) + '</b>通</span><span>残り <b>' + remDays + '</b>日 → 1日 約<b>' + fmt(Math.ceil(remain / remDays)) + '</b>通</span>' : '<span>目標に届きました！</span>') + '</div>' +
-      (gp.special ? '<div class="goal-note">※10月だけ特別に、10月に送った分も11月の数に入れて「11月末までに500通」を目標にしています。12月からは毎月500通です（前の月の分は足しません）。</div>' : '');
-  }
-
-  var IC = {
-    go: '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
-    warn: '<svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
-    ok: '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>'
-  };
-  function rowLinks(list) {
-    var base = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID + '&range=A';
-    var shown = list.slice(0, 12).map(function (r) { return '<a href="' + base + r.row + '" target="_blank" rel="noopener">' + r.row + '行目</a>'; }).join('');
-    return '<div class="rows">' + shown + (list.length > 12 ? '<span class="more">ほか' + (list.length - 12) + '件</span>' : '') + '</div>';
-  }
-  function renderTodo(my) {
-    var items = [
-      ['go', '返信が来た相手に、面談を案内する', '「返信」が◯で「面談希望」がまだ空欄', my.filter(function (r) { return r.sent && r.st.reply && !r.st.cl && !r.ng.cl; })],
-      ['go', '面談を希望した相手と、日程を決める', '「面談希望」が希望するで「日程確定」がまだ空欄', my.filter(function (r) { return r.sent && r.st.cl && !r.st.fix; })],
-      ['go', '一次面談の結果を入れる', '「日程確定」が◯で「一次面談実施」がまだ空欄', my.filter(function (r) { return r.sent && r.st.fix && !r.st.first && !r.ng.first; })],
-      ['go', '二次面談の結果を入れる', '「二次面談希望」が◯で「二次面談実施」がまだ空欄', my.filter(function (r) { return r.sent && r.st.cl2 && !r.st.second && !r.ng.second; })],
-      ['go', '成約かどうかを入れる', '「二次面談実施」が◯で「成約」がまだ空欄', my.filter(function (r) { return r.sent && r.st.second && !r.st.deal && !r.ng.deal; })],
-      ['warn', '「未送信」のままの行', '自分の名前が入った行です。送ったら「メッセージ」をA〜Dにすると数に入ります', my.filter(function (r) { return !r.sent; })],
-      ['warn', '送信済なのに日付が空', '日付を入れると「今日」「今週」の数に入ります', my.filter(function (r) { return r.sent && !r.date; })],
-      ['warn', '送信済なのにユーザー名が空', '相手のユーザー名を入れてください', my.filter(function (r) { return r.sent && !r.hasUser; })]
-    ].filter(function (x) { return x[3].length; });
-    var go = items.filter(function (x) { return x[0] === 'go'; }).reduce(function (a, x) { return a + x[3].length; }, 0);
-    $('todoBadge').textContent = items.reduce(function (a, x) { return a + x[3].length; }, 0);
-    $('todoBadge').className = 'badge' + (items.length ? '' : ' zero');
-    if (!items.length) {
-      $('todo').innerHTML = '<div class="todo-item ok"><span class="todo-ic">' + IC.ok + '</span><div><h3>いまやることはありません</h3><div class="sub">返信が来たら、ここに「次にやること」が出ます。行の番号を押すとリストのその行が開きます。</div></div></div>';
-      return;
-    }
-    $('todo').innerHTML = items.map(function (x) {
-      return '<div class="todo-item' + (x[0] === 'warn' ? ' warn' : '') + '"><span class="todo-ic">' + IC[x[0]] + '</span>' +
-        '<div><h3>' + esc(x[1]) + '</h3><div class="sub">' + esc(x[2]) + '</div></div>' +
-        '<div class="n">' + fmt(x[3].length) + '<span>件</span></div>' + rowLinks(x[3]) + '</div>';
-    }).join('') + (go ? '' : '<div class="sub">返信が来たら、ここに「次にやること」が出ます。行の番号を押すとリストのその行が開きます。</div>');
+      '<span class="mark" style="left:' + Math.min(100, expect / GOAL * 100).toFixed(1) + '%"></span></div>' +
+      '<div class="goal-sub"><i></i>今日の目安 <b>' + fmt(expect) + '</b>通</div>' +
+      (noDate ? '<div class="goal-warn">⚠ 日付が空の行が' + fmt(noDate) + '件あります。日付を入れると数に入ります。</div>' : '') +
+      '<div class="goal-note">※目安は、' + (gp.special ? md(gp.pace) + 'の送信スタートから' + md(gp.end) : '月末') + 'に' + GOAL + '通届くように、毎日同じ数ずつ送った場合の数です。' +
+      (gp.special ? '10月だけ特別に、10月に送った分も11月の数に入れています。12月からは毎月' + GOAL + '通です（前の月の分は足しません）。' : '') + '</div>';
   }
 
   function renderChart(my) {
@@ -816,10 +748,8 @@ td.z .c { color: var(--muted); font-weight: 500; }
     var mySent = my.filter(function (r) { return r.sent && inPeriod(r); });
     var allSent = S.rows.filter(function (r) { return r.sent && inPeriod(r); });
     renderKV(count(mySent));
-    renderTiles(my);
+    renderNow(my);
     renderCtb();
-    renderTodo(my);
-    renderGoal(my);
     renderChart(my);
     renderMsg(mySent);
     renderCmp(mySent, allSent);
