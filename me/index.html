@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>旅キャリ 個別専用ページ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Noto+Sans+JP:wght@900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+/* 担当者ひとり分のページ。?p=<トークン> で本人を決める（トークン＝名前から作るハッシュ。make_links.py と同じ計算）。
+   KV＝送信→成約の旅程、いまの状況、次にやること、日別、メッセージ別、チームとの比べ。 */
+:root {
+  --bg: #f3f6fb; --surface: #ffffff; --ink: #101a38; --muted: #5b6886; --line: #dde4f0;
+  --navy: #031147; --head: #0b1d5c; --sky: #2f86d6; --sky-soft: #e6f0fb;
+  --yellow: #fdc805; --gold-ink: #946f00; --yellow-soft: #fff4c4;
+  --ok: #2f7a47; --ok-soft: #e2f2e6; --warn: #c2462e; --warn-soft: #fbe4de;
+  --team: #b7c2d8;
+  --btn-bg: #031147; --btn-ink: #ffffff;
+  --hero-bg1: #031147; --hero-bg2: #173c8e; --hero-ink: #ffffff; --hero-muted: #b9c6e6; --hero-line: rgba(255,255,255,.22); --hero-yellow: #fdc805;
+  --font-jp: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --font-num: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-brand: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  --radius: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1122; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f;
+    --navy: #b8c8f2; --head: #c9d6f7; --sky: #6fb0f0; --sky-soft: #16294a;
+    --gold-ink: #f5cf3c; --yellow-soft: #3a3010;
+    --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+    --team: #3a4766;
+    --btn-bg: #fdc805; --btn-ink: #031147;
+    --hero-bg1: #08143a; --hero-bg2: #183a80; --hero-ink: #eef3fb; --hero-muted: #a9bde3; --hero-line: rgba(255,255,255,.16);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1122; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f;
+  --navy: #b8c8f2; --head: #c9d6f7; --sky: #6fb0f0; --sky-soft: #16294a;
+  --gold-ink: #f5cf3c; --yellow-soft: #3a3010;
+  --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+  --team: #3a4766;
+  --btn-bg: #fdc805; --btn-ink: #031147;
+  --hero-bg1: #08143a; --hero-bg2: #183a80; --hero-ink: #eef3fb; --hero-muted: #a9bde3; --hero-line: rgba(255,255,255,.16);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-jp); font-size: 15px; line-height: 1.65; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 20px 16px 64px; display: grid; gap: 22px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; word-break: auto-phrase; }
+.sub, .kv-sub { word-break: auto-phrase; }
+a { color: var(--sky); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.logo { flex: none; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 16px; background: var(--yellow); color: #031147; font: 900 15px/1 var(--font-brand); }
+.logo span { display: inline-block; transform: skewX(-12deg); }
+.logo small { font-size: 12px; }
+.eyebrow { font: 700 11.5px var(--font-num); letter-spacing: .22em; color: var(--muted); }
+h1 { font-size: clamp(21px, 3.6vw, 30px); font-weight: 900; color: var(--head); line-height: 1.25; }
+h1 span { display: inline-block; }
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.chip.err i { background: var(--warn); }
+.chip.demo i { background: var(--yellow); }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 6px 13px; cursor: pointer; font-weight: 700; font-size: 13px; color: var(--head); text-decoration: none; }
+.btn:hover { border-color: var(--sky); }
+.btn.primary { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-ink); }
+.btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.notice { margin: -8px 0 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; font-size: 13.5px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--yellow-soft); }
+.notice.err { background: var(--warn-soft); border-color: var(--warn); }
+.notice b { font-weight: 900; }
+.notice .btn { margin-left: auto; flex: none; }
+
+/* KV */
+.kv { position: relative; overflow: hidden; border-radius: 20px; padding: 24px 24px 22px; color: var(--hero-ink);
+  background: radial-gradient(110% 80% at 92% 0%, rgba(253,200,5,.18), transparent 55%), linear-gradient(150deg, var(--hero-bg1), var(--hero-bg2));
+  display: grid; gap: 22px; }
+.kv-deco { position: absolute; right: -40px; top: -30px; width: 460px; height: 240px; pointer-events: none; opacity: .9; }
+.kv-deco .sw { fill: none; stroke: var(--hero-line); stroke-width: 14; stroke-linecap: round; }
+.kv-deco .dt { fill: none; stroke: var(--hero-yellow); stroke-width: 2; stroke-dasharray: 2 9; stroke-linecap: round; opacity: .7; }
+.kv-deco .pl { fill: var(--hero-yellow); }
+.kv-head { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 24px; }
+.kv-copy { display: grid; gap: 8px; min-width: 0; }
+.kv-eyebrow { font: 700 12px var(--font-num); letter-spacing: .2em; color: var(--hero-yellow); }
+.kv-hello { font-size: 15px; font-weight: 700; color: var(--hero-muted); }
+.kv-hello b { color: var(--hero-ink); font-size: 17px; font-weight: 900; }
+.kv-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-family: var(--font-brand); font-weight: 900; }
+.kv-big .n { font-family: var(--font-num); font-weight: 700; font-size: clamp(46px, 9vw, 76px); line-height: .95; font-variant-numeric: tabular-nums; }
+.kv-big .n.y { color: var(--hero-yellow); text-shadow: 0 0 26px rgba(253,200,5,.35); }
+.kv-big .u { font-size: clamp(16px, 2.6vw, 22px); display: inline-block; transform: skewX(-12deg); }
+.kv-big .arrow { font-family: var(--font-num); font-size: 26px; color: var(--hero-muted); margin-inline: 4px; }
+.kv-sub { margin: 0; color: var(--hero-muted); font-size: 14px; }
+.kv-sub b { color: var(--hero-ink); font-family: var(--font-num); font-size: 16px; }
+.filters { position: relative; display: grid; gap: 8px; justify-items: end; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(3,17,71,.55); border: 1px solid var(--hero-line); }
+.seg button { border: 0; background: transparent; color: var(--hero-muted); padding: 5px 12px; border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--hero-yellow); color: #031147; }
+@media (max-width: 760px) { .filters { justify-items: start; } .kv { padding: 20px 16px 18px; } .kv-deco { width: 300px; right: -90px; opacity: .55; } }
+
+.route { position: relative; list-style: none; margin: 0; padding: 14px 0 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 18px; }
+.stop { position: relative; display: grid; justify-items: center; gap: 2px; text-align: center; padding-top: 2px; min-width: 0; }
+.stop::before { content: ""; position: absolute; top: 15px; left: 0; right: 0; border-top: 2px dashed var(--hero-line); }
+.stop:first-child::before { left: 50%; }
+.stop:last-child::before { right: 50%; }
+.stop .dot { position: relative; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--hero-bg1); border: 2px solid var(--hero-muted); font: 700 13px var(--font-num); }
+.stop.on .dot { border-color: var(--hero-yellow); }
+.stop.last .dot { background: var(--hero-yellow); border-color: var(--hero-yellow); color: #031147; }
+.stop .cnt { font: 700 30px/1.1 var(--font-num); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.stop.last .cnt { color: var(--hero-yellow); }
+.stop.zero .cnt { color: var(--hero-muted); }
+.stop .lbl { font-size: 12.5px; font-weight: 700; color: var(--hero-muted); line-height: 1.3; }
+.stop .rate { position: absolute; z-index: 2; top: 15px; left: 0; transform: translate(-50%, -50%); padding: 1px 7px; border-radius: 999px; background: var(--hero-bg2); border: 1px solid var(--hero-line); font: 700 11.5px var(--font-num); color: var(--hero-yellow); white-space: nowrap; }
+.stop .rate.m { display: none; }
+.kv-legend { margin: -6px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--hero-muted); }
+.kv-legend b { font: 700 11.5px var(--font-num); color: var(--hero-yellow); margin-right: 4px; }
+@media (max-width: 760px) {
+  .route { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stop:nth-child(4n)::before { right: 50%; }
+  .stop:nth-child(4n+1)::before { left: 50%; }
+  .stop .rate { display: none; }
+  .stop .rate.m { display: block; position: static; transform: none; margin-top: 2px; background: transparent; border: 0; padding: 0; }
+}
+
+/* sections */
+.sec { display: grid; gap: 14px; }
+.sec-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sec-h .ic { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--navy); color: var(--bg); flex: none; }
+.sec-h .ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sec-h h2 { font-size: 20px; font-weight: 900; color: var(--head); }
+.badge { display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 8px; border-radius: 999px; background: var(--yellow); color: #031147; font: 700 14px var(--font-num); }
+.badge.zero { background: var(--line); color: var(--muted); }
+.sec-h .scope { margin-left: auto; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+.card h3 { font-size: 16.5px; font-weight: 900; color: var(--head); }
+.card .sub { font-size: 12.5px; color: var(--muted); }
+
+/* いまの状況 */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { display: grid; gap: 4px; align-content: start; }
+.tile .k { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.tile .v { font: 700 36px/1.05 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.tile .v span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 3px; }
+.tile .d { font-size: 12px; color: var(--muted); }
+.tile .d b { font-family: var(--font-num); color: var(--ink); }
+.tile.hot { background: var(--yellow-soft); border-color: var(--yellow); }
+
+/* 次にやること */
+.todo { display: grid; gap: 10px; }
+.todo-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; }
+.todo-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--sky-soft); color: var(--sky); }
+.todo-item.warn .todo-ic { background: var(--warn-soft); color: var(--warn); }
+.todo-item.ok .todo-ic { background: var(--ok-soft); color: var(--ok); }
+.todo-ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.todo-item h3 { font-size: 15.5px; }
+.todo-item .n { font: 700 30px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.todo-item .n span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 2px; }
+.rows { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.rows a { display: inline-block; padding: 2px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font: 700 12.5px var(--font-num); color: var(--head); text-decoration: none; }
+.rows a:hover { border-color: var(--sky); }
+.rows .more { font-size: 12px; color: var(--muted); align-self: center; }
+
+/* 日別 */
+.chart-h { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); font-weight: 700; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.chart { position: relative; margin-top: 10px; min-height: 220px; }
+.chart svg { display: block; width: 100%; height: 220px; overflow: visible; }
+.chart text { font-family: var(--font-num); font-size: 11px; fill: var(--muted); }
+.chart .val { font-weight: 700; fill: var(--head); }
+.tip { position: absolute; z-index: 5; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--navy); color: var(--bg); font-size: 12px; line-height: 1.5; white-space: nowrap; transform: translate(-50%, -100%); }
+.empty { display: grid; place-items: center; min-height: 140px; color: var(--muted); font-size: 13.5px; text-align: center; border: 1px dashed var(--line); border-radius: 12px; padding: 16px; }
+
+/* 表 */
+.tbl-wrap { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; vertical-align: middle; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-size: 12px; color: var(--muted); font-weight: 700; background: var(--bg); }
+td .c { font: 700 16px/1.2 var(--font-num); font-variant-numeric: tabular-nums; }
+td.z .c { color: var(--muted); font-weight: 500; }
+.mtag { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; font: 700 14px var(--font-num); margin-right: 8px; }
+.mtag.A { background: #ffcfc9; color: #b10202; } .mtag.B { background: #d4edbc; color: #11734b; }
+.mtag.C { background: #bfe1f6; color: #0a53a8; } .mtag.D { background: #e6cff2; color: #5a3286; }
+.mtag.X { background: var(--line); color: var(--muted); }
+.sbar { display: inline-block; width: 80px; height: 6px; border-radius: 999px; background: var(--bg); vertical-align: middle; margin-right: 8px; overflow: hidden; }
+.sbar span { display: block; height: 100%; background: var(--sky); border-radius: 999px; }
+@media (max-width: 600px) { .sbar { display: none; } }
+
+/* チームとの比べ */
+.cmp { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .cmp { grid-template-columns: minmax(0, 1fr); } }
+.cmp .card { display: grid; gap: 10px; align-content: start; }
+.cmp .k { font-size: 13px; font-weight: 900; color: var(--head); }
+.bar-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.bar-row .track { height: 12px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+.bar-row .fill { height: 100%; border-radius: 999px; background: var(--team); }
+.bar-row.me { color: var(--head); }
+.bar-row.me .fill { background: var(--yellow); }
+.bar-row .v { font: 700 16px var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; min-width: 56px; text-align: right; }
+.bar-row:not(.me) .v { color: var(--muted); font-weight: 600; }
+
+.foot { font-size: 12px; color: var(--muted); text-align: center; display: grid; gap: 4px; }
+.lost { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 40px 18px; }
+.lost h2 { font-size: 20px; font-weight: 900; color: var(--head); }
+.lost p { margin: 0; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><span>旅<small>キャリ</small></span></div>
+      <div>
+        <div class="eyebrow">TABI CARRY · MY PAGE</div>
+        <h1><span id="hName">個別専用ページ</span></h1>
+      </div>
+    </div>
+    <div class="status">
+      <span class="chip" id="chip"><i></i><span id="stamp">読み込み中…</span></span>
+      <a class="btn" id="sheetLink" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg>リストを開く</a>
+      <button class="btn primary" id="reload" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>最新にする</button>
+    </div>
+  </header>
+  <div class="notice" id="notice" role="status" hidden></div>
+
+  <div class="card lost" id="lost" hidden>
+    <h2>ページが見つかりませんでした</h2>
+    <p>LINEで届いた「個別専用ページ」のURLから、もう一度開いてください。</p>
+  </div>
+
+  <div id="main" hidden style="display:grid;gap:22px">
+  <section class="kv" aria-labelledby="kvTitle">
+    <svg class="kv-deco" viewBox="0 0 460 240" aria-hidden="true">
+      <path class="sw" d="M30 220 C 120 120, 230 90, 330 120"/>
+      <path class="dt" d="M330 120 C 380 135, 405 100, 420 60"/>
+      <g transform="translate(424 50) rotate(20)"><path class="pl" transform="translate(-12 -12)" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></g>
+    </svg>
+    <div class="kv-head">
+      <div class="kv-copy">
+        <div class="kv-eyebrow" id="kvScope">ALL</div>
+        <div class="kv-hello"><b id="kvName"></b> さんの結果</div>
+        <h2 class="kv-big" id="kvTitle"><span class="n" id="kvSent">0</span><span class="u">通送って</span><span class="arrow">→</span><span class="u">返信</span><span class="n y" id="kvReply">0</span><span class="u">件</span></h2>
+        <p class="kv-sub" id="kvSub"></p>
+      </div>
+      <div class="filters">
+        <div class="seg" role="group" aria-label="期間" id="segPeriod">
+          <button type="button" data-v="all">全期間</button><button type="button" data-v="30">30日</button><button type="button" data-v="7">7日</button>
+        </div>
+      </div>
+    </div>
+    <ol class="route" id="route" aria-label="ステージごとの件数"></ol>
+    <p class="kv-legend"><span><b>黄色の％</b>＝ひとつ前のステージから進んだ割合</span></p>
+  </section>
+
+  <section class="sec" aria-labelledby="nowH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <h2 id="nowH">いまの状況</h2>
+      <span class="scope" id="nowScope"></span>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="sec" aria-labelledby="todoH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span>
+      <h2 id="todoH">次にやること</h2><span class="badge zero" id="todoBadge">0</span>
+    </div>
+    <div class="card todo" id="todo"></div>
+  </section>
+
+  <section class="sec" aria-labelledby="dayH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+      <h2 id="dayH">日ごとの送信</h2>
+      <span class="scope">直近14日</span>
+    </div>
+    <div class="card">
+      <div class="chart-h">
+        <h3>送った数（棒）と返信（点）</h3>
+        <div class="legend"><span><i style="background:var(--sky)"></i>送信</span><span><i style="background:var(--yellow);border-radius:50%"></i>その日に送った分の返信</span></div>
+      </div>
+      <div class="chart" id="chart"></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="msgH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+      <h2 id="msgH">メッセージ別</h2>
+      <span class="scope" id="msgScope"></span>
+    </div>
+    <div class="card">
+      <div class="sub">どのメッセージ（A〜D）で何通送り、返信が来たか。</div>
+      <div class="tbl-wrap"><table id="msgTbl"></table></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="cmpH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span>
+      <h2 id="cmpH">チーム全体とくらべる</h2>
+      <span class="scope" id="cmpScope"></span>
+    </div>
+    <div class="cmp" id="cmp"></div>
+  </section>
+  </div>
+
+  <div class="foot" id="foot">
+    <span>数字は共有顧客リストの「顧客リスト」タブから、このページを開いたときに読み込んでいます。</span>
+    <span>自分の担当の行だけを数えています。相手のアカウント名はこのページには表示しません。</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ===== 設定 =====
+  var SHEET_ID = '1UeSu6tEnX1OwPfV_G6rxD4dIX42_jW8EEXveBNb7kH4';
+  var LIST_GID = '1868373526';   // 顧客リスト
+  var LINE_GID = '310129667';    // LINE案内（まだ送信が無い人の名前もここから拾う）
+  var SALT = 'tabicari-me:';     // make_links.py と同じ
+  var SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID;
+  function csvUrl(gid) { return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&headers=1&gid=' + gid; }
+
+  var STAGES = [
+    { key: 'sent',   label: '送信',         col: null },
+    { key: 'reply',  label: '返信',         col: /^返信$/ },
+    { key: 'cl',     label: '面談希望',     col: /^面談希望$/ },
+    { key: 'fix',    label: '日程確定',     col: /^日程確定$/ },
+    { key: 'first',  label: '一次面談',     col: /^一次面談実施$/ },
+    { key: 'cl2',    label: '二次面談希望', col: /^二次面談希望$/ },
+    { key: 'second', label: '二次面談',     col: /^二次面談実施$/ },
+    { key: 'deal',   label: '成約',         col: /^成約$/ }
+  ];
+
+  // ===== 名前とURLの鍵 =====
+  // 表記ゆれ（全角/半角スペース・髙/高・(Lisa) などのかっこ）をそろえてから比べる
+  function normKey(s) {
+    return String(s || '').normalize('NFKC').replace(/\([^)]*\)/g, '').replace(/\s+/g, '')
+      .replace(/髙/g, '高').replace(/﨑/g, '崎').toLowerCase();
+  }
+  function sha256hex(text) {
+    var data = new TextEncoder().encode(text);
+    return crypto.subtle.digest('SHA-256', data).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return (b < 16 ? '0' : '') + b.toString(16); }).join('');
+    });
+  }
+  function tokenOf(name) { return sha256hex(SALT + normKey(name)).then(function (h) { return h.slice(0, 10); }); }
+  function wantedToken() {
+    var m = location.search.match(/[?&]p=([0-9a-z]+)/i) || location.hash.match(/p=([0-9a-z]+)/i);
+    return m ? m[1].toLowerCase() : '';
+  }
+
+  // ===== CSV =====
+  function parseCsv(text) {
+    var rows = [], row = [], f = '', q = false, c;
+    text = String(text || '').replace(/^﻿/, '');
+    for (var i = 0; i < text.length; i++) {
+      c = text.charAt(i);
+      if (q) {
+        if (c === '"') { if (text.charAt(i + 1) === '"') { f += '"'; i++; } else q = false; }
+        else f += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text.charAt(i + 1) === '\n') i++;
+        row.push(f); rows.push(row); row = []; f = '';
+      } else f += c;
+    }
+    if (f.length || row.length) { row.push(f); rows.push(row); }
+    return rows;
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function normDate(s) {
+    s = String(s || '').trim();
+    var m = s.match(/^(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);
+    if (m) return m[1] + '-' + pad(+m[2]) + '-' + pad(+m[3]);
+    m = s.match(/^(\d{1,2})[\/月](\d{1,2})/);
+    if (m) return new Date().getFullYear() + '-' + pad(+m[1]) + '-' + pad(+m[2]);
+    return '';
+  }
+  // 進んだ＝◯・希望する など。×・希望しない は進んでいない
+  function done(v) {
+    v = String(v || '').trim();
+    if (!v) return false;
+    if (/希望しない|しない|[×✕✖]|^false$|^いいえ$|^no$|^未/i.test(v)) return false;
+    return /[◯○〇✓✔☑]|^true$|済|希望する|^はい$|^yes$|^あり$|^有$|^1$/i.test(v);
+  }
+  function no(v) { return /希望しない|[×✕✖]|^いいえ$/.test(String(v || '').trim()); }
+  function isSent(v) {
+    v = String(v || '').trim();
+    return !!v && !/^未/.test(v) && !/^false$/i.test(v);
+  }
+  function clean(h) { return String(h || '').replace(/^[①-⑳]\s*/, '').replace(/\s+/g, ''); }
+
+  function toRows(csv) {
+    var t = parseCsv(csv);
+    if (!t.length) throw new Error('bad_sheet');
+    var head = t[0].map(clean), ix = {};
+    function find(re, fb) { for (var i = 0; i < head.length; i++) if (re.test(head[i])) return i; return fb; }
+    ix.date = find(/^(日付|送信日)$/, 0);
+    ix.who = find(/^担当/, 1);
+    ix.user = find(/^ユーザー名$/, 2);
+    ix.msg = find(/^(メッセージ|送信)$/, 4);
+    STAGES.forEach(function (s, k) { if (s.col) ix[s.key] = find(s.col, 4 + k); });
+    if (head.indexOf('担当者') < 0 && head.indexOf('担当') < 0) throw new Error('bad_sheet');
+    var out = [];
+    for (var r = 1; r < t.length; r++) {
+      var x = t[r];
+      var who = String(x[ix.who] || '').trim(), msg = String(x[ix.msg] || '').trim();
+      if (!who) continue;
+      var st = {}, ng = {};
+      STAGES.forEach(function (s) { if (s.col) { st[s.key] = done(x[ix[s.key]]); ng[s.key] = no(x[ix[s.key]]); } });
+      out.push({ row: r + 1, date: normDate(x[ix.date]), who: who, key: normKey(who), hasUser: !!String(x[ix.user] || '').trim(),
+        sent: isSent(msg), msg: msg, st: st, ng: ng });
+    }
+    return out;
+  }
+  function lineNames(csv) {
+    var t = parseCsv(csv), out = [];
+    if (!t.length) return out;
+    var head = t[0].map(clean), c = head.indexOf('お名前'); if (c < 0) c = 0;
+    for (var r = 1; r < t.length; r++) { var n = String(t[r][c] || '').trim(); if (n) out.push(n); }
+    return out;
+  }
+
+  // ===== サンプル（?p=demo） =====
+  function demoRows() {
+    var out = [], seed = 11, today = new Date(), names = ['みほん', 'a', 'b', 'c', 'd', 'e'];
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    for (var d = 24; d >= 0; d--) {
+      var ds = ymd(new Date(today.getTime() - d * 86400000));
+      names.forEach(function (n, i) {
+        if (rnd() < 0.35) return;
+        var k = Math.floor(rnd() * 12) + 2;
+        for (var j = 0; j < k; j++) {
+          var st = {}, p = 1, rates = [0, 0.09, 0.6, 0.7, 0.8, 0.5, 0.8, 0.4];
+          STAGES.forEach(function (s, si) { if (!si) return; p = p && rnd() < rates[si]; st[s.key] = !!p; });
+          if (n === 'みほん' && d < 6 && st.reply && j % 2) { st.cl = false; st.fix = false; st.first = false; st.cl2 = false; st.second = false; st.deal = false; }
+          out.push({ row: 100 + out.length, date: ds, who: n, key: normKey(n), hasUser: true, sent: true, msg: 'ABCD'.charAt(Math.floor(rnd() * 4)), st: st, ng: {} });
+        }
+      });
+    }
+    out.push({ row: 999, date: ymd(today), who: 'みほん', key: normKey('みほん'), hasUser: true, sent: false, msg: '未送信', st: {}, ng: {} });
+    return out;
+  }
+
+  // ===== 状態 =====
+  var S = { rows: [], me: '', meKey: '', period: 'all', demo: false };
+  try { var sp = localStorage.getItem('tc-me-period'); if (sp) S.period = sp; } catch (e) {}
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmt(n) { return Number(n).toLocaleString('ja-JP'); }
+  function pct(a, b, d) { if (!b) return '—'; return (a / b * 100).toFixed(d == null ? 1 : d) + '%'; }
+  function todayStr() { return ymd(new Date()); }
+  function minus(days) { return ymd(new Date(Date.now() - (days - 1) * 86400000)); }
+  function mondayOf(off) { var t = new Date(); t.setHours(0, 0, 0, 0); var w = (t.getDay() + 6) % 7; t.setDate(t.getDate() - w + off * 7); return ymd(t); }
+
+  function inPeriod(r) {
+    if (S.period === 'all') return true;
+    return r.date && r.date >= minus(+S.period) && r.date <= todayStr();
+  }
+  function mine(r) { return r.key === S.meKey; }
+  function count(rows) {
+    var c = { sent: rows.length };
+    STAGES.forEach(function (s) { if (s.col) c[s.key] = 0; });
+    rows.forEach(function (r) { STAGES.forEach(function (s) { if (s.col && r.st[s.key]) c[s.key]++; }); });
+    return c;
+  }
+  function periodLabel() { return S.period === 'all' ? '全期間' : '直近' + S.period + '日'; }
+
+  // ===== 描画 =====
+  function renderKV(c) {
+    $('kvScope').textContent = S.period === 'all' ? 'ALL TIME' : 'LAST ' + S.period + ' DAYS';
+    $('kvName').textContent = S.me;
+    $('kvSent').textContent = fmt(c.sent);
+    $('kvReply').textContent = fmt(c.reply);
+    $('kvSub').innerHTML = c.sent
+      ? '返信率 <b>' + pct(c.reply, c.sent) + '</b>　面談希望 <b>' + fmt(c.cl) + '</b>件　一次面談 <b>' + fmt(c.first) + '</b>件　成約 <b>' + fmt(c.deal) + '</b>件'
+      : (S.period === 'all' ? 'まだ送信の記録がありません。送ったらリストの「メッセージ」をA〜Dにすると、ここに出ます。' : 'この期間の送信はまだありません');
+    $('route').innerHTML = STAGES.map(function (s, i) {
+      var v = c[s.key], prev = i ? c[STAGES[i - 1].key] : null;
+      var rate = i ? pct(v, prev, 0) : '';
+      var cls = 'stop' + (v ? ' on' : ' zero') + (i === STAGES.length - 1 ? ' last' : '');
+      return '<li class="' + cls + '">' + (i ? '<span class="rate">' + rate + '</span>' : '') +
+        '<span class="dot">' + (i + 1) + '</span><span class="cnt">' + fmt(v) + '</span><span class="lbl">' + esc(s.label) + '</span>' +
+        (i ? '<span class="rate m">' + rate + '</span>' : '') + '</li>';
+    }).join('');
+  }
+
+  function renderTiles(my) {
+    var sent = my.filter(function (r) { return r.sent; });
+    var today = todayStr(), yest = ymd(new Date(Date.now() - 86400000));
+    var w0 = mondayOf(0), w1 = mondayOf(-1);
+    function n(f) { return sent.filter(f).length; }
+    var tToday = n(function (r) { return r.date === today; });
+    var tYest = n(function (r) { return r.date === yest; });
+    var tWeek = n(function (r) { return r.date >= w0 && r.date <= today; });
+    var tLast = n(function (r) { return r.date >= w1 && r.date < w0; });
+    var days = {}; sent.forEach(function (r) { if (r.date) days[r.date] = 1; });
+    var nd = Object.keys(days).length;
+    var reply = sent.filter(function (r) { return r.st.reply; }).length;
+    $('nowScope').textContent = (+today.slice(5, 7)) + '/' + (+today.slice(8)) + ' 時点';
+    var tiles = [
+      ['今日送った数', fmt(tToday), '通', '昨日 <b>' + fmt(tYest) + '</b>通', tToday > 0],
+      ['今週（月曜から）', fmt(tWeek), '通', '先週 <b>' + fmt(tLast) + '</b>通', false],
+      ['これまでの合計', fmt(sent.length), '通', '返信 <b>' + fmt(reply) + '</b>件', false],
+      ['送った日数', fmt(nd), '日', nd ? '1日平均 <b>' + (sent.length / nd).toFixed(1) + '</b>通' : 'まだありません', false]
+    ];
+    $('tiles').innerHTML = tiles.map(function (t) {
+      return '<div class="card tile' + (t[4] ? ' hot' : '') + '"><div class="k">' + t[0] + '</div><div class="v">' + t[1] + '<span>' + t[2] + '</span></div><div class="d">' + t[3] + '</div></div>';
+    }).join('');
+  }
+
+  var IC = {
+    go: '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    warn: '<svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+    ok: '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>'
+  };
+  function rowLinks(list) {
+    var base = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID + '&range=A';
+    var shown = list.slice(0, 12).map(function (r) { return '<a href="' + base + r.row + '" target="_blank" rel="noopener">' + r.row + '行目</a>'; }).join('');
+    return '<div class="rows">' + shown + (list.length > 12 ? '<span class="more">ほか' + (list.length - 12) + '件</span>' : '') + '</div>';
+  }
+  function renderTodo(my) {
+    var items = [
+      ['go', '返信が来た相手に、面談を案内する', '「返信」が◯で「面談希望」がまだ空欄', my.filter(function (r) { return r.sent && r.st.reply && !r.st.cl && !r.ng.cl; })],
+      ['go', '面談を希望した相手と、日程を決める', '「面談希望」が希望するで「日程確定」がまだ空欄', my.filter(function (r) { return r.sent && r.st.cl && !r.st.fix; })],
+      ['go', '一次面談の結果を入れる', '「日程確定」が◯で「一次面談実施」がまだ空欄', my.filter(function (r) { return r.sent && r.st.fix && !r.st.first && !r.ng.first; })],
+      ['go', '二次面談の結果を入れる', '「二次面談希望」が◯で「二次面談実施」がまだ空欄', my.filter(function (r) { return r.sent && r.st.cl2 && !r.st.second && !r.ng.second; })],
+      ['go', '成約かどうかを入れる', '「二次面談実施」が◯で「成約」がまだ空欄', my.filter(function (r) { return r.sent && r.st.second && !r.st.deal && !r.ng.deal; })],
+      ['warn', '「未送信」のままの行', '自分の名前が入った行です。送ったら「メッセージ」をA〜Dにすると数に入ります', my.filter(function (r) { return !r.sent; })],
+      ['warn', '送信済なのに日付が空', '日付を入れると「今日」「今週」の数に入ります', my.filter(function (r) { return r.sent && !r.date; })],
+      ['warn', '送信済なのにユーザー名が空', '相手のユーザー名を入れてください', my.filter(function (r) { return r.sent && !r.hasUser; })]
+    ].filter(function (x) { return x[3].length; });
+    var go = items.filter(function (x) { return x[0] === 'go'; }).reduce(function (a, x) { return a + x[3].length; }, 0);
+    $('todoBadge').textContent = items.reduce(function (a, x) { return a + x[3].length; }, 0);
+    $('todoBadge').className = 'badge' + (items.length ? '' : ' zero');
+    if (!items.length) {
+      $('todo').innerHTML = '<div class="todo-item ok"><span class="todo-ic">' + IC.ok + '</span><div><h3>いまやることはありません</h3><div class="sub">返信が来たら、ここに「次にやること」が出ます。行の番号を押すとリストのその行が開きます。</div></div></div>';
+      return;
+    }
+    $('todo').innerHTML = items.map(function (x) {
+      return '<div class="todo-item' + (x[0] === 'warn' ? ' warn' : '') + '"><span class="todo-ic">' + IC[x[0]] + '</span>' +
+        '<div><h3>' + esc(x[1]) + '</h3><div class="sub">' + esc(x[2]) + '</div></div>' +
+        '<div class="n">' + fmt(x[3].length) + '<span>件</span></div>' + rowLinks(x[3]) + '</div>';
+    }).join('') + (go ? '' : '<div class="sub">返信が来たら、ここに「次にやること」が出ます。行の番号を押すとリストのその行が開きます。</div>');
+  }
+
+  function renderChart(my) {
+    var box = $('chart'), by = {};
+    my.forEach(function (r) { if (!r.sent || !r.date) return; var d = by[r.date] || (by[r.date] = { s: 0, r: 0 }); d.s++; if (r.st.reply) d.r++; });
+    var days = []; for (var i = 13; i >= 0; i--) days.push(ymd(new Date(Date.now() - i * 86400000)));
+    var any = days.some(function (d) { return by[d]; });
+    if (!any) { box.innerHTML = '<div class="empty">直近14日の送信はまだありません</div>'; return; }
+    var W = Math.max(320, box.clientWidth || 800), H = 220, L = 30, R = 6, T = 18, B = 26;
+    var maxS = Math.max.apply(null, days.map(function (d) { return by[d] ? by[d].s : 0; }).concat([1]));
+    var step = niceStep(maxS), top = Math.ceil(maxS / step) * step;
+    var bw = (W - L - R) / days.length;
+    function y(v) { return T + (H - T - B) * (1 - v / top); }
+    var g = '';
+    for (var v = 0; v <= top; v += step) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--line)"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    var every = bw < 34 ? 2 : 1, wd = '日月火水木金土';
+    days.forEach(function (d, i) {
+      var o = by[d] || { s: 0, r: 0 }, x = L + i * bw, cx = (x + bw / 2).toFixed(1);
+      if (o.s) {
+        g += '<rect x="' + (x + bw * 0.18).toFixed(1) + '" y="' + y(o.s).toFixed(1) + '" width="' + Math.max(1, bw * 0.64).toFixed(1) + '" height="' + (y(0) - y(o.s)).toFixed(1) + '" rx="3" fill="var(--sky)"/>';
+        if (bw >= 20) g += '<text class="val" x="' + cx + '" y="' + (y(o.s) - 5).toFixed(1) + '" text-anchor="middle">' + o.s + '</text>';
+      }
+      if (o.r) g += '<circle cx="' + cx + '" cy="' + y(o.r).toFixed(1) + '" r="4.5" fill="var(--yellow)" stroke="var(--navy)" stroke-width="1.5"/>';
+      if ((days.length - 1 - i) % every === 0) g += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (i === days.length - 1 ? ' class="val"' : '') + '>' + (i === days.length - 1 ? '今日' : (+d.slice(5, 7)) + '/' + (+d.slice(8))) + '</text>';
+      g += '<rect class="hit" data-i="' + i + '" x="' + x.toFixed(1) + '" y="' + T + '" width="' + bw.toFixed(1) + '" height="' + (H - T - B) + '" fill="transparent"/>';
+    });
+    box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="日ごとの送信数と返信数">' + g + '</svg><div class="tip" hidden></div>';
+    var tip = box.querySelector('.tip'), svg = box.querySelector('svg');
+    svg.addEventListener('pointermove', function (ev) {
+      var h = ev.target.closest('.hit'); if (!h) { tip.hidden = true; return; }
+      var d = days[+h.dataset.i], o = by[d] || { s: 0, r: 0 };
+      tip.innerHTML = (+d.slice(5, 7)) + '/' + (+d.slice(8)) + '（' + wd.charAt(new Date(d + 'T00:00:00').getDay()) + '）<br>送信 <b>' + o.s + '</b>・返信 <b>' + o.r + '</b>';
+      var rect = box.getBoundingClientRect();
+      tip.style.left = Math.min(Math.max(ev.clientX - rect.left, 60), rect.width - 60) + 'px';
+      tip.style.top = (ev.clientY - rect.top - 10) + 'px';
+      tip.hidden = false;
+    });
+    svg.addEventListener('pointerleave', function () { tip.hidden = true; });
+  }
+  function niceStep(m) { var s = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000]; for (var i = 0; i < s.length; i++) if (m / s[i] <= 5) return s[i]; return Math.ceil(m / 5); }
+
+  function renderMsg(rows) {
+    $('msgScope').textContent = periodLabel();
+    var by = {};
+    rows.forEach(function (r) { var k = /^[A-D]$/i.test(r.msg) ? r.msg.toUpperCase() : 'その他'; (by[k] || (by[k] = [])).push(r); });
+    var keys = ['A', 'B', 'C', 'D', 'その他'].filter(function (k) { return by[k]; });
+    if (!keys.length) { $('msgTbl').innerHTML = '<tbody><tr><td class="z" style="text-align:center;color:var(--muted);padding:22px">この期間の送信はまだありません</td></tr></tbody>'; return; }
+    var max = Math.max.apply(null, keys.map(function (k) { return by[k].length; }));
+    var html = '<thead><tr><th>メッセージ</th><th>送信</th><th>返信</th><th>返信率</th><th>面談希望</th></tr></thead><tbody>';
+    keys.forEach(function (k) {
+      var c = count(by[k]);
+      html += '<tr><td><span class="mtag ' + (k.length === 1 ? k : 'X') + '">' + (k.length === 1 ? k : '他') + '</span></td>' +
+        '<td><span class="sbar"><span style="width:' + (c.sent / max * 100).toFixed(1) + '%"></span></span><span class="c">' + fmt(c.sent) + '</span></td>' +
+        '<td' + (c.reply ? '' : ' class="z"') + '><span class="c">' + fmt(c.reply) + '</span></td>' +
+        '<td' + (c.reply ? '' : ' class="z"') + '><span class="c">' + pct(c.reply, c.sent) + '</span></td>' +
+        '<td' + (c.cl ? '' : ' class="z"') + '><span class="c">' + fmt(c.cl) + '</span></td></tr>';
+    });
+    $('msgTbl').innerHTML = html + '</tbody>';
+  }
+
+  function renderCmp(myRows, allRows) {
+    $('cmpScope').textContent = periodLabel();
+    var me = count(myRows), tm = count(allRows);
+    // 1人あたり：送った人の数で割る／1日あたり：人×送った日の数で割る
+    var ppl = {}, pd = {}, md = {};
+    allRows.forEach(function (r) { ppl[r.key] = 1; if (r.date) pd[r.key + '|' + r.date] = 1; });
+    myRows.forEach(function (r) { if (r.date) md[r.date] = 1; });
+    var np = Object.keys(ppl).length, npd = Object.keys(pd).length, nmd = Object.keys(md).length;
+    var tmDated = allRows.filter(function (r) { return r.date; }).length, meDated = myRows.filter(function (r) { return r.date; }).length;
+    var cards = [
+      ['送った数', me.sent, np ? tm.sent / np : 0, function (v) { return fmt(Math.round(v)) + '通'; }, 'チーム平均＝送った人1人あたり（いま' + np + '人）'],
+      ['送った日の1日あたり', nmd ? meDated / nmd : 0, npd ? tmDated / npd : 0, function (v) { return v.toFixed(1) + '通'; }, ''],
+      ['返信率', me.sent ? me.reply / me.sent : 0, tm.sent ? tm.reply / tm.sent : 0, function (v) { return (v * 100).toFixed(1) + '%'; }, '']
+    ];
+    $('cmp').innerHTML = cards.map(function (c) {
+      var max = Math.max(c[1], c[2]) || 1;
+      function bar(cls, lbl, v) {
+        return '<div class="bar-row' + cls + '"><span>' + lbl + '</span><span class="track"><span class="fill" style="display:block;width:' + (v / max * 100).toFixed(1) + '%"></span></span><span class="v">' + c[3](v) + '</span></div>';
+      }
+      return '<div class="card"><div class="k">' + c[0] + '</div>' + bar(' me', 'あなた', c[1]) + bar('', 'チーム平均', c[2]) + (c[4] ? '<div class="sub">' + esc(c[4]) + '</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  function render() {
+    Array.prototype.forEach.call($('segPeriod').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.period)); });
+    var my = S.rows.filter(mine);
+    var mySent = my.filter(function (r) { return r.sent && inPeriod(r); });
+    var allSent = S.rows.filter(function (r) { return r.sent && inPeriod(r); });
+    renderKV(count(mySent));
+    renderTiles(my);
+    renderTodo(my);
+    renderChart(my);
+    renderMsg(mySent);
+    renderCmp(mySent, allSent);
+  }
+
+  // ===== 読み込み =====
+  function setChip(cls, text) { $('chip').className = 'chip' + (cls ? ' ' + cls : ''); $('stamp').textContent = text; }
+  function notice(html, err) { var n = $('notice'); n.innerHTML = html; n.className = 'notice' + (err ? ' err' : ''); n.hidden = !html; }
+  function nowLabel() { var d = new Date(); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' 読み込み'; }
+  function getText(url) {
+    return fetch(url + '&_=' + Date.now(), { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('http_' + res.status);
+      return res.text();
+    }).then(function (t) { if (/^\s*</.test(t)) throw new Error('not_csv'); return t; });
+  }
+  function show(found) {
+    $('main').hidden = !found; $('lost').hidden = found;
+    if (found) {
+      $('hName').textContent = S.me + 'さんの専用ページ';
+      document.title = S.me + 'さん｜旅キャリ 個別専用ページ';
+      render();
+    }
+  }
+  function load() {
+    var want = wantedToken();
+    if (want === 'demo') {
+      S.demo = true; S.rows = demoRows(); S.me = 'みほん'; S.meKey = normKey('みほん');
+      setChip('demo', 'サンプル表示中');
+      notice('<span><b>サンプルの数字で表示しています。</b>本人のURLで開くと、その人の数字になります。</span>');
+      show(true); return;
+    }
+    if (!want) { setChip('err', 'URLを確認してください'); show(false); return; }
+    if (!window.crypto || !crypto.subtle || !window.TextEncoder) {
+      setChip('err', '開けませんでした');
+      notice('<span><b>このブラウザでは開けませんでした。</b>右上のメニューから「ブラウザで開く」を選んでください。</span>', true);
+      show(false); return;
+    }
+    setChip('', '読み込み中…');
+    Promise.all([getText(csvUrl(LIST_GID)), getText(csvUrl(LINE_GID)).catch(function () { return ''; })]).then(function (res) {
+      S.rows = toRows(res[0]);
+      var names = {}, order = [];
+      lineNames(res[1]).concat(S.rows.map(function (r) { return r.who; })).forEach(function (n) {
+        var k = normKey(n); if (k && !names[k]) { names[k] = n; order.push(k); }   // LINE案内の表記を優先
+      });
+      return Promise.all(order.map(function (k) { return tokenOf(names[k]); })).then(function (tokens) {
+        var i = tokens.indexOf(want);
+        setChip('', nowLabel());
+        notice('');
+        if (i < 0) { S.me = ''; show(false); return; }
+        S.meKey = order[i]; S.me = names[order[i]];
+        show(true);
+      });
+    }).catch(function () {
+      setChip('err', '読み込めませんでした');
+      notice('<span><b>共有顧客リストを読み込めませんでした。</b>少し待ってから「最新にする」を押してください。</span>', true);
+    });
+  }
+
+  // ===== 操作 =====
+  $('sheetLink').href = SHEET_URL;
+  $('reload').onclick = load;
+  $('segPeriod').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    S.period = b.dataset.v;
+    try { localStorage.setItem('tc-me-period', S.period); } catch (err) {}
+    render();
+  });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (S.meKey) renderChart(S.rows.filter(mine)); }, 150); });
+
+  load();
+})();
+</script>
+</body>
+</html>
