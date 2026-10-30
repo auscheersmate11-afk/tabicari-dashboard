@@ -19,4 +19,6 @@
 - URL：`https://auscheersmate11-afk.github.io/tabicari-dashboard/me/?p=<トークン>`
 - トークン＝名前から作るハッシュ（スペース・髙/高・かっこの表記ゆれはそろえてから計算）。名簿はページに持たず、顧客リストの担当者名と「LINE案内」タブのお名前をハッシュして一致した人を表示する
 - 人が増えたら「LINE案内」にお名前を足して `python3 tools/make_links.py` を実行し、出たURLを「個別専用ページ」列に入れる
+- 「みんなへの貢献」：旅キャリDMチーム（Discord）でのコメント・返信・押したスタンプ・もらったスタンプ。`me/community.json`（キーはURLと同じトークン・名前は入れない）を ~/cm-discord-archive/tabi_community.py が毎朝作って push する
+- 「日ごとの送信」に月500通の目標（今日の目安・あと何通・1日あたり）と目標ペースの線
 - `?p=demo` でサンプル表示

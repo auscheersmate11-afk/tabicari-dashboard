@@ -154,6 +154,49 @@ h1 span { display: inline-block; }
 .tile .d b { font-family: var(--font-num); color: var(--ink); }
 .tile.hot { background: var(--yellow-soft); border-color: var(--yellow); }
 
+/* みんなへの貢献 */
+.ctb { display: grid; gap: 16px; background: linear-gradient(135deg, var(--surface) 55%, var(--yellow-soft)); }
+.ctb-msg { display: flex; align-items: center; gap: 10px; font-weight: 900; color: var(--head); font-size: 16px; line-height: 1.45; word-break: auto-phrase; }
+.ctb-msg .big { flex: none; font-size: 28px; line-height: 1; }
+.ctb-msg small { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.ctb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .ctb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ctb-tile { position: relative; display: grid; justify-items: center; align-content: start; text-align: center; gap: 2px; padding: 16px 8px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.ctb-tile .emo { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: var(--sky-soft); font-size: 28px; line-height: 1; animation: pop .7s cubic-bezier(.3, 1.6, .5, 1) both; }
+.ctb-tile:nth-child(2n) .emo { background: var(--yellow-soft); }
+.ctb-tile:nth-child(2) .emo { animation-delay: .08s; } .ctb-tile:nth-child(3) .emo { animation-delay: .16s; } .ctb-tile:nth-child(4) .emo { animation-delay: .24s; }
+.ctb-tile .v { font: 700 34px/1.05 var(--font-num); color: var(--head); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.ctb-tile .v span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 2px; }
+.ctb-tile .k { font-size: 13px; font-weight: 900; color: var(--head); }
+.ctb-tile .d { font-size: 11.5px; color: var(--muted); }
+.ctb-tile .d b { font-family: var(--font-num); color: var(--ink); }
+.ctb-tile .star { position: absolute; top: -10px; right: 8px; white-space: nowrap; font-size: 11px; font-weight: 900; padding: 1px 8px; border-radius: 999px; background: var(--yellow); color: #031147; box-shadow: 0 2px 0 rgba(3,17,71,.12); }
+.ctb-fav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.ctb-fav .bub { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); font-size: 22px; box-shadow: 0 2px 0 var(--line); animation: bob 3.2s ease-in-out infinite; }
+.ctb-fav .bub:nth-of-type(2) { animation-delay: .4s; } .ctb-fav .bub:nth-of-type(3) { animation-delay: .8s; }
+.ctb-note { font-size: 11.5px; color: var(--muted); }
+@keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .ctb-tile .emo, .ctb-fav .bub { animation: none; } }
+
+/* 月の目標 */
+.goal { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); margin-bottom: 16px; }
+.goal-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.goal-top .k { font-size: 13px; font-weight: 900; color: var(--head); }
+.goal-top .n { font: 700 34px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.goal-top .n small { font: 700 16px var(--font-num); color: var(--muted); }
+.goal-top .pc { font: 700 16px var(--font-num); color: var(--gold-ink); }
+.goal-top .tag { margin-left: auto; padding: 3px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 900; background: var(--sky-soft); color: var(--sky); }
+.goal-top .tag.ok { background: var(--ok-soft); color: var(--ok); }
+.goal-bar { position: relative; height: 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.goal-bar .fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; background: linear-gradient(90deg, var(--yellow), #ffdc5c); }
+.goal-bar .mark { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--navy); }
+.goal-sub { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.goal-sub b { font-family: var(--font-num); color: var(--ink); font-size: 14.5px; }
+.goal-sub i { display: inline-block; width: 3px; height: 12px; border-radius: 2px; background: var(--navy); vertical-align: -1px; margin-right: 5px; }
+.chart .goal-line { stroke: var(--gold-ink); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.chart .goal-lbl { font-weight: 700; fill: var(--gold-ink); }
+
 /* 次にやること */
 .todo { display: grid; gap: 10px; }
 .todo-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; }
@@ -271,6 +314,15 @@ td.z .c { color: var(--muted); font-weight: 500; }
     <div class="tiles" id="tiles"></div>
   </section>
 
+  <section class="sec" aria-labelledby="ctbH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+      <h2 id="ctbH">みんなへの貢献</h2>
+      <span class="scope">Discord・これまで</span>
+    </div>
+    <div class="card ctb" id="ctb"></div>
+  </section>
+
   <section class="sec" aria-labelledby="todoH">
     <div class="sec-h">
       <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span>
@@ -286,9 +338,10 @@ td.z .c { color: var(--muted); font-weight: 500; }
       <span class="scope">直近14日</span>
     </div>
     <div class="card">
+      <div class="goal" id="goal"></div>
       <div class="chart-h">
         <h3>送った数（棒）と返信（点）</h3>
-        <div class="legend"><span><i style="background:var(--sky)"></i>送信</span><span><i style="background:var(--yellow);border-radius:50%"></i>その日に送った分の返信</span></div>
+        <div class="legend"><span><i style="background:var(--sky)"></i>送信</span><span><i style="background:var(--yellow);border-radius:50%"></i>その日に送った分の返信</span><span><i style="height:0;border-top:2px dashed var(--gold-ink);border-radius:0;width:14px"></i>目標ペース</span></div>
       </div>
       <div class="chart" id="chart"></div>
     </div>
@@ -329,6 +382,8 @@ td.z .c { color: var(--muted); font-weight: 500; }
   var LIST_GID = '1868373526';   // 顧客リスト
   var LINE_GID = '310129667';    // LINE案内（まだ送信が無い人の名前もここから拾う）
   var SALT = 'tabicari-me:';     // make_links.py と同じ
+  var GOAL = 500;                // 1か月の送信目標
+  var COMM_URL = 'community.json';   // Discordでの貢献（~/cm-discord-archive/tabi_community.py が毎朝作る）
   var SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID;
   function csvUrl(gid) { return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&headers=1&gid=' + gid; }
 
@@ -455,9 +510,15 @@ td.z .c { color: var(--muted); font-weight: 500; }
     out.push({ row: 999, date: ymd(today), who: 'みほん', key: normKey('みほん'), hasUser: true, sent: false, msg: '未送信', st: {}, ng: {} });
     return out;
   }
+  function demoComm() {
+    return { updated: new Date().toISOString(), people: {
+      demo: { c: 14, cw: 5, r: 6, rw: 2, s: 31, sw: 9, g: 18, top: ['👏', '❤️', '🎉'] },
+      x1: { c: 6, cw: 1, r: 2, rw: 0, s: 12, sw: 3, g: 7, top: [] }, x2: { c: 3, cw: 0, r: 1, rw: 0, s: 5, sw: 1, g: 2, top: [] },
+      x3: { c: 0, cw: 0, r: 0, rw: 0, s: 2, sw: 0, g: 0, top: [] } } };
+  }
 
   // ===== 状態 =====
-  var S = { rows: [], me: '', meKey: '', period: 'all', demo: false };
+  var S = { rows: [], me: '', meKey: '', tok: '', comm: null, period: 'all', demo: false };
   try { var sp = localStorage.getItem('tc-me-period'); if (sp) S.period = sp; } catch (e) {}
 
   function $(id) { return document.getElementById(id); }
@@ -524,6 +585,77 @@ td.z .c { color: var(--muted); font-weight: 500; }
     }).join('');
   }
 
+  // ===== みんなへの貢献（Discord） =====
+  function commStats() {
+    var ppl = S.comm && S.comm.people ? S.comm.people : null;
+    if (!ppl || !ppl[S.tok]) return null;
+    var keys = Object.keys(ppl), avg = {};
+    ['c', 'r', 's', 'g'].forEach(function (k) { avg[k] = keys.reduce(function (a, t) { return a + (ppl[t][k] || 0); }, 0) / (keys.length || 1); });
+    return { me: ppl[S.tok], avg: avg, n: keys.length };
+  }
+  function countUp(el) {
+    var to = +el.dataset.to;
+    if (!to || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) { el.textContent = fmt(to); return; }
+    var t0 = performance.now(), dur = 900;
+    (function step(t) {
+      var p = Math.min(1, (t - t0) / dur);
+      el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function renderCtb() {
+    var box = $('ctb'), cs = commStats();
+    if (!cs) {
+      box.innerHTML = '<div class="ctb-msg"><span class="big">🌱</span><span>Discordの数はまだ準備中です<small>旅キャリDMチームのDiscordに参加すると、コメントやスタンプの数がここに出ます。</small></span></div>';
+      return;
+    }
+    var m = cs.me, a = cs.avg;
+    var msg = m.c + m.r + m.s === 0 ? ['👋', 'まずは、みんなの投稿にスタンプを1つ押してみよう！']
+      : m.s >= a.s && m.c >= a.c && m.s > 0 ? ['🌟', 'チームを盛り上げてくれています！']
+      : m.s > m.c ? ['👏', 'スタンプでみんなを応援してくれています！']
+      : ['💬', 'コメントでチームに参加してくれています！'];
+    var sub = m.g ? 'みんなから 🎁 ' + fmt(m.g) + '個 のスタンプが届いています' : '投稿すると、みんなからスタンプが届くかも';
+    var tiles = [
+      ['💬', 'コメント', m.c, '回', '今週 <b>+' + fmt(m.cw || 0) + '</b>', a.c],
+      ['💌', '返信', m.r, '回', '今週 <b>+' + fmt(m.rw || 0) + '</b>', a.r],
+      ['👏', '押したスタンプ', m.s, '個', '今週 <b>+' + fmt(m.sw || 0) + '</b>', a.s],
+      ['🎁', 'もらったスタンプ', m.g, '個', 'チーム平均 <b>' + a.g.toFixed(1) + '</b>個', a.g]
+    ];
+    var up = S.comm.updated ? new Date(S.comm.updated) : null;
+    box.innerHTML = '<div class="ctb-msg"><span class="big">' + msg[0] + '</span><span>' + esc(msg[1]) + '<small>' + esc(sub) + '</small></span></div>' +
+      '<div class="ctb-grid">' + tiles.map(function (t) {
+        return '<div class="ctb-tile">' + (t[2] > 0 && t[2] > t[5] ? '<span class="star">平均以上✨</span>' : '') +
+          '<span class="emo" aria-hidden="true">' + t[0] + '</span><div class="v"><span class="cu" data-to="' + t[2] + '" style="font:inherit;color:inherit;margin:0">0</span><span>' + t[3] + '</span></div>' +
+          '<div class="k">' + t[1] + '</div><div class="d">' + t[4] + '</div></div>';
+      }).join('') + '</div>' +
+      '<div class="ctb-fav">よく使うスタンプ' + ((m.top || []).length ? m.top.map(function (e) { return '<span class="bub">' + esc(e) + '</span>'; }).join('') : '<span>まだありません</span>') + '</div>' +
+      '<div class="ctb-note">旅キャリDMチーム（Discord）の部屋での数です。毎朝更新' + (up && !S.demo ? '（' + (up.getMonth() + 1) + '/' + up.getDate() + ' ' + pad(up.getHours()) + ':' + pad(up.getMinutes()) + ' 時点）' : '') + '。</div>';
+    Array.prototype.forEach.call(box.querySelectorAll('.cu'), countUp);
+  }
+
+  // ===== 月の目標 =====
+  function monthInfo() {
+    var t = new Date(), dim = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+    return { y: t.getFullYear(), m: t.getMonth() + 1, day: t.getDate(), dim: dim, prefix: t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' };
+  }
+  function renderGoal(my) {
+    var mi = monthInfo();
+    var sent = my.filter(function (r) { return r.sent && r.date && r.date.indexOf(mi.prefix) === 0; }).length;
+    var expect = Math.round(GOAL * mi.day / mi.dim);
+    var diff = sent - expect, remain = Math.max(0, GOAL - sent), remDays = mi.dim - mi.day + 1;
+    var tag = sent >= GOAL ? ['ok', '目標達成🎉']
+      : diff >= 0 ? ['ok', '目安より +' + fmt(diff) + '通 先行']
+      : ['', '今日の目安まで あと' + fmt(-diff) + '通'];
+    $('goal').innerHTML =
+      '<div class="goal-top"><span class="k">' + mi.m + '月の目標 ' + GOAL + '通</span>' +
+      '<span class="n">' + fmt(sent) + '<small> / ' + GOAL + '通</small></span><span class="pc">' + Math.floor(sent / GOAL * 100) + '%</span>' +
+      '<span class="tag' + (tag[0] ? ' ' + tag[0] : '') + '">' + tag[1] + '</span></div>' +
+      '<div class="goal-bar" role="img" aria-label="' + mi.m + '月の目標' + GOAL + '通のうち' + sent + '通"><span class="fill" style="width:' + Math.min(100, sent / GOAL * 100).toFixed(1) + '%"></span>' +
+      '<span class="mark" style="left:' + Math.min(100, expect / GOAL * 100).toFixed(1) + '%"></span></div>' +
+      '<div class="goal-sub"><span><i></i>今日の目安 <b>' + fmt(expect) + '</b>通</span>' +
+      (remain ? '<span>あと <b>' + fmt(remain) + '</b>通</span><span>残り <b>' + remDays + '</b>日 → 1日 約<b>' + fmt(Math.ceil(remain / remDays)) + '</b>通</span>' : '<span>今月の目標に届きました！</span>') + '</div>';
+  }
+
   var IC = {
     go: '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
     warn: '<svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
@@ -566,12 +698,15 @@ td.z .c { color: var(--muted); font-weight: 500; }
     var any = days.some(function (d) { return by[d]; });
     if (!any) { box.innerHTML = '<div class="empty">直近14日の送信はまだありません</div>'; return; }
     var W = Math.max(320, box.clientWidth || 800), H = 220, L = 30, R = 6, T = 18, B = 26;
-    var maxS = Math.max.apply(null, days.map(function (d) { return by[d] ? by[d].s : 0; }).concat([1]));
+    var pace = GOAL / monthInfo().dim;   // 目標ペース（1日あたり）
+    var maxS = Math.max.apply(null, days.map(function (d) { return by[d] ? by[d].s : 0; }).concat([1, pace * 1.15]));
     var step = niceStep(maxS), top = Math.ceil(maxS / step) * step;
     var bw = (W - L - R) / days.length;
     function y(v) { return T + (H - T - B) * (1 - v / top); }
     var g = '';
     for (var v = 0; v <= top; v += step) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--line)"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    g += '<line class="goal-line" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(pace).toFixed(1) + '" y2="' + y(pace).toFixed(1) + '"/>' +
+      '<text class="goal-lbl" x="' + (L + 4) + '" y="' + (y(pace) - 6).toFixed(1) + '">目標ペース 1日約' + Math.round(pace) + '通</text>';
     var every = bw < 34 ? 2 : 1, wd = '日月火水木金土';
     days.forEach(function (d, i) {
       var o = by[d] || { s: 0, r: 0 }, x = L + i * bw, cx = (x + bw / 2).toFixed(1);
@@ -631,6 +766,11 @@ td.z .c { color: var(--muted); font-weight: 500; }
       ['送った日の1日あたり', nmd ? meDated / nmd : 0, npd ? tmDated / npd : 0, function (v) { return v.toFixed(1) + '通'; }, ''],
       ['返信率', me.sent ? me.reply / me.sent : 0, tm.sent ? tm.reply / tm.sent : 0, function (v) { return (v * 100).toFixed(1) + '%'; }, '']
     ];
+    var cs = commStats();
+    if (cs) cards.push(
+      ['💌 グループでの返信', cs.me.r || 0, cs.avg.r, function (v) { return (v % 1 ? v.toFixed(1) : fmt(v)) + '回'; }, 'Discord・これまで'],
+      ['👏 押したスタンプ', cs.me.s || 0, cs.avg.s, function (v) { return (v % 1 ? v.toFixed(1) : fmt(v)) + '個'; }, 'Discord・これまで']
+    );
     $('cmp').innerHTML = cards.map(function (c) {
       var max = Math.max(c[1], c[2]) || 1;
       function bar(cls, lbl, v) {
@@ -647,7 +787,9 @@ td.z .c { color: var(--muted); font-weight: 500; }
     var allSent = S.rows.filter(function (r) { return r.sent && inPeriod(r); });
     renderKV(count(mySent));
     renderTiles(my);
+    renderCtb();
     renderTodo(my);
+    renderGoal(my);
     renderChart(my);
     renderMsg(mySent);
     renderCmp(mySent, allSent);
@@ -674,7 +816,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
   function load() {
     var want = wantedToken();
     if (want === 'demo') {
-      S.demo = true; S.rows = demoRows(); S.me = 'みほん'; S.meKey = normKey('みほん');
+      S.demo = true; S.rows = demoRows(); S.me = 'みほん'; S.meKey = normKey('みほん'); S.tok = 'demo'; S.comm = demoComm();
       setChip('demo', 'サンプル表示中');
       notice('<span><b>サンプルの数字で表示しています。</b>本人のURLで開くと、その人の数字になります。</span>');
       show(true); return;
@@ -686,8 +828,10 @@ td.z .c { color: var(--muted); font-weight: 500; }
       show(false); return;
     }
     setChip('', '読み込み中…');
-    Promise.all([getText(csvUrl(LIST_GID)), getText(csvUrl(LINE_GID)).catch(function () { return ''; })]).then(function (res) {
+    var comm = fetch(COMM_URL + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    Promise.all([getText(csvUrl(LIST_GID)), getText(csvUrl(LINE_GID)).catch(function () { return ''; }), comm]).then(function (res) {
       S.rows = toRows(res[0]);
+      S.comm = res[2]; S.tok = want;
       var names = {}, order = [];
       lineNames(res[1]).concat(S.rows.map(function (r) { return r.who; })).forEach(function (n) {
         var k = normKey(n); if (k && !names[k]) { names[k] = n; order.push(k); }   // LINE案内の表記を優先
