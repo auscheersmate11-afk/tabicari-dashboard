@@ -307,7 +307,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
     <div class="kv-head">
       <div class="kv-copy">
         <div class="kv-eyebrow" id="kvScope">ALL</div>
-        <div class="kv-hello"><b id="kvName"></b> さんの結果</div>
+        <div class="kv-hello" id="kvHello"></div>
         <h2 class="kv-big" id="kvTitle"><span class="n" id="kvSent">0</span><span class="u">通送って</span><span class="arrow">→</span><span class="u">返信</span><span class="n y" id="kvReply">0</span><span class="u">件</span></h2>
         <p class="kv-sub" id="kvSub"></p>
       </div>
@@ -561,7 +561,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
   // ===== 描画 =====
   function renderKV(c) {
     $('kvScope').textContent = S.period === 'all' ? 'ALL TIME' : 'LAST ' + S.period + ' DAYS';
-    $('kvName').textContent = S.me;
+    $('kvHello').innerHTML = S.me ? '<b>' + esc(S.me) + '</b> さんの結果' : '<b>あなた</b>の結果';
     $('kvSent').textContent = fmt(c.sent);
     $('kvReply').textContent = fmt(c.reply);
     $('kvSub').innerHTML = c.sent
@@ -849,8 +849,8 @@ td.z .c { color: var(--muted); font-weight: 500; }
   function show(found) {
     $('main').hidden = !found; $('lost').hidden = found;
     if (found) {
-      $('hName').textContent = S.me + 'さんの専用ページ';
-      document.title = S.me + 'さん｜旅キャリ 個別専用ページ';
+      $('hName').textContent = S.me ? S.me + 'さんの専用ページ' : 'あなたの専用ページ';
+      document.title = (S.me ? S.me + 'さん｜' : '') + '旅キャリ 個別専用ページ';
       render();
     }
   }
@@ -881,7 +881,12 @@ td.z .c { color: var(--muted); font-weight: 500; }
         var i = tokens.indexOf(want);
         setChip('', nowLabel());
         notice(''); setBtn(byUser ? 'done' : '');
-        if (i < 0) { S.me = ''; show(false); return; }
+        if (i < 0) {
+          // リストにもLINE案内にも名前がまだ無い人：Discordの集計に入っていれば「あなた」で開く（DMを送ってリストに名前が入ると名前で出る）
+          var inComm = S.comm && S.comm.people && S.comm.people[want];
+          S.me = ''; S.meKey = inComm ? '#' + want : '';
+          show(!!inComm); return;
+        }
         S.meKey = order[i]; S.me = names[order[i]];
         show(true);
       });
