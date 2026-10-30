@@ -75,6 +75,21 @@ h1 span { display: inline-block; }
 .btn:hover { border-color: var(--sky); }
 .btn.primary { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-ink); }
 .btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.btn.refresh { position: relative; gap: 8px; padding: 11px 22px; border-radius: 14px; font-size: 15.5px; font-weight: 900;
+  background: var(--yellow); border-color: var(--yellow); color: #031147; box-shadow: 0 4px 0 #c99d00; transition: transform .12s, box-shadow .12s, background .25s; }
+.btn.refresh svg { width: 19px; height: 19px; stroke-width: 2.4; }
+.btn.refresh:hover { border-color: var(--yellow); transform: translateY(-1px); box-shadow: 0 5px 0 #c99d00; }
+.btn.refresh:active { transform: translateY(3px); box-shadow: 0 1px 0 #c99d00; }
+.btn.refresh::after { content: ""; position: absolute; inset: -5px; border-radius: 18px; border: 2px solid var(--yellow); pointer-events: none; animation: ring 2.6s ease-out infinite; }
+.btn.refresh.loading { cursor: progress; }
+.btn.refresh.loading svg { animation: spin .8s linear infinite; }
+.btn.refresh.loading::after, .btn.refresh.done::after { animation: none; opacity: 0; }
+.btn.refresh.done { background: var(--ok); border-color: var(--ok); color: #fff; box-shadow: 0 4px 0 #1f5a33; }
+.btn.refresh.done svg { animation: pop .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes ring { 0% { transform: scale(.94); opacity: .8; } 70%, 100% { transform: scale(1.1); opacity: 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 600px) { .status { width: 100%; } .btn.refresh { order: -1; flex: 1 1 100%; justify-content: center; padding: 13px 20px; font-size: 16.5px; } }
+@media (prefers-reduced-motion: reduce) { .btn.refresh::after, .btn.refresh.loading svg { animation: none; } }
 .notice { margin: -8px 0 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; font-size: 13.5px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--yellow-soft); }
 .notice.err { background: var(--warn-soft); border-color: var(--warn); }
 .notice b { font-weight: 900; }
@@ -193,6 +208,7 @@ h1 span { display: inline-block; }
 .goal-bar .mark { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--navy); }
 .goal-sub { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
 .goal-sub b { font-family: var(--font-num); color: var(--ink); font-size: 14.5px; }
+.goal-note { font-size: 11px; color: var(--muted); line-height: 1.5; word-break: auto-phrase; }
 .goal-sub i { display: inline-block; width: 3px; height: 12px; border-radius: 2px; background: var(--navy); vertical-align: -1px; margin-right: 5px; }
 .chart .goal-line { stroke: var(--gold-ink); stroke-width: 1.5; stroke-dasharray: 6 4; }
 .chart .goal-lbl { font-weight: 700; fill: var(--gold-ink); }
@@ -271,7 +287,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
     <div class="status">
       <span class="chip" id="chip"><i></i><span id="stamp">読み込み中…</span></span>
       <a class="btn" id="sheetLink" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg>リストを開く</a>
-      <button class="btn primary" id="reload" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>最新にする</button>
+      <button class="btn refresh" id="reload" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span id="reloadLbl">最新の数字にする</span></button>
     </div>
   </header>
   <div class="notice" id="notice" role="status" hidden></div>
@@ -615,7 +631,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
     }
     var m = cs.me, a = cs.avg;
     var msg = m.c + m.s === 0 ? ['👋', 'まずは、みんなの投稿にスタンプを1つ押してみよう！']
-      : m.s >= a.s && m.c >= a.c && m.s > 0 ? ['🌟', 'チームを盛り上げてくれています！']
+      : m.s >= a.s && m.c >= a.c && m.s > 0 ? ['🌟', 'あなたがチームを盛り上げている！']
       : m.s > m.c ? ['👏', 'スタンプでみんなを応援してくれています！']
       : ['💬', 'コメントでチームに参加してくれています！'];
     var sub = m.g ? 'みんなから 🎁 ' + fmt(m.g) + '個 のスタンプが届いています' : '投稿すると、みんなからスタンプが届くかも';
@@ -637,26 +653,36 @@ td.z .c { color: var(--muted); font-weight: 500; }
   }
 
   // ===== 月の目標 =====
-  function monthInfo() {
-    var t = new Date(), dim = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
-    return { y: t.getFullYear(), m: t.getMonth() + 1, day: t.getDate(), dim: dim, prefix: t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' };
+  // 目標の期間。ふだんは「その月に500通」。2026年10月だけ特別で、10月の分も11月に入れて「11月末までに500通」
+  // （目安の線は11/1から引く。12月からは毎月500通で、前の月の分は足さない）
+  function goalPeriod() {
+    var t = new Date(); t.setHours(0, 0, 0, 0);
+    var y = t.getFullYear(), m = t.getMonth();
+    if (y === 2026 && (m === 9 || m === 10))
+      return { today: t, from: new Date(2026, 9, 1), pace: new Date(2026, 10, 1), end: new Date(2026, 10, 30), label: '11月末までの目標', special: true };
+    return { today: t, from: new Date(y, m, 1), pace: new Date(y, m, 1), end: new Date(y, m + 1, 0), label: (m + 1) + '月の目標', special: false };
   }
+  function dayDiff(a, b) { return Math.round((b - a) / 86400000); }
+  function paceDays(gp) { return dayDiff(gp.pace, gp.end) + 1; }
   function renderGoal(my) {
-    var mi = monthInfo();
-    var sent = my.filter(function (r) { return r.sent && r.date && r.date.indexOf(mi.prefix) === 0; }).length;
-    var expect = Math.round(GOAL * mi.day / mi.dim);
-    var diff = sent - expect, remain = Math.max(0, GOAL - sent), remDays = mi.dim - mi.day + 1;
+    var gp = goalPeriod(), fromS = ymd(gp.from), endS = ymd(gp.end), before = gp.today < gp.pace;
+    var sent = my.filter(function (r) { return r.sent && r.date && r.date >= fromS && r.date <= endS; }).length;
+    var expect = before ? 0 : Math.round(GOAL * (dayDiff(gp.pace, gp.today) + 1) / paceDays(gp));
+    var diff = sent - expect, remain = Math.max(0, GOAL - sent), remDays = dayDiff(gp.today, gp.end) + 1;
+    var paceStart = (gp.pace.getMonth() + 1) + '/' + gp.pace.getDate();
     var tag = sent >= GOAL ? ['ok', '目標達成🎉']
+      : before ? (sent ? ['ok', '先取り中 +' + fmt(sent) + '通✨'] : ['', '目安は' + paceStart + 'から'])
       : diff >= 0 ? ['ok', '目安より +' + fmt(diff) + '通 先行']
       : ['', '今日の目安まで あと' + fmt(-diff) + '通'];
     $('goal').innerHTML =
-      '<div class="goal-top"><span class="k">' + mi.m + '月の目標 ' + GOAL + '通</span>' +
+      '<div class="goal-top"><span class="k">' + gp.label + ' ' + GOAL + '通</span>' +
       '<span class="n">' + fmt(sent) + '<small> / ' + GOAL + '通</small></span><span class="pc">' + Math.floor(sent / GOAL * 100) + '%</span>' +
       '<span class="tag' + (tag[0] ? ' ' + tag[0] : '') + '">' + tag[1] + '</span></div>' +
-      '<div class="goal-bar" role="img" aria-label="' + mi.m + '月の目標' + GOAL + '通のうち' + sent + '通"><span class="fill" style="width:' + Math.min(100, sent / GOAL * 100).toFixed(1) + '%"></span>' +
-      '<span class="mark" style="left:' + Math.min(100, expect / GOAL * 100).toFixed(1) + '%"></span></div>' +
-      '<div class="goal-sub"><span><i></i>今日の目安 <b>' + fmt(expect) + '</b>通</span>' +
-      (remain ? '<span>あと <b>' + fmt(remain) + '</b>通</span><span>残り <b>' + remDays + '</b>日 → 1日 約<b>' + fmt(Math.ceil(remain / remDays)) + '</b>通</span>' : '<span>今月の目標に届きました！</span>') + '</div>';
+      '<div class="goal-bar" role="img" aria-label="' + gp.label + GOAL + '通のうち' + sent + '通"><span class="fill" style="width:' + Math.min(100, sent / GOAL * 100).toFixed(1) + '%"></span>' +
+      (before ? '' : '<span class="mark" style="left:' + Math.min(100, expect / GOAL * 100).toFixed(1) + '%"></span>') + '</div>' +
+      '<div class="goal-sub">' + (before ? '<span><i></i>今日の目安は ' + paceStart + ' から</span>' : '<span><i></i>今日の目安 <b>' + fmt(expect) + '</b>通</span>') +
+      (remain ? '<span>あと <b>' + fmt(remain) + '</b>通</span><span>残り <b>' + remDays + '</b>日 → 1日 約<b>' + fmt(Math.ceil(remain / remDays)) + '</b>通</span>' : '<span>目標に届きました！</span>') + '</div>' +
+      (gp.special ? '<div class="goal-note">※10月だけ特別に、10月に送った分も11月の数に入れて「11月末までに500通」を目標にしています。12月からは毎月500通です（前の月の分は足しません）。</div>' : '');
   }
 
   var IC = {
@@ -701,7 +727,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
     var any = days.some(function (d) { return by[d]; });
     if (!any) { box.innerHTML = '<div class="empty">直近14日の送信はまだありません</div>'; return; }
     var W = Math.max(320, box.clientWidth || 800), H = 220, L = 30, R = 6, T = 18, B = 26;
-    var pace = GOAL / monthInfo().dim;   // 目標ペース（1日あたり）
+    var pace = GOAL / paceDays(goalPeriod());   // 目標ペース（1日あたり）
     var maxS = Math.max.apply(null, days.map(function (d) { return by[d] ? by[d].s : 0; }).concat([1, pace * 1.15]));
     var step = niceStep(maxS), top = Math.ceil(maxS / step) * step;
     var bw = (W - L - R) / days.length;
@@ -710,7 +736,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
     for (var v = 0; v <= top; v += step) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--line)"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
     g += '<line class="goal-line" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(pace).toFixed(1) + '" y2="' + y(pace).toFixed(1) + '"/>' +
       '<text class="goal-lbl" x="' + (L + 4) + '" y="' + (y(pace) - 6).toFixed(1) + '">目標ペース 1日約' + Math.round(pace) + '通</text>';
-    var every = bw < 34 ? 2 : 1, wd = '日月火水木金土';
+    var narrow = bw < 34, wd = '日月火水木金土';   // 細い画面は毎日の「日」だけを出す（1日おきだと昨日の棒が「今日」の上に見える）
     days.forEach(function (d, i) {
       var o = by[d] || { s: 0, r: 0 }, x = L + i * bw, cx = (x + bw / 2).toFixed(1);
       if (o.s) {
@@ -718,7 +744,8 @@ td.z .c { color: var(--muted); font-weight: 500; }
         if (bw >= 20) g += '<text class="val" x="' + cx + '" y="' + (y(o.s) - 5).toFixed(1) + '" text-anchor="middle">' + o.s + '</text>';
       }
       if (o.r) g += '<circle cx="' + cx + '" cy="' + y(o.r).toFixed(1) + '" r="4.5" fill="var(--yellow)" stroke="var(--navy)" stroke-width="1.5"/>';
-      if ((days.length - 1 - i) % every === 0) g += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (i === days.length - 1 ? ' class="val"' : '') + '>' + (i === days.length - 1 ? '今日' : (+d.slice(5, 7)) + '/' + (+d.slice(8))) + '</text>';
+      g += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (i === days.length - 1 ? ' class="val"' : '') + (narrow ? ' style="font-size:10px"' : '') + '>' +
+        (i === days.length - 1 ? '今日' : narrow ? +d.slice(8) : (+d.slice(5, 7)) + '/' + (+d.slice(8))) + '</text>';
       g += '<rect class="hit" data-i="' + i + '" x="' + x.toFixed(1) + '" y="' + T + '" width="' + bw.toFixed(1) + '" height="' + (H - T - B) + '" fill="transparent"/>';
     });
     box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="日ごとの送信数と返信数">' + g + '</svg><div class="tip" hidden></div>';
@@ -799,6 +826,17 @@ td.z .c { color: var(--muted); font-weight: 500; }
   }
 
   // ===== 読み込み =====
+  var ICON_RELOAD = '<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>';
+  var ICON_DONE = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+  var btnTimer;
+  function setBtn(state) {
+    var b = $('reload'), lbl = { loading: '読み込み中…', done: '最新になりました！', '': '最新の数字にする' }[state];
+    clearTimeout(btnTimer);
+    b.className = 'btn refresh' + (state ? ' ' + state : '');
+    b.disabled = state === 'loading';
+    b.innerHTML = (state === 'done' ? ICON_DONE : ICON_RELOAD) + '<span id="reloadLbl">' + lbl + '</span>';
+    if (state === 'done') btnTimer = setTimeout(function () { setBtn(''); }, 2400);
+  }
   function setChip(cls, text) { $('chip').className = 'chip' + (cls ? ' ' + cls : ''); $('stamp').textContent = text; }
   function notice(html, err) { var n = $('notice'); n.innerHTML = html; n.className = 'notice' + (err ? ' err' : ''); n.hidden = !html; }
   function nowLabel() { var d = new Date(); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' 読み込み'; }
@@ -816,7 +854,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
       render();
     }
   }
-  function load() {
+  function load(byUser) {   // byUser＝ボタンから（押したときだけ「最新になりました！」を出す）
     var want = wantedToken();
     if (want === 'demo') {
       S.demo = true; S.rows = demoRows(); S.me = 'みほん'; S.meKey = normKey('みほん'); S.tok = 'demo'; S.comm = demoComm();
@@ -830,7 +868,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
       notice('<span><b>このブラウザでは開けませんでした。</b>右上のメニューから「ブラウザで開く」を選んでください。</span>', true);
       show(false); return;
     }
-    setChip('', '読み込み中…');
+    setChip('', '読み込み中…'); setBtn('loading');
     var comm = fetch(COMM_URL + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     Promise.all([getText(csvUrl(LIST_GID)), getText(csvUrl(LINE_GID)).catch(function () { return ''; }), comm]).then(function (res) {
       S.rows = toRows(res[0]);
@@ -842,20 +880,20 @@ td.z .c { color: var(--muted); font-weight: 500; }
       return Promise.all(order.map(function (k) { return tokenOf(names[k]); })).then(function (tokens) {
         var i = tokens.indexOf(want);
         setChip('', nowLabel());
-        notice('');
+        notice(''); setBtn(byUser ? 'done' : '');
         if (i < 0) { S.me = ''; show(false); return; }
         S.meKey = order[i]; S.me = names[order[i]];
         show(true);
       });
     }).catch(function () {
-      setChip('err', '読み込めませんでした');
-      notice('<span><b>共有顧客リストを読み込めませんでした。</b>少し待ってから「最新にする」を押してください。</span>', true);
+      setChip('err', '読み込めませんでした'); setBtn('');
+      notice('<span><b>共有顧客リストを読み込めませんでした。</b>少し待ってから「最新の数字にする」を押してください。</span>', true);
     });
   }
 
   // ===== 操作 =====
   $('sheetLink').href = SHEET_URL;
-  $('reload').onclick = load;
+  $('reload').onclick = function () { load(true); };
   $('segPeriod').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     S.period = b.dataset.v;
