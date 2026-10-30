@@ -595,13 +595,17 @@ td.z .c { color: var(--muted); font-weight: 500; }
   }
   function countUp(el) {
     var to = +el.dataset.to;
-    if (!to || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) { el.textContent = fmt(to); return; }
-    var t0 = performance.now(), dur = 900;
-    (function step(t) {
-      var p = Math.min(1, (t - t0) / dur);
-      el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) requestAnimationFrame(step);
-    })(t0);
+    el.textContent = fmt(to);   // 裏のタブなどで動きが止まっても、正しい数が出ているように先に入れておく
+    if (!to || document.hidden || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    var dur = 900;
+    requestAnimationFrame(function (t0) {
+      (function step(t) {
+        var p = Math.min(1, (t - t0) / dur);
+        el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(step); else el.textContent = fmt(to);
+      })(t0);
+    });
+    setTimeout(function () { el.textContent = fmt(to); }, dur + 400);   // 動きが途中で止まっても最後は正しい数に
   }
   function renderCtb() {
     var box = $('ctb'), cs = commStats();
