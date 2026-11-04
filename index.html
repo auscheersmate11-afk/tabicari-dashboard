@@ -243,6 +243,34 @@ h1 span { display: inline-block; }
   .pod .spark, .confetti { display: none; }
 }
 
+
+/* みんなのペース（今月の目標に対して） */
+.pace-legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--muted); font-weight:700; }
+.pace-legend span { display:inline-flex; align-items:center; gap:6px; }
+.pace-legend i { width:9px; height:9px; border-radius:50%; display:inline-block; }
+.pace-legend i.t { width:2px; height:12px; border-radius:1px; background:var(--ink); }
+.pace-sum { display:flex; flex-wrap:wrap; gap:6px 18px; align-items:baseline; font-size:13px; color:var(--muted); font-weight:700; margin-top:10px; }
+.pace-sum b { font:700 22px var(--num); color:var(--head); margin:0 3px; }
+.pace-rows { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:32px; margin-top:8px; }
+@media (max-width: 860px) { .pace-rows { grid-template-columns:1fr; } }
+.pr { display:grid; grid-template-columns:22px minmax(5em, 8em) minmax(0, 1fr) 3em 3.6em; gap:12px; align-items:center; padding:9px 2px; border-bottom:1px solid var(--line); animation:fade .5s ease both; }
+.pr .no { font:600 12px var(--num); color:var(--muted); text-align:right; opacity:.8; }
+.pr .nm { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--head); white-space:nowrap; overflow:hidden; min-width:0; }
+.pr .nm i { width:8px; height:8px; border-radius:50%; flex:none; }
+.pr .nm span { overflow:hidden; text-overflow:ellipsis; }
+.pr .bar { position:relative; height:8px; border-radius:999px; background:var(--bg); }
+.pr .bar span { position:absolute; left:0; top:0; bottom:0; border-radius:999px; transform-origin:left; animation:pgrow 1s cubic-bezier(.2,.9,.3,1) both; }
+.pr .bar em { position:absolute; top:-4px; bottom:-4px; width:2px; margin-left:-1px; border-radius:1px; background:var(--ink); opacity:.75; }
+.pr .pt { text-align:right; font:700 17px var(--num); color:var(--ink); font-variant-numeric:tabular-nums; }
+.pr .pc { justify-self:end; min-width:3.4em; text-align:center; padding:2px 0; border-radius:999px; font:700 12px var(--num); }
+.pr.lead { background:linear-gradient(90deg, var(--yellow-soft), transparent 70%); border-radius:10px; border-bottom-color:transparent; }
+.pc.p-lead { background:var(--yellow); color:#031147; } .pc.p-on { background:var(--ok-soft); color:var(--ok); } .pc.p-slip { background:#fdeedd; color:#b5620c; } .pc.p-late { background:var(--warn-soft); color:var(--warn); } .pc.p-zero { background:var(--bg); color:var(--muted); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pc.p-slip { background:#2e2112; color:#f5a95a; } }
+:root[data-theme="dark"] .pc.p-slip { background:#2e2112; color:#f5a95a; }
+@keyframes pgrow { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@media (max-width: 600px) { .pr { grid-template-columns:20px minmax(0, 1fr) auto auto; } .pr .bar { grid-column:1 / -1; order:5; } }
+@media (prefers-reduced-motion: reduce) { .pr, .pr .bar span { animation:none !important; } }
+
 /* ランキング */
 .rk-tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 12px; }
 .rk-tools input[type=search] { flex: 1 1 200px; max-width: 280px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 7px 12px; font-size: 14px; }
@@ -359,6 +387,19 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
         <div class="seg2" role="group" aria-label="並び順" id="ctbSort"><button type="button" data-k="pt">🏆 貢献ポイント</button><button type="button" data-k="c">💬 コメント</button><button type="button" data-k="s">👏 スタンプ</button><button type="button" data-k="g">🎁 もらった</button></div>
       </div>
       <div id="ctbBody"><div class="empty">読み込み中…</div></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="paceH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M13 4a2 2 0 1 0 0-.01M7 21l3-6 3 2v5M10 15l1-5 4 3 3-1M8 10l3-2"/></svg></span>
+      <h2 id="paceH">みんなのペース</h2>
+      <span class="scope" id="paceScope"></span>
+    </div>
+    <div class="card">
+      <div class="pace-legend"><span><i style="background:var(--yellow)"></i>先行（目標の120%以上）</span><span><i style="background:var(--ok)"></i>順調</span><span><i style="background:#e8902a"></i>少し遅れ</span><span><i style="background:var(--warn)"></i>遅れ（70%未満）</span><span><i class="t"></i>今日までの目標</span></div>
+      <div class="pace-sum" id="paceSum"></div>
+      <div class="pace-rows" id="paceRows"><div class="empty">読み込み中…</div></div>
     </div>
   </section>
 
@@ -863,9 +904,58 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
     renderTiles(c, people);
     renderFix();
     if (CT.lastWho !== S.who) renderContrib();   // 担当者の選択が変わったときだけ（読み込みのたびに表彰台を描き直さない）
+    renderPace();
     renderRank(people, total);
     renderChart();
     renderStage(c);
+  }
+
+
+  // ===== みんなのペース（期間の切り替えに関係なく、今月の目標に対して） =====
+  // 目標は1人500通/月。2026年10月・11月だけ特別で、10月の分も11月に入れて「11月末までに500通」（今日までの目標は11/1から数える）。運営ボードと同じ決め方。
+  var PACE_GOAL = 500, PACE_LEAD = 1.2, PACE_SLIP = 0.7;
+  var PACE_EXCLUDE = ['菊地祐輔'];   // 運営（集計から外す人）
+  function paceKey(n) { return String(n || '').replace(/髙/g, '高').replace(/[\s　]+|[（(][^）)]*[）)]/g, ''); }
+  function pacePeriod() {
+    var t = new Date(); t.setHours(0, 0, 0, 0);
+    var y = t.getFullYear(), m = t.getMonth();
+    if (y === 2026 && (m === 9 || m === 10)) return { today: t, from: new Date(2026, 9, 1), pace: new Date(2026, 10, 1), end: new Date(2026, 10, 30), label: '11月末まで（10月分も含む）' };
+    return { today: t, from: new Date(y, m, 1), pace: new Date(y, m, 1), end: new Date(y, m + 1, 0), label: (m + 1) + '月' };
+  }
+  function ymdOf(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function renderPace() {
+    var gp = pacePeriod(), fromS = ymdOf(gp.from), endS = ymdOf(gp.end);
+    var days = Math.round((gp.end - gp.pace) / 86400000) + 1;
+    var elapsed = Math.max(0, Math.min(days, Math.round((gp.today - gp.pace) / 86400000) + 1));
+    var expect = Math.round(PACE_GOAL * elapsed / days);
+    var ex = PACE_EXCLUDE.map(paceKey), map = {};
+    S.rows.forEach(function (r) {
+      if (!r.who) return;
+      var k = paceKey(r.who); if (ex.indexOf(k) >= 0) return;
+      var p = map[k] || (map[k] = { name: r.who, sent: 0 });
+      if (r.sent && r.date && r.date >= fromS && r.date <= endS) p.sent++;
+    });
+    var ps = Object.keys(map).map(function (k) {
+      var p = map[k], ratio = expect ? p.sent / expect : null, c;
+      if (p.sent >= PACE_GOAL) c = 'lead'; else if (!p.sent) c = 'zero'; else if (ratio == null) c = 'lead';
+      else c = ratio >= PACE_LEAD ? 'lead' : ratio >= 1 ? 'on' : ratio >= PACE_SLIP ? 'slip' : 'late';
+      p.ratio = ratio; p.c = c; return p;
+    }).sort(function (a, b) { return b.sent - a.sent || a.name.localeCompare(b.name, 'ja'); });
+    $('paceScope').textContent = gp.label + '・1人' + PACE_GOAL + '通';
+    if (!ps.length) { $('paceSum').innerHTML = ''; $('paceRows').innerHTML = '<div class="empty">まだ送信がありません</div>'; return; }
+    var ahead = ps.filter(function (p) { return p.c === 'lead' || p.c === 'on'; }).length;
+    $('paceSum').innerHTML = '<span>今日までの目標<b>' + fmt(expect) + '</b>通</span><span>ペース以上<b>' + ahead + '</b>/ ' + ps.length + '人</span>';
+    var col = { lead: 'var(--yellow)', on: 'var(--ok)', slip: '#e8902a', late: 'var(--warn)', zero: 'var(--line)' };
+    var max = Math.max.apply(null, ps.map(function (p) { return p.sent; }).concat([expect, 1]));
+    $('paceRows').innerHTML = ps.map(function (p, i) {
+      var d = Math.min(i * 0.03, 0.6).toFixed(2);
+      return '<div class="pr' + (p.c === 'lead' && p.sent ? ' lead' : '') + '" style="animation-delay:' + d + 's" title="' + esc(p.name) + '：' + p.sent + '通／今日までの目標 ' + expect + '通">' +
+        '<span class="no">' + (i + 1) + '</span>' +
+        '<span class="nm"><i style="background:' + col[p.c] + '"></i><span>' + esc(p.name) + '</span></span>' +
+        '<div class="bar"><span style="width:' + (p.sent / max * 100).toFixed(1) + '%;background:' + col[p.c] + ';animation-delay:' + d + 's"></span>' + (expect ? '<em style="left:' + (expect / max * 100).toFixed(1) + '%"></em>' : '') + '</div>' +
+        '<span class="pt">' + fmt(p.sent) + '</span>' +
+        '<span class="pc p-' + p.c + '">' + (p.ratio == null ? '—' : Math.round(p.ratio * 100) + '%') + '</span></div>';
+    }).join('');
   }
 
   // ===== 読み込み =====
