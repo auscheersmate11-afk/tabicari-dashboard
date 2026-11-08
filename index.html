@@ -351,7 +351,7 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
     <div class="kv-head">
       <div class="kv-copy">
         <div class="kv-eyebrow" id="kvScope">ALL · 全員</div>
-        <h2 class="kv-big" id="kvTitle"><span class="n" id="kvSent">0</span><span class="u">通送って</span><span class="arrow">→</span><span class="u">成約</span><span class="n y" id="kvDeal">0</span><span class="u">件</span></h2>
+        <h2 class="kv-big" id="kvTitle"><span class="n" id="kvSent">0</span><span class="u">通送って</span><span class="arrow">→</span><span class="u" id="kvEndLabel">返信</span><span class="n y" id="kvDeal">0</span><span class="u">件</span></h2>
         <p class="kv-sub" id="kvSub"></p>
       </div>
       <div class="filters">
@@ -600,7 +600,10 @@ td.l { text-align: left; color: var(--muted); font-size: 12.5px; }
   function renderKV(c) {
     $('kvScope').textContent = (S.period === 'all' ? 'ALL' : 'LAST ' + S.period + ' DAYS') + ' · ' + (S.who || '全員');
     $('kvSent').textContent = fmt(c.sent);
-    $('kvDeal').textContent = fmt(c.deal);
+    // 成約が1件でも出たら成約数、それまでは返信数を表示
+    var showDeal = c.deal > 0;
+    $('kvEndLabel').textContent = showDeal ? '成約' : '返信';
+    $('kvDeal').textContent = fmt(showDeal ? c.deal : c.reply);
     $('kvSub').innerHTML = c.sent
       ? '返信率 <b>' + pct(c.reply, c.sent) + '</b>　一次面談 <b>' + fmt(c.first) + '</b>件' + (c.first ? '（約<b>' + fmt(Math.round(c.sent / c.first)) + '</b>通で1件）' : '')
       : 'この条件ではまだ送信がありません';
