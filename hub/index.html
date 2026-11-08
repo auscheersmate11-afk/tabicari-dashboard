@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>旅キャリ 運営ハブ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@600;700&family=Noto+Sans+JP:wght@900&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* 運営用の入口。3つのページをタブで切り替える。
+   運営ボード・共有ダッシュボードは同じサイトなので iframe で表示。
+   DMダッシュボード（claude.ai のページ）は claude.ai 側が埋め込みを禁止している（frame-ancestors 'self'）ので、新しいタブで開くカードにしている。 */
+:root {
+  --bg: #f3f6fb; --surface: #ffffff; --ink: #101a38; --muted: #5b6886; --line: #dde4f0;
+  --head: #0b1d5c; --yellow: #fdc805; --sky: #2f86d6;
+  --bar1: #031147; --bar2: #173c8e; --bar-ink: #ffffff; --bar-muted: #b9c6e6; --bar-line: rgba(255,255,255,.18);
+  --jp: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --num: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --brand: "Noto Sans JP", "Hiragino Sans", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1122; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f; --head: #c9d6f7;
+    --bar1: #08143a; --bar2: #183a80; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1122; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f; --head: #c9d6f7;
+  --bar1: #08143a; --bar2: #183a80; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--jp); display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+.bar { flex: none; background: linear-gradient(150deg, var(--bar1), var(--bar2)); color: var(--bar-ink); padding: 10px 16px 0; }
+.bar-in { max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; }
+.brand { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; min-width: 0; }
+.logo { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; background: var(--yellow); color: #031147; font: 900 11px/1 var(--brand); }
+.logo span { display: inline-block; transform: skewX(-12deg); font-size: 13px; }
+.logo small { font-size: 8.5px; }
+.logo { white-space: nowrap; letter-spacing: -.02em; }
+.eyebrow { font: 700 10.5px var(--num); letter-spacing: .22em; color: var(--yellow); }
+h1 { margin: 0; font-size: 18px; font-weight: 900; line-height: 1.2; }
+
+.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer; padding: 10px 16px 11px; border-radius: 12px 12px 0 0; background: transparent; color: var(--bar-muted); font: 700 14px var(--jp); white-space: nowrap; }
+.tab:hover { color: var(--bar-ink); background: rgba(255,255,255,.06); }
+.tab i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid currentColor; font: 700 11px var(--num); font-style: normal; }
+.tab[aria-selected="true"] { background: var(--bg); color: var(--head); }
+.tab[aria-selected="true"] i { background: var(--yellow); border-color: var(--yellow); color: #031147; }
+.tab .s { display: none; }
+@media (max-width: 640px) { .tab .s { display: inline; } }
+.tab .ext { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: .7; }
+
+.tools { flex: none; max-width: 1240px; width: 100%; margin: 0 auto; padding: 8px 16px 0; display: flex; justify-content: flex-end; gap: 8px; }
+.tools a, .tools button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--head); border-radius: 9px; padding: 4px 11px; font: 700 12.5px var(--jp); text-decoration: none; cursor: pointer; }
+.tools a:hover, .tools button:hover { border-color: var(--sky); }
+.tools svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+main { flex: 1; min-height: 0; position: relative; }
+.pane { position: absolute; inset: 0; }
+.pane[hidden] { display: none; }
+.pane iframe { display: block; width: 100%; height: 100%; border: 0; background: var(--bg); }
+
+.ext-card { max-width: 560px; margin: 48px auto 0; padding: 0 16px; }
+.ext-card .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 24px; display: grid; gap: 14px; justify-items: start; }
+.ext-card h2 { margin: 0; font-size: 20px; font-weight: 900; color: var(--head); }
+.ext-card p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--muted); }
+.go { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 12px; background: #031147; color: #fff; font: 700 15px var(--jp); text-decoration: none; }
+.go:hover { background: #173c8e; }
+.go svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .go { background: var(--yellow); color: #031147; } }
+:root[data-theme="dark"] .go { background: var(--yellow); color: #031147; }
+
+@media (max-width: 640px) {
+  .tab .l { display: none; }
+  .brand { padding-bottom: 6px; }
+  .tab { padding: 9px 12px 10px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><span>旅<small>キャリ</small></span></div>
+      <div>
+        <div class="eyebrow">TABI CARRY · OPS</div>
+        <h1>運営ハブ</h1>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="ページ" id="tabs"></nav>
+  </div>
+</header>
+<div class="tools"><button type="button" id="reload"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>読み直す</button><a id="openNew" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>新しいタブで開く</a></div>
+<main id="main"></main>
+
+<script>
+(function () {
+  // embed:false は埋め込み不可のページ（新しいタブで開く）
+  var PAGES = [
+    { id: 'ops', label: '運営ボード', short: '運営', url: '../ops/', embed: true },
+    { id: 'dm', label: 'DMダッシュボード', short: 'DM', url: 'https://claude.ai/artifact/4XEJKVSoaqyEnzokfExDHC', embed: false,
+      note: 'このページは claude.ai の中で動いていて、ほかのページの中には表示できない決まりになっています。下のボタンから新しいタブで開いてください（「最新の数字にして保存」や施策メモもそちらで使えます）。' },
+    { id: 'share', label: '共有ダッシュボード', short: '共有', url: '../', embed: true }
+  ];
+  var tabs = document.getElementById('tabs'), main = document.getElementById('main');
+  var openNew = document.getElementById('openNew'), reload = document.getElementById('reload');
+  var EXT = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+  var ARR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+
+  PAGES.forEach(function (p, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'tab'; b.id = 'tab-' + p.id;
+    b.setAttribute('role', 'tab'); b.setAttribute('aria-controls', 'pane-' + p.id);
+    b.innerHTML = '<i>' + (i + 1) + '</i><span class="l">' + p.label + '</span><span class="s">' + p.short + '</span>' + (p.embed ? '' : EXT);
+    b.addEventListener('click', function () { show(p.id, true); });
+    tabs.appendChild(b);
+    var pane = document.createElement('section');
+    pane.className = 'pane'; pane.id = 'pane-' + p.id; pane.hidden = true;
+    pane.setAttribute('role', 'tabpanel'); pane.setAttribute('aria-labelledby', b.id);
+    if (!p.embed) {
+      pane.innerHTML = '<div class="ext-card"><div class="card"><h2>' + p.label + '</h2><p>' + p.note +
+        '</p><a class="go" href="' + p.url + '" target="_blank" rel="noopener">' + p.label + 'を開く' + ARR + '</a></div></div>';
+    }
+    main.appendChild(pane);
+  });
+
+  // 矢印キーでタブ移動
+  tabs.addEventListener('keydown', function (e) {
+    var i = PAGES.findIndex(function (p) { return p.id === current; });
+    if (e.key === 'ArrowRight') i = (i + 1) % PAGES.length;
+    else if (e.key === 'ArrowLeft') i = (i - 1 + PAGES.length) % PAGES.length;
+    else return;
+    e.preventDefault(); show(PAGES[i].id, true); document.getElementById('tab-' + PAGES[i].id).focus();
+  });
+
+  var current = null;
+  function show(id, push) {
+    var p = PAGES.filter(function (x) { return x.id === id; })[0] || PAGES[0];
+    current = p.id;
+    PAGES.forEach(function (x) {
+      var on = x.id === p.id, b = document.getElementById('tab-' + x.id);
+      b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1;
+      document.getElementById('pane-' + x.id).hidden = !on;
+    });
+    var pane = document.getElementById('pane-' + p.id);
+    // 開いたときに初めて読み込む（その後は切り替えても読み直さない）
+    if (p.embed && !pane.firstChild) {
+      var f = document.createElement('iframe');
+      f.src = p.url; f.title = p.label; f.loading = 'eager';
+      pane.appendChild(f);
+    }
+    openNew.href = p.url;
+    reload.hidden = !p.embed;
+    if (push && location.hash !== '#' + p.id) history.replaceState(null, '', '#' + p.id);
+    try { localStorage.setItem('tc-hub-tab', p.id); } catch (e) {}
+  }
+  reload.addEventListener('click', function () {
+    var f = document.querySelector('#pane-' + current + ' iframe');
+    if (f) f.src = f.src;
+  });
+  window.addEventListener('hashchange', function () { show(location.hash.slice(1), false); });
+
+  var start = location.hash.slice(1);
+  if (!start) { try { start = localStorage.getItem('tc-hub-tab') || ''; } catch (e) {} }
+  show(start || 'ops', false);
+})();
+</script>
+</body>
+</html>
