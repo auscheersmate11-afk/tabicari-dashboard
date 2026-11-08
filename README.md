@@ -30,5 +30,13 @@
 運営用の入口。`https://auscheersmate11-afk.github.io/tabicari-dashboard/hub/` で、運営ボード（ops/）・DMダッシュボード（claude.ai）・共有ダッシュボード（トップ）をタブで切り替える。
 
 - 運営ボードと共有ダッシュボードはページの中に埋め込んで表示（タブを開いたときに初めて読み込む）
-- DMダッシュボードは claude.ai 側が埋め込みを禁止している（`frame-ancestors 'self'`）ので、新しいタブで開くボタンにしている
+- DMダッシュボードは dm/（下）を埋め込む（claude.ai 版は埋め込みが禁止されているため GitHub に移した）
 - `#ops` `#dm` `#share` を付けると最初に開くタブを指定できる。付けなければ前回見たタブ
+
+## DMダッシュボード（dm/）
+
+claude.ai にあった「旅キャリ DMダッシュボード」の GitHub 版。`https://auscheersmate11-afk.github.io/tabicari-dashboard/dm/`
+
+- 旅キャリ 抽出リストの「リスト」タブを、ページを開いたときにブラウザから直接読む（DM文などの長い列は読まない）。数字はページに保存しない
+- 上の「最新の数字にする」でその場で読み直す
+- 施策メモは `dm/notes.json`（ページからは編集できない。追加・終了・結果の記入は Claude に頼んで notes.json を直す）

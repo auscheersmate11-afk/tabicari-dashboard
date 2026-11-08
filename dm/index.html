@@ -1,0 +1,1235 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>旅キャリ DMダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Noto+Sans+JP:wght@900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one centered column. KV = the DM funnel drawn as a flight route (①送信→⑧成約), then まずここ (who needs a next step),
+   全体の状況 (people, days, stock), くわしく (stage table, planner, tendencies, everyone who replied). */
+:root {
+  --bg: #f3f6fb; --surface: #ffffff; --ink: #101a38; --muted: #5b6886; --line: #dde4f0;
+  --navy: #031147; --head: #0b1d5c; --sky: #2f86d6; --sky-soft: #e6f0fb;
+  --yellow: #fdc805; --gold-ink: #946f00; --yellow-soft: #fff4c4;
+  --ok: #2f7a47; --ok-soft: #e2f2e6; --warn: #c2462e; --warn-soft: #fbe4de;
+  --p-yusuke: #1f3b8c; --p-kodai: #2f86d6; --p-anna: #e0a800; --p-other: #a3adc4;
+  --btn-bg: #031147; --btn-ink: #ffffff;
+  --hero-bg1: #031147; --hero-bg2: #173c8e; --hero-ink: #ffffff; --hero-muted: #b9c6e6; --hero-line: rgba(255,255,255,.22); --hero-chip: rgba(255,255,255,.09); --hero-yellow: #fdc805;
+  --font-jp: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --font-num: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-brand: "Noto Sans JP", "Hiragino Sans", "Zen Kaku Gothic New", sans-serif;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1122; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f;
+    --navy: #b8c8f2; --head: #c9d6f7; --sky: #6fb0f0; --sky-soft: #16294a;
+    --yellow: #fdc805; --gold-ink: #f5cf3c; --yellow-soft: #3a3010;
+    --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+    --p-yusuke: #8fa8ea; --p-kodai: #5fb0f5; --p-anna: #f1c534; --p-other: #5c6784;
+    --btn-bg: #fdc805; --btn-ink: #031147;
+    --hero-bg1: #08143a; --hero-bg2: #183a80; --hero-ink: #eef3fb; --hero-muted: #a9bde3; --hero-line: rgba(255,255,255,.16); --hero-chip: rgba(255,255,255,.06);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1122; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f;
+  --navy: #b8c8f2; --head: #c9d6f7; --sky: #6fb0f0; --sky-soft: #16294a;
+  --yellow: #fdc805; --gold-ink: #f5cf3c; --yellow-soft: #3a3010;
+  --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+  --p-yusuke: #8fa8ea; --p-kodai: #5fb0f5; --p-anna: #f1c534; --p-other: #5c6784;
+  --btn-bg: #fdc805; --btn-ink: #031147;
+  --hero-bg1: #08143a; --hero-bg2: #183a80; --hero-ink: #eef3fb; --hero-muted: #a9bde3; --hero-line: rgba(255,255,255,.16); --hero-chip: rgba(255,255,255,.06);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-jp); font-size: 15px; line-height: 1.65; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 64px; display: grid; gap: 22px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+a { color: var(--sky); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.logo { flex: none; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 16px; background: var(--yellow); color: #031147; font: 900 15px/1 var(--font-brand); letter-spacing: .02em; }
+.logo span { display: inline-block; transform: skewX(-12deg); }
+.logo small { font-size: 12px; }
+.eyebrow { font: 700 11.5px var(--font-num); letter-spacing: .22em; color: var(--muted); }
+h1 { font-size: clamp(22px, 3.6vw, 30px); font-weight: 900; color: var(--head); line-height: 1.25; }
+h1 span { display: inline-block; }
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 6px 13px; cursor: pointer; font-weight: 700; font-size: 13px; color: var(--head); text-decoration: none; }
+.btn:hover { border-color: var(--sky); }
+.btn.primary { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-ink); }
+.btn:disabled { opacity: .6; cursor: default; }
+.btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.own-info { margin: -10px 0 0; font-size: 13px; padding: 9px 13px; border-radius: 10px; background: var(--yellow-soft); border: 1px solid var(--line); }
+.stale { margin: -10px 0 0; display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; padding: 10px 13px; border-radius: 10px; background: var(--warn-soft); border: 1px solid var(--warn); }
+.stale svg { flex: none; width: 18px; height: 18px; margin-top: 2px; fill: none; stroke: var(--warn); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.stale b { font-family: var(--font-num); font-size: 14.5px; }
+
+/* KV：送信から成約までを、ひとつの旅程として描く */
+.kv { position: relative; overflow: hidden; border-radius: 20px; padding: 24px 24px 22px; color: var(--hero-ink);
+  background: radial-gradient(110% 80% at 92% 0%, rgba(253, 200, 5, .18), transparent 55%), linear-gradient(150deg, var(--hero-bg1), var(--hero-bg2));
+  display: grid; gap: 22px; }
+.kv-deco { position: absolute; right: -40px; top: -30px; width: 460px; height: 240px; pointer-events: none; opacity: .9; }
+.kv-deco .sw { fill: none; stroke: var(--hero-line); stroke-width: 14; stroke-linecap: round; }
+.kv-deco .dot { fill: none; stroke: var(--hero-yellow); stroke-width: 2; stroke-dasharray: 2 9; stroke-linecap: round; opacity: .7; }
+.kv-deco .pl { fill: var(--hero-yellow); }
+.kv-head { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 24px; }
+.kv-copy { display: grid; gap: 8px; min-width: 0; }
+.kv-eyebrow { font: 700 12px var(--font-num); letter-spacing: .24em; color: var(--hero-yellow); }
+.kv-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-family: var(--font-brand); font-weight: 900; }
+.kv-big .n { font-family: var(--font-num); font-weight: 700; font-size: clamp(48px, 9vw, 76px); line-height: .95; font-variant-numeric: tabular-nums; }
+.kv-big .n.y { color: var(--hero-yellow); text-shadow: 0 0 26px rgba(253, 200, 5, .35); }
+.kv-big .u { font-size: clamp(17px, 2.6vw, 22px); display: inline-block; transform: skewX(-12deg); }
+.kv-big .arrow { font-family: var(--font-num); font-size: 26px; color: var(--hero-muted); margin-inline: 4px; }
+.kv-sub { margin: 0; color: var(--hero-muted); font-size: 14px; }
+.kv-sub b { color: var(--hero-ink); font-family: var(--font-num); font-size: 16px; }
+.filters { display: grid; gap: 8px; justify-items: end; }
+.seg { position: relative; display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: color-mix(in srgb, var(--hero-bg1) 72%, transparent); border: 1px solid var(--hero-line); }
+.seg button { border: 0; background: transparent; color: var(--hero-muted); padding: 5px 12px; border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--hero-yellow); color: #031147; }
+@media (max-width: 760px) { .filters { justify-items: start; } .kv { padding: 20px 16px 18px; } .kv-deco { width: 300px; right: -90px; opacity: .55; } }
+
+.route { position: relative; list-style: none; margin: 0; padding: 14px 0 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 18px; }
+.stop { position: relative; display: grid; justify-items: center; gap: 2px; text-align: center; padding-top: 2px; min-width: 0; }
+.stop::before { content: ""; position: absolute; top: 15px; left: 0; right: 0; border-top: 2px dashed var(--hero-line); }
+.stop:first-child::before { left: 50%; }
+.stop:last-child::before { right: 50%; }
+.stop .dot { position: relative; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--hero-bg1); border: 2px solid var(--hero-muted); font: 700 13px var(--font-num); color: var(--hero-ink); }
+.stop.on .dot { border-color: var(--hero-yellow); }
+.stop.last .dot { background: var(--hero-yellow); border-color: var(--hero-yellow); color: #031147; }
+.stop .cnt { font: 700 30px/1.1 var(--font-num); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.stop.last .cnt { color: var(--hero-yellow); }
+.stop.zero .cnt { color: var(--hero-muted); }
+.stop .lbl { font-size: 12.5px; font-weight: 700; color: var(--hero-muted); line-height: 1.3; }
+.stop .rate { position: absolute; z-index: 2; top: 15px; left: 0; transform: translate(-50%, -50%); padding: 1px 7px; border-radius: 999px; background: var(--hero-bg2); border: 1px solid var(--hero-line); font: 700 11.5px var(--font-num); color: var(--hero-yellow); white-space: nowrap; }
+.stop .rate.m { display: none; }
+.stop .all { font: 600 11.5px var(--font-num); color: var(--hero-ink); opacity: .8; white-space: nowrap; }
+.kv-legend { margin: -6px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--hero-muted); }
+.kv-legend i { display: inline-block; width: 22px; height: 12px; border-radius: 999px; border: 1px solid var(--hero-line); background: var(--hero-bg2); vertical-align: -1px; margin-right: 5px; }
+.kv-legend b { font: 700 11.5px var(--font-num); color: var(--hero-yellow); margin-right: 4px; }
+.kv-legend .w { color: var(--hero-ink); opacity: .8; }
+.plane { position: absolute; z-index: 3; top: 6px; left: 6.25%; width: 20px; height: 20px; margin: -10px 0 0 -10px; color: var(--hero-yellow); transform: rotate(90deg); filter: drop-shadow(0 0 6px rgba(253, 200, 5, .6)); transition: left 1.6s cubic-bezier(.45, 0, .2, 1); pointer-events: none; }
+.plane svg { width: 100%; height: 100%; fill: currentColor; }
+@media (max-width: 760px) {
+  .route { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stop:nth-child(4n)::before { right: 50%; }
+  .stop:nth-child(4n+1)::before { left: 50%; }
+  .stop .rate { display: none; }
+  .stop .rate.m { display: block; position: static; transform: none; margin-top: 2px; background: transparent; border: 0; padding: 0; }
+  .plane { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .plane { transition: none; } }
+
+/* section heads */
+.sec { display: grid; gap: 14px; }
+.sec-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sec-h .ic { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--navy); color: var(--bg); flex: none; }
+.sec-h .ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sec-h h2 { font-size: 20px; font-weight: 900; color: var(--head); }
+.badge { display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 8px; border-radius: 999px; background: var(--yellow); color: #031147; font: 700 14px var(--font-num); }
+.badge.zero { background: var(--line); color: var(--muted); }
+.sec-h .scope { margin-left: auto; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+.card h3 { font-size: 16.5px; font-weight: 900; color: var(--head); }
+.card .sub { font-size: 12.5px; color: var(--muted); }
+
+/* まずここ */
+.todo-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 980px) { .todo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .todo-grid { grid-template-columns: minmax(0, 1fr); } }
+.td { display: grid; gap: 10px; align-content: start; }
+.td.hot { border-color: var(--yellow); box-shadow: inset 0 0 0 1px var(--yellow); }
+.td-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.td-top > div:first-child { min-width: 0; }
+.td-top h3 { font-size: 15.5px; }
+.td-n { flex: none; white-space: nowrap; font: 700 40px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.td-n span { font: 700 13px var(--font-jp); margin-left: 2px; color: var(--muted); }
+.td.cold .td-n { color: var(--muted); }
+.td-tag { justify-self: start; display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 900; padding: 2px 9px; border-radius: 999px; background: var(--yellow-soft); color: var(--gold-ink); }
+.td-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--gold-ink); }
+@media (prefers-reduced-motion: no-preference) { .td-tag i { animation: pulse 1.6s ease-in-out infinite; } }
+@keyframes pulse { 50% { opacity: .25; } }
+.td.cold .td-tag { background: var(--bg); color: var(--muted); }
+.td.cold .td-tag i { background: var(--muted); animation: none; }
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.plist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline; padding: 7px 10px; border-radius: 10px; background: var(--bg); font-size: 13px; }
+.plist a { font-weight: 700; color: var(--head); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plist a:hover { text-decoration: underline; }
+.plist .meta { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); }
+.plist .meta b { color: var(--warn); font-weight: 700; }
+.who { display: inline-flex; align-items: center; gap: 5px; font: 700 11px var(--font-num); letter-spacing: .04em; color: var(--muted); white-space: nowrap; }
+.who i { width: 8px; height: 8px; border-radius: 50%; background: var(--p-other); }
+.who.YUSUKE i { background: var(--p-yusuke); } .who.KODAI i { background: var(--p-kodai); } .who.ANNA i { background: var(--p-anna); }
+details.more summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--sky); list-style: none; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more[open] summary { margin-bottom: 6px; }
+
+.fix { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 16px; align-items: start; }
+.fix.ok { grid-template-columns: auto minmax(0, 1fr); }
+.fix-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); }
+.fix.ok .fix-ic { background: var(--ok-soft); color: var(--ok); }
+.fix-ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.fix h3 { font-size: 15.5px; }
+.fix ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.fix li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.fix li a.row { font: 700 12px var(--font-num); color: var(--warn); text-decoration: none; border: 1px solid var(--warn); border-radius: 6px; padding: 0 6px; }
+.fix.ok li a.row { color: var(--ok); border-color: var(--ok); }
+
+/* 担当 */
+.people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 860px) { .people { grid-template-columns: minmax(0, 1fr); } }
+.pp { display: grid; gap: 12px; align-content: start; }
+.pp.sel { border-color: var(--sky); box-shadow: inset 0 0 0 1px var(--sky); }
+.pp-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pp-name { display: flex; align-items: center; gap: 8px; font: 700 15px var(--font-num); letter-spacing: .08em; color: var(--head); }
+.pp-name i { width: 12px; height: 12px; border-radius: 4px; }
+.pp-last { font-size: 12px; color: var(--muted); }
+.pp-big { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.pp-big .v { font: 700 40px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; }
+.pp-big .v span { font: 700 13px var(--font-jp); margin-left: 3px; color: var(--muted); }
+.pp-big .r { font: 700 22px/1 var(--font-num); color: var(--sky); }
+.pp-big .r span { font: 700 12px var(--font-jp); color: var(--muted); margin-left: 3px; }
+.share { height: 6px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+.share span { display: block; height: 100%; border-radius: 999px; }
+.pp-rows { display: grid; gap: 5px; }
+.pp-row { display: grid; grid-template-columns: 76px minmax(0, 1fr) 34px; align-items: center; gap: 8px; font-size: 12.5px; }
+.pp-row .k { color: var(--muted); font-weight: 700; }
+.pp-row .bar { height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+.pp-row .bar span { display: block; height: 100%; min-width: 0; border-radius: 999px; background: var(--sky); }
+.pp-row .n { font: 700 15px var(--font-num); text-align: right; font-variant-numeric: tabular-nums; }
+.pp-foot { font-size: 12.5px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+.pp-foot b { color: var(--ink); font-family: var(--font-num); font-size: 14px; }
+
+/* 日別グラフ */
+.chart-h { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); font-weight: 700; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.legend i.rp { border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 1.5px #031147 inset; }
+.chart { position: relative; margin-top: 10px; min-height: 250px; }
+.chart svg { display: block; width: 100%; height: 250px; overflow: visible; }
+.chart text { font-family: var(--font-num); font-size: 11px; }
+.tip { position: absolute; z-index: 5; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--navy); color: var(--bg); font-size: 12px; line-height: 1.5; white-space: nowrap; transform: translate(-50%, -100%); }
+.tip b { font-family: var(--font-num); }
+
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 860px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
+.stock { display: grid; gap: 12px; align-content: start; }
+.stock-big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.stock-big .v { font: 700 44px/1 var(--font-num); color: var(--head); }
+.stock-big .v span { font: 700 14px var(--font-jp); color: var(--muted); margin-left: 3px; }
+.stock-big .d { font-size: 13px; color: var(--muted); font-weight: 700; }
+.stock-big .d b { color: var(--ink); font-family: var(--font-num); font-size: 16px; }
+.split { display: flex; height: 26px; border-radius: 8px; overflow: hidden; font: 700 12px/26px var(--font-num); }
+.split span { padding-inline: 8px; white-space: nowrap; overflow: hidden; }
+.split .a { background: var(--navy); color: var(--bg); }
+.split .b { background: var(--sky-soft); color: var(--head); }
+.hint { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--yellow-soft); font-size: 13px; }
+.hint svg { flex: none; width: 18px; height: 18px; margin-top: 1px; fill: none; stroke: var(--gold-ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hint b { font-family: var(--font-num); }
+.kvs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.kvs div { border-radius: 10px; background: var(--bg); padding: 8px 10px; }
+.kvs .k { font-size: 11.5px; color: var(--muted); font-weight: 700; }
+.kvs .v { font: 700 20px/1.2 var(--font-num); color: var(--head); }
+.kvs .v span { font: 700 12px var(--font-jp); color: var(--muted); margin-left: 2px; }
+
+/* 傾向 */
+.tend { display: grid; gap: 14px; }
+.tend h4 { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.tb { display: grid; grid-template-columns: 92px minmax(0, 1fr) 52px; align-items: center; gap: 8px; font-size: 12.5px; padding: 3px 0; }
+.tb .k { font-weight: 700; }
+.tb .bar { position: relative; height: 18px; border-radius: 6px; background: var(--bg); overflow: hidden; }
+.tb .bar span { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--sky); }
+.tb .bar em { position: absolute; left: 8px; top: 0; font: 600 11px/18px var(--font-num); font-style: normal; color: var(--muted); }
+.tb .v { font: 700 14px var(--font-num); text-align: right; }
+.tb.top .bar span { background: var(--yellow); }
+
+/* 表 */
+.tbl-wrap { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; vertical-align: middle; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-size: 12px; color: var(--muted); font-weight: 700; background: var(--bg); }
+thead th .who { justify-content: flex-end; }
+td .c { display: block; font: 700 16px/1.2 var(--font-num); font-variant-numeric: tabular-nums; }
+td .p { display: block; font: 600 11.5px var(--font-num); color: var(--muted); }
+td .p.hi { color: var(--sky); }
+td .p.dm { color: var(--ink); }
+td .p.dm em { font-style: normal; color: var(--muted); font-family: var(--font-jp); font-size: 11px; margin-right: 3px; }
+tr.ref td { color: var(--muted); font-size: 12.5px; }
+tr.ref td .c { font-size: 14px; color: var(--muted); }
+tr.last td { background: var(--yellow-soft); }
+.stg { font-weight: 900; color: var(--head); }
+.stg small { font: 700 12px var(--font-num); color: var(--muted); margin-right: 4px; }
+td.l, th.l { text-align: left; }
+.prog { display: inline-flex; gap: 3px; vertical-align: middle; }
+.prog i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); font: 900 9px/9px var(--font-num); font-style: normal; color: var(--warn); text-align: center; }
+.prog i.y { background: var(--sky); border-color: var(--sky); }
+.prog i.n { border-color: var(--warn); }
+.prog i.n::after { content: "×"; }
+.prog i.d { background: var(--yellow); border-color: var(--yellow); }
+.state { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--yellow-soft); color: var(--gold-ink); }
+.state.end { background: var(--bg); color: var(--muted); }
+.state.won { background: var(--yellow); color: #031147; }
+.acct a { font-weight: 700; color: var(--head); text-decoration: none; }
+.acct a:hover { text-decoration: underline; }
+.acct small { display: block; color: var(--muted); font-size: 11.5px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+td.memo { white-space: normal; min-width: 160px; max-width: 280px; text-align: left; font-size: 12.5px; color: var(--muted); }
+
+/* 逆算 */
+.plan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 18px; margin-top: 12px; }
+@media (max-width: 860px) { .plan { grid-template-columns: minmax(0, 1fr); } }
+.ctl { display: grid; gap: 12px; align-content: start; }
+.goal { display: grid; gap: 6px; padding: 14px; border-radius: 12px; background: var(--bg); }
+.goal-h { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 13.5px; }
+.goal-h output { font: 700 30px/1 var(--font-num); color: var(--head); }
+.goal-h output span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 2px; }
+.goal input[type=range] { width: 100%; accent-color: var(--sky); margin: 0; }
+.fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .fields { grid-template-columns: minmax(0, 1fr); } }
+.field { display: grid; gap: 4px; }
+.field label { font-size: 12px; font-weight: 700; color: var(--muted); }
+.field .in { display: flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--yellow-soft); padding: 4px 10px; }
+.field input { width: 100%; border: 0; background: transparent; font: 600 17px var(--font-num); padding: 2px 0; }
+.field input:focus { outline: none; }
+.field .in:focus-within { outline: 3px solid var(--sky); outline-offset: 1px; }
+.field .hint2 { font-size: 11.5px; color: var(--muted); }
+.res { display: grid; gap: 8px; align-content: start; }
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.flow li { width: var(--w); min-width: 58%; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: 10px; background: var(--sky-soft); font-weight: 700; font-size: 13.5px; color: var(--head); }
+.flow li b { font: 700 22px/1.1 var(--font-num); font-variant-numeric: tabular-nums; }
+.flow li b span { font: 700 12px var(--font-jp); margin-left: 2px; }
+.flow li.deal { background: var(--yellow); color: #031147; }
+.pace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+.pace > div { border-radius: 12px; padding: 10px 12px; border: 1px solid var(--line); }
+.pace .k { font-size: 12px; color: var(--muted); font-weight: 700; }
+.pace .v { font: 700 28px/1.15 var(--font-num); color: var(--head); }
+.pace .v span { font: 700 12.5px var(--font-jp); color: var(--muted); margin-left: 3px; }
+.verdict { margin: 4px 0 0; font-weight: 700; font-size: 14px; }
+.verdict.ok { color: var(--ok); }
+.verdict.short { color: var(--gold-ink); }
+.foot { font-size: 12px; color: var(--muted); text-align: center; }
+/* 施策メモ */
+.sec-h .act { margin-left: auto; }
+.kv-notes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; min-width: 0; }
+.kv-notes .k { font: 700 11.5px var(--font-num); letter-spacing: .18em; color: var(--hero-yellow); margin-right: 2px; }
+.kv-notes a { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-width: 0; padding: 3px 11px 3px 3px; border-radius: 999px; background: var(--hero-chip); border: 1px solid var(--hero-line); color: var(--hero-ink); font-size: 12.5px; font-weight: 700; text-decoration: none; }
+.kv-notes a:hover { border-color: var(--hero-yellow); }
+.kv-notes a i { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--hero-yellow); color: #031147; font: 700 11px var(--font-num); font-style: normal; }
+.kv-notes a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kv-notes a small { flex: none; color: var(--hero-muted); font-weight: 700; font-size: 11.5px; }
+.legend i.nt-lg { width: 14px; border-radius: 2px; background: color-mix(in srgb, var(--yellow) 30%, transparent); box-shadow: inset 2px 0 0 var(--gold-ink); }
+.notes { display: grid; gap: 10px; }
+.nt { display: grid; grid-template-columns: 36px minmax(0, 1fr) minmax(0, 310px); gap: 12px 16px; align-items: start; }
+@media (max-width: 760px) { .nt { grid-template-columns: 34px minmax(0, 1fr); } .nt .cmp { grid-column: 1 / -1; } }
+.nt.live { border-color: var(--yellow); box-shadow: inset 0 0 0 1px var(--yellow); }
+.nt-no { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color: var(--bg); font: 700 15px var(--font-num); }
+.nt.live .nt-no { background: var(--yellow); color: #031147; }
+.nt-main { display: grid; gap: 6px; min-width: 0; }
+.nt-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.nt-state { padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 900; background: var(--bg); color: var(--muted); }
+.nt.live .nt-state { background: var(--yellow-soft); color: var(--gold-ink); }
+.nt.plan .nt-state { background: var(--sky-soft); color: var(--sky); }
+.nt-date { font-family: var(--font-num); font-size: 13px; color: var(--ink); }
+.nt-main h3 { font-size: 16.5px; overflow-wrap: anywhere; }
+.nt-detail { margin: 0; font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 62ch; }
+.nt-result { margin: 0; font-size: 13.5px; padding: 8px 10px; border-radius: 10px; background: var(--ok-soft); overflow-wrap: anywhere; }
+.nt-result b { color: var(--ok); margin-right: 6px; }
+.nt-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.btn.sm { padding: 4px 10px; font-size: 12px; }
+.btn.danger { color: var(--warn); }
+.btn.danger.armed { background: var(--warn); border-color: var(--warn); color: var(--surface); }
+.cmp { border-radius: 12px; background: var(--bg); padding: 10px 12px; display: grid; gap: 6px; font-size: 12.5px; min-width: 0; }
+.cmp-h, .cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) 62px 62px 60px; align-items: baseline; gap: 6px; }
+.cmp-h { color: var(--muted); font-weight: 700; font-size: 11.5px; }
+.cmp-h > *:not(:first-child), .cmp-row > *:not(:first-child) { text-align: right; }
+.cmp-row .k { font-weight: 700; color: var(--muted); }
+.cmp-row.main .k { color: var(--head); }
+.cmp-row b { font: 700 15px var(--font-num); font-variant-numeric: tabular-nums; }
+.cmp-row b.bf { color: var(--muted); font-weight: 600; }
+.cmp-row b.af { color: var(--head); }
+.delta { justify-self: end; font: 700 11.5px var(--font-num); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.delta.up { background: var(--ok-soft); color: var(--ok); }
+.delta.down { background: var(--warn-soft); color: var(--warn); }
+.delta.flat { background: var(--surface); color: var(--muted); }
+.cmp-note { color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+.cmp-note b { color: var(--ink); font-family: var(--font-num); }
+.cmp-row .k small { display: block; font: 600 10.5px var(--font-jp); color: var(--muted); }
+.cmp-row b small { display: block; font: 600 10.5px var(--font-num); color: var(--muted); }
+.cmp-row.main { background: var(--surface); border-radius: 8px; margin-inline: -6px; padding: 3px 6px; }
+.nform { display: grid; gap: 12px; }
+.nform-grid { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px 150px; gap: 10px; }
+.nform-grid .wide { grid-column: 1 / -1; }
+.nf-pair { display: flex; flex-wrap: wrap; gap: 10px; }
+.nf-pair .nf { flex: 0 1 260px; }
+.nt-kind { padding: 1px 8px; border-radius: 6px; border: 1px solid var(--line); font-size: 11.5px; }
+.cmp-h small { display: block; font: 600 10.5px var(--font-num); }
+.nform-end { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; }
+@media (max-width: 860px) { .nform-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .nform-grid .t2 { grid-column: 1 / -1; } .nform-end { grid-template-columns: minmax(0, 1fr); } }
+.nf { display: grid; gap: 4px; min-width: 0; }
+.nf label { font-size: 12px; font-weight: 700; color: var(--muted); }
+.nf label small { font-weight: 500; margin-left: 4px; }
+.nf input, .nf select, .nf textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 8px 10px; font: 500 14px var(--font-jp); color: var(--ink); }
+.nf textarea { min-height: 64px; resize: vertical; }
+.nform-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.nform-msg { font-size: 12.5px; color: var(--warn); font-weight: 700; }
+.nempty { display: grid; gap: 10px; }
+.nempty p { margin: 0; font-size: 13.5px; }
+.nempty .eg { border: 1px dashed var(--line); border-radius: 12px; padding: 10px 12px; font-size: 13px; color: var(--muted); }
+.nempty .eg b { color: var(--ink); }
+
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><span>旅<small>キャリ</small></span></div>
+      <div>
+        <div class="eyebrow">TABI CARRY · INSTAGRAM DM</div>
+        <h1><span>旅キャリ</span> <span>DMダッシュボード</span></h1>
+      </div>
+    </div>
+    <div class="status">
+      <span class="chip"><i></i><span id="stamp">—</span></span>
+      <a class="btn" id="sheetLink" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg>リストを開く</a>
+      <button class="btn primary" id="ownBtn" type="button" hidden>最新の数字にして保存</button>
+    </div>
+  </header>
+  <p class="own-info" id="ownInfo" hidden></p>
+  <p class="own-info" id="bootMsg">リストから最新の数字を読み込んでいます…</p>
+  <div class="stale" id="stale" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span id="staleTxt"></span></div>
+
+  <section class="kv" aria-labelledby="kvTitle">
+    <svg class="kv-deco" viewBox="0 0 460 240" aria-hidden="true">
+      <path class="sw" d="M30 220 C 120 120, 230 90, 330 120"/>
+      <path class="dot" d="M330 120 C 380 135, 405 100, 420 60"/>
+      <g transform="translate(424 50) rotate(20)"><path class="pl" transform="translate(-12 -12)" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></g>
+    </svg>
+    <div class="kv-head">
+      <div class="kv-copy">
+        <div class="kv-eyebrow" id="kvScope">ALL · 全員</div>
+        <h2 class="kv-big" id="kvTitle"><span class="n" id="kvSent">0</span><span class="u">通送って</span><span class="arrow">→</span><span class="u">成約</span><span class="n y" id="kvDeal">0</span><span class="u">件</span></h2>
+        <p class="kv-sub" id="kvSub"></p>
+        <div class="kv-notes" id="kvNotes" hidden></div>
+      </div>
+      <div class="filters">
+        <div class="seg" role="group" aria-label="期間" id="segPeriod">
+          <button type="button" data-v="all">全期間</button><button type="button" data-v="30">30日</button><button type="button" data-v="14">14日</button><button type="button" data-v="7">7日</button>
+        </div>
+        <div class="seg" role="group" aria-label="担当" id="segWho">
+          <button type="button" data-v="all">全員</button><button type="button" data-v="YUSUKE">YUSUKE</button><button type="button" data-v="KODAI">KODAI</button><button type="button" data-v="ANNA">ANNA</button>
+        </div>
+      </div>
+    </div>
+    <ol class="route" id="route" aria-label="ステージごとの件数"></ol>
+    <p class="kv-legend"><span><b>黄色の％</b>＝ひとつ前のステージから進んだ割合</span><span><span class="w">DM比</span>＝DM総数（①送信）に対する割合</span></p>
+  </section>
+
+  <section class="sec" aria-labelledby="todoH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></span>
+      <h2 id="todoH">まずここ</h2><span class="badge" id="todoTotal">0</span>
+      <span class="scope" id="todoScope">全期間・全員</span>
+    </div>
+    <div class="todo-grid" id="todo"></div>
+    <div class="card fix" id="fix"></div>
+  </section>
+
+  <section class="sec" id="notesSec" aria-labelledby="notesH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.6 9.6A1.6 1.6 0 0 0 5.8 21h12.4a1.6 1.6 0 0 0 1.4-2.4L14 9V3M7.5 15h9"/></svg></span>
+      <h2 id="notesH">施策メモ</h2><span class="badge zero" id="notesBadge" title="試し中の施策">0</span>
+      <span class="act"><button class="btn primary" id="noteAdd" type="button" hidden>＋ 施策を追加</button></span>
+    </div>
+    <form class="card nform" id="noteForm" hidden novalidate>
+      <h3 id="noteFormTitle">施策を追加</h3>
+      <div class="nform-grid">
+        <div class="nf"><label for="nfStart">いつから</label><input id="nfStart" type="date" required></div>
+        <div class="nf t2"><label for="nfTitle">何を変えた（ひとこと）</label><input id="nfTitle" type="text" maxlength="60" placeholder="例：DMの1行目を変える" required></div>
+        <div class="nf"><label for="nfWho">だれのDM</label><select id="nfWho"><option value="all">全員</option><option value="YUSUKE">YUSUKE</option><option value="KODAI">KODAI</option><option value="ANNA">ANNA</option></select></div>
+        <div class="nf"><label for="nfMetric">見る数字</label><select id="nfMetric"><option value="reply">返信率</option><option value="cl">CL希望率</option><option value="first">一次面談率</option><option value="deal">成約率</option></select></div>
+        <div class="nf-pair wide">
+          <div class="nf"><label for="nfKind">変えたもの</label><select id="nfKind"><option value="send">送り方（DM文・動画など）</option><option value="list">リストの作り方（集め方・条件など）</option></select></div>
+          <div class="nf"><label for="nfBase">比べる「前」の最後の日<small>任意</small></label><input id="nfBase" type="date"></div>
+        </div>
+        <div class="nf wide"><label for="nfDetail">くわしく<small>任意・変える前と後など</small></label><textarea id="nfDetail" maxlength="400" placeholder="例：「はじめまして！」→「旅好きの方へ」。Aランクだけに送る"></textarea></div>
+      </div>
+      <div class="nform-end" id="nfEndRow" hidden>
+        <div class="nf"><label for="nfEnd">いつまで<small>任意</small></label><input id="nfEnd" type="date"></div>
+        <div class="nf"><label for="nfResult">結果・決めたこと<small>任意</small></label><input id="nfResult" type="text" maxlength="200" placeholder="例：返信率が上がったので全員この形にする"></div>
+      </div>
+      <div class="nform-acts"><button class="btn primary" type="submit" id="nfSave">保存</button><button class="btn" type="button" id="nfCancel">やめる</button><span class="nform-msg" id="nfMsg" role="status"></span></div>
+    </form>
+    <div class="notes" id="notesList"></div>
+  </section>
+
+  <section class="sec" aria-labelledby="nowH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+      <h2 id="nowH">全体の状況</h2>
+      <span class="scope" id="nowScope"></span>
+    </div>
+    <div class="people" id="people"></div>
+    <div class="card">
+      <div class="chart-h">
+        <h3 id="chartTitle">日別の送信と返信</h3>
+        <div class="legend"><span><i style="background:var(--p-yusuke)"></i>YUSUKE</span><span><i style="background:var(--p-kodai)"></i>KODAI</span><span><i style="background:var(--p-anna)"></i>ANNA</span><span><i style="background:var(--p-other)"></i>担当なし</span><span><i class="rp"></i>その日に送った分の返信</span><span id="lgNote" hidden><i class="nt-lg"></i>施策の期間</span></div>
+      </div>
+      <div class="chart" id="chart"></div>
+    </div>
+    <div class="row2">
+      <div class="card stock" id="stock"></div>
+      <div class="card tend" id="tend"></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="moreH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
+      <h2 id="moreH">くわしく</h2>
+    </div>
+    <div class="card">
+      <h3>ステージ別の件数と遷移率</h3>
+      <div class="sub">件数の下に、ひとつ前のステージから進んだ割合（青）と、DM総数（①送信）に対する割合（DM比）。右端は合計で「何通送ると1件か」。</div>
+      <div class="tbl-wrap"><table id="stageTbl"></table></div>
+    </div>
+    <div class="card">
+      <h3>目標から逆算した行動量</h3>
+      <div class="sub">率は全期間・全員の実績から入れています。書き換えて試せます。</div>
+      <div class="plan">
+        <div class="ctl">
+          <div class="goal">
+            <div class="goal-h"><label for="goal">月の成約目標</label><output id="goalOut" for="goal">2<span>件</span></output></div>
+            <input type="range" id="goal" min="1" max="10" step="1" value="2">
+          </div>
+          <div class="fields">
+            <div class="field"><label for="rReply">返信率</label><div class="in"><input id="rReply" type="number" min="0.1" max="100" step="0.1"><span>%</span></div></div>
+            <div class="field"><label for="rFirst">返信→一次面談</label><div class="in"><input id="rFirst" type="number" min="0.1" max="100" step="0.1"><span>%</span></div></div>
+            <div class="field"><label for="rDeal">一次面談→成約</label><div class="in"><input id="rDeal" type="number" min="0.1" max="100" step="0.1"><span>%</span></div></div>
+          </div>
+          <button class="btn" type="button" id="planReset" style="justify-self:start">実績の率に戻す</button>
+        </div>
+        <div class="res" id="planRes"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>返信があった人</h3>
+      <div class="sub" id="replyScope"></div>
+      <div class="tbl-wrap"><table id="replyTbl"></table></div>
+    </div>
+  </section>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+// 旅キャリ「リスト」タブのCSV → ページに埋め込むスナップショット（ページ内の「最新にして保存」と build.js の両方で使う）
+var TC_CORE = (function () {
+  function parseCsv(text) {
+    var rows = [], row = [], f = '', q = false, c;
+    text = String(text || '').replace(/^﻿/, '');
+    for (var i = 0; i < text.length; i++) {
+      c = text.charAt(i);
+      if (q) {
+        if (c === '"') { if (text.charAt(i + 1) === '"') { f += '"'; i++; } else q = false; }
+        else f += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text.charAt(i + 1) === '\n') i++;
+        row.push(f); rows.push(row); row = []; f = '';
+      } else f += c;
+    }
+    if (f.length || row.length) { row.push(f); rows.push(row); }
+    return rows;
+  }
+  function pad(n) { n = String(n); return n.length < 2 ? '0' + n : n; }
+  function normDate(s) {
+    var m = String(s || '').trim().match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+    return m ? m[1] + '-' + pad(m[2]) + '-' + pad(m[3]) : '';
+  }
+  // 1＝進んだ（◯・希望する） 0＝×・希望しない  -＝空欄  ?＝読めない値
+  function stageCode(v, isCl) {
+    v = String(v || '').trim();
+    if (!v) return '-';
+    if (isCl) { if (v.indexOf('希望しない') >= 0) return '0'; if (v.indexOf('希望する') >= 0) return '1'; }
+    if (/[◯○〇]$/.test(v)) return '1';
+    if (/[×✕✖]/.test(v)) return '0';
+    return '?';
+  }
+  // 見出し名で列を探す（見つからなければ 2026/10/08 時点の位置）
+  var COLS = [
+    ['user', /^ユーザー名$/, 0], ['name', /^表示名$/, 1], ['sent', /^送信$/, 4], ['rank', /^ランク$/, 6],
+    ['fol', /^フォロワー$/, 7], ['added', /^追加日$/, 11], ['date', /^送信日$/, 12], ['who', /^担当$/, 13],
+    ['s1', /^返信$/, 14], ['s2', /^CL希望$/, 15], ['s3', /^日程確定$/, 16], ['s4', /^一次面談/, 17],
+    ['s5', /^二次面談希望$/, 18], ['s6', /^二次面談実施$/, 19], ['s7', /^成約$/, 20], ['memo', /^メモ$/, 21]
+  ];
+  // 文字数は Array.from で数え、U+FFFD（文字化けの印）は捨てる。混じっているとページの保存が invalid_content で断られる（2026-10-14）
+  function cut(s, n) { return Array.from(String(s || '').replace(/\uFFFD/g, '').trim()).slice(0, n).join(''); }
+  function clean(h) { return String(h || '').replace(/^[①-⑳]\s*/, '').replace(/\s+/g, ''); }
+  function nowJst() {
+    var d = new Date(Date.now() + 9 * 3600 * 1000);
+    return d.getUTCFullYear() + '/' + pad(d.getUTCMonth() + 1) + '/' + pad(d.getUTCDate()) + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
+  }
+  function snapshot(csvText, updatedAt) {
+    var t = parseCsv(csvText);
+    if (!t.length) throw { code: 'bad_sheet' };
+    var head = t[0].map(clean), ix = {};
+    COLS.forEach(function (c) {
+      var at = -1;
+      for (var i = 0; i < head.length; i++) if (c[1].test(head[i])) { at = i; break; }
+      ix[c[0]] = at >= 0 ? at : c[2];
+    });
+    if (clean(t[0][0]) !== 'ユーザー名' || head.indexOf('送信日') < 0 || head.indexOf('担当') < 0) throw { code: 'bad_sheet' };
+    ix.why = ix.memo + 1; // メモの右の見出しなし列＝送らない理由
+    var rows = [];
+    for (var r = 1; r < t.length; r++) {
+      var x = t[r], u = String(x[ix.user] || '').trim();
+      if (!u) continue;
+      var st = '';
+      for (var k = 1; k <= 7; k++) st += stageCode(x[ix['s' + k]], k === 2);
+      var fol = parseFloat(String(x[ix.fol] || '').replace(/,/g, ''));
+      rows.push([
+        r + 1, cut(u, 60), cut(x[ix.name], 40),
+        String(x[ix.sent] || '').trim() === '送信済' ? 1 : 0,
+        normDate(x[ix.date]), normDate(x[ix.added]), String(x[ix.who] || '').trim().toUpperCase(),
+        String(x[ix.rank] || '').trim(), isFinite(fol) ? fol : null, st,
+        cut(x[ix.memo], 80), cut(x[ix.why], 40)
+      ]);
+    }
+    return { updatedAt: updatedAt || nowJst(), rows: rows };
+  }
+  return { snapshot: snapshot, parseCsv: parseCsv };
+})();
+
+</script>
+<script>
+var DATA = null;
+function tcMain() {
+  'use strict';
+  var SHEET_ID = '1NEBlZAyrmNFHxlt067h4TgsPZKeJZl3HnbeJxF0N6OA', LIST_GID = '1569472407';
+  var PEOPLE = ['YUSUKE', 'KODAI', 'ANNA'];
+  var STAGES = ['送信', '返信', 'CL希望', '日程確定', '一次面談', '二次面談希望', '二次面談', '成約'];
+  var MARK = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
+  var DOW = ['日', '月', '火', '水', '木', '金', '土'];
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { period: 'all', who: 'all' };
+  try { var sv = JSON.parse(localStorage.getItem('tc-dash') || '{}'); if (sv.period) state.period = sv.period; if (sv.who) state.who = sv.who; } catch (e) {}
+  function save() { try { localStorage.setItem('tc-dash', JSON.stringify(state)); } catch (e) {} }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function pct(a, b, dp) { if (!b) return '—'; return (a / b * 100).toFixed(dp == null ? 1 : dp) + '%'; }
+  function per(a, b) { return b ? Math.round(a / b) : null; }
+  function pctDm(a, b) { if (!b) return '—'; if (!a) return '0%'; var v = a / b * 100; return (v < 1 ? v.toFixed(2) : v.toFixed(1)) + '%'; }
+  function ig(u) { return 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
+  function sheetRow(r) { return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID + '&range=A' + r; }
+  function dnum(s) { var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5; }
+  function dstr(n) { var d = new Date(n * 864e5); return d.getUTCFullYear() + '-' + ('0' + (d.getUTCMonth() + 1)).slice(-2) + '-' + ('0' + d.getUTCDate()).slice(-2); }
+  function md(s) { var p = s.split('-'); return (+p[1]) + '/' + (+p[2]); }
+  function jst(ms) { var d = new Date(ms + 9 * 3600e3), z = function (n) { return ('0' + n).slice(-2); }; return d.getUTCFullYear() + '/' + z(d.getUTCMonth() + 1) + '/' + z(d.getUTCDate()) + ' ' + z(d.getUTCHours()) + ':' + z(d.getUTCMinutes()); }
+  function clock(ms) { var s = jst(ms); return s.slice(0, 10) === String(DATA.updatedAt).slice(0, 10) ? s.slice(11) : md(s.slice(0, 10).replace(/\//g, '-')) + ' ' + s.slice(11); }
+
+  var R, ANCHOR;
+  function load() {
+    R = DATA.rows.map(function (a) {
+      return { row: a[0], u: a[1], name: a[2], sent: a[3] === 1, d: a[4], add: a[5], who: a[6], rank: a[7], fol: a[8], st: a[9], memo: a[10], why: a[11] };
+    });
+    var m = String(DATA.updatedAt || '').match(/^(\d{4})\/(\d{2})\/(\d{2})/);
+    ANCHOR = m ? dnum(m[1] + '-' + m[2] + '-' + m[3]) : Math.floor(Date.now() / 864e5);
+  }
+  function inPeriod(d) { if (state.period === 'all') return true; return dnum(d) > ANCHOR - (+state.period); }
+  function whoOk(r) { return state.who === 'all' || r.who === state.who; }
+  function sentRows(useWho) { return R.filter(function (r) { return r.sent && r.d && inPeriod(r.d) && (!useWho || whoOk(r)); }); }
+  function stageCounts(rows) {
+    var c = [rows.length, 0, 0, 0, 0, 0, 0, 0];
+    rows.forEach(function (r) { for (var k = 1; k <= 7; k++) if (r.st.charAt(k - 1) === '1') c[k]++; });
+    return c;
+  }
+  function depth(r) { var d = 0; for (var k = 1; k <= 7; k++) if (r.st.charAt(k - 1) === '1') d = k; return d; }
+  function closed(r) { return r.st.indexOf('0') >= 0; }
+  function whoTag(w) { var k = PEOPLE.indexOf(w) >= 0 ? w : ''; return '<span class="who ' + k + '"><i></i>' + esc(w || '担当なし') + '</span>'; }
+  function scopeLabel() { return (state.period === 'all' ? '全期間' : '直近' + state.period + '日') + '・' + (state.who === 'all' ? '全員' : state.who); }
+
+  // ---------- KV ----------
+  var PLANE = '<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
+  function renderKV() {
+    var c = stageCounts(sentRows(true));
+    $('kvScope').textContent = (state.period === 'all' ? 'ALL' : 'LAST ' + state.period + ' DAYS') + ' · ' + (state.who === 'all' ? 'TEAM' : state.who);
+    $('kvSent').textContent = c[0].toLocaleString();
+    $('kvDeal').textContent = c[7];
+    var sub = [];
+    sub.push('返信率 <b>' + pct(c[1], c[0]) + '</b>');
+    if (c[1]) sub.push('返信1件に約 <b>' + per(c[0], c[1]) + '</b> 通');
+    if (c[4]) sub.push('一次面談1件に約 <b>' + per(c[0], c[4]) + '</b> 通');
+    $('kvSub').innerHTML = sub.join('<span aria-hidden="true">　·　</span>');
+    var far = 0, html = '';
+    for (var k = 0; k < 8; k++) {
+      if (c[k] > 0) far = k;
+      var rate = k ? pct(c[k], c[k - 1]) : '';
+      html += '<li class="stop' + (c[k] ? ' on' : ' zero') + (k === 7 ? ' last' : '') + '">' +
+        (k ? '<span class="rate">' + rate + '</span>' : '') +
+        '<span class="dot">' + (k + 1) + '</span><b class="cnt">' + c[k].toLocaleString() + '</b><span class="lbl">' + STAGES[k] + '</span>' +
+        (k ? '<span class="rate m">前から ' + rate + '</span>' : '') +
+        '<span class="all">' + (k ? 'DM比 ' + pctDm(c[k], c[0]) : 'DM総数') + '</span></li>';
+    }
+    html += '<li class="plane" id="plane" aria-hidden="true">' + PLANE + '</li>';
+    $('route').innerHTML = html;
+    var pl = $('plane');
+    pl.getBoundingClientRect();
+    setTimeout(function () { pl.style.left = (far * 12.5 + 6.25) + '%'; }, 80);
+  }
+
+  // ---------- まずここ ----------
+  var TODO = [
+    { key: 'cl', title: 'CLを案内する', cond: '返信あり・③CL希望が空欄', test: function (r) { return r.st.charAt(0) === '1' && r.st.charAt(1) === '-'; } },
+    { key: 'sched', title: '日程を決める', cond: 'CL希望・④日程確定が空欄', test: function (r) { return r.st.charAt(1) === '1' && r.st.charAt(2) === '-'; } },
+    { key: 'first', title: '一次面談', cond: '日程確定・⑤一次面談が空欄', test: function (r) { return r.st.charAt(2) === '1' && r.st.charAt(3) === '-'; } },
+    { key: 'close', title: '二次面談・成約', cond: '一次面談のあと、次の欄が空欄', test: function (r) { return (r.st.charAt(3) === '1' && r.st.charAt(4) === '-') || (r.st.charAt(4) === '1' && r.st.charAt(5) === '-') || (r.st.charAt(5) === '1' && r.st.charAt(6) === '-'); } }
+  ];
+  function personLi(r) {
+    var ago = r.d ? Math.round(ANCHOR - dnum(r.d)) : null;
+    return '<li><a href="' + ig(r.u) + '" target="_blank" rel="noopener">@' + esc(r.u) + '</a>' + whoTag(r.who) +
+      '<span class="meta">' + (r.d ? md(r.d) + ' 送信・' + (ago >= 14 ? '<b>' + ago + '日前</b>' : ago + '日前') : '送信日なし') + (r.name ? '｜' + esc(r.name) : '') + '</span></li>';
+  }
+  function renderTodo() {
+    var base = R.filter(function (r) { return r.sent && whoOk(r); });
+    var total = 0, html = '';
+    TODO.forEach(function (t) {
+      var list = base.filter(t.test).sort(function (a, b) { return (a.d || '').localeCompare(b.d || ''); });
+      total += list.length;
+      var hot = list.length > 0;
+      var lis = list.slice(0, 5).map(personLi).join('');
+      var more = list.length > 5 ? '<details class="more"><summary>ほか ' + (list.length - 5) + ' 件を表示</summary><ul class="plist">' + list.slice(5).map(personLi).join('') + '</ul></details>' : '';
+      html += '<div class="card td ' + (hot ? 'hot' : 'cold') + '">' +
+        '<div class="td-top"><div><h3>' + t.title + '</h3><div class="sub">' + t.cond + '</div></div><div class="td-n">' + list.length + '<span>人</span></div></div>' +
+        '<span class="td-tag"><i></i>' + (hot ? '要対応' : 'なし') + '</span>' +
+        (hot ? '<ul class="plist">' + lis + '</ul>' + more : '') + '</div>';
+    });
+    $('todo').innerHTML = html;
+    $('todoTotal').textContent = total;
+    $('todoTotal').className = 'badge' + (total ? '' : ' zero');
+    $('todoScope').textContent = '全期間・' + (state.who === 'all' ? '全員' : state.who);
+    renderFix();
+  }
+  var NEED = ['送信済', '②返信◯', '③希望する', '④日程確定◯', '⑤実施◯', '⑥二次希望◯', '⑦実施◯'];
+  function renderFix() {
+    var items = [];
+    R.forEach(function (r) {
+      var msgs = [];
+      if (r.sent && PEOPLE.indexOf(r.who) < 0) msgs.push('担当が空欄' + (r.who ? '（' + r.who + '）' : ''));
+      if (r.sent && !r.d) msgs.push('送信日が空欄（集計に入りません）');
+      for (var k = 1; k <= 7; k++) {
+        var v = r.st.charAt(k - 1);
+        if (v === '?') msgs.push(MARK[k] + STAGES[k] + 'が読めない値');
+        else if (v !== '-') {
+          var ok = k === 1 ? r.sent : r.st.charAt(k - 2) === '1';
+          if (!ok) msgs.push(MARK[k] + STAGES[k] + 'に入力あり・' + NEED[k - 1] + 'がまだ');
+        }
+      }
+      if (msgs.length) items.push({ r: r, msgs: msgs });
+    });
+    var el = $('fix');
+    if (!items.length) {
+      el.className = 'card fix ok';
+      el.innerHTML = '<span class="fix-ic"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span><div><h3>入力ミスはありません</h3><div class="sub">担当・送信日・ステージの順番をすべて確認しました。</div></div>';
+      return;
+    }
+    el.className = 'card fix';
+    el.innerHTML = '<span class="fix-ic"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>' +
+      '<div><h3>リストを直す ' + items.length + ' 行</h3><div class="sub">行番号を押すとスプシのその行が開きます。</div><ul>' +
+      items.map(function (it) { return '<li><a class="row" href="' + sheetRow(it.r.row) + '" target="_blank" rel="noopener">' + it.r.row + '行</a><span>@' + esc(it.r.u) + '</span><span class="sub">' + esc(it.msgs.join('／')) + '</span></li>'; }).join('') + '</ul></div>';
+  }
+
+  // ---------- 全体の状況 ----------
+  function renderPeople() {
+    var rows = sentRows(false), all = rows.length, html = '';
+    PEOPLE.forEach(function (p) {
+      var mine = rows.filter(function (r) { return r.who === p; }), c = stageCounts(mine);
+      var last = R.filter(function (r) { return r.sent && r.d && r.who === p; }).reduce(function (m, r) { return r.d > m ? r.d : m; }, '');
+      var bars = [[1, '返信'], [2, 'CL希望'], [4, '一次面談'], [7, '成約']].map(function (s) {
+        var w = c[1] ? Math.max(c[s[0]] / c[1] * 100, c[s[0]] ? 4 : 0) : 0;
+        return '<div class="pp-row"><span class="k">' + MARK[s[0]] + s[1] + '</span><span class="bar"><span style="width:' + w + '%;background:var(--p-' + p.toLowerCase() + ')"></span></span><span class="n">' + c[s[0]] + '</span></div>';
+      }).join('');
+      html += '<div class="card pp' + (state.who === p ? ' sel' : '') + '">' +
+        '<div class="pp-h"><span class="pp-name"><i style="background:var(--p-' + p.toLowerCase() + ')"></i>' + p + '</span><span class="pp-last">' + (last ? '最終送信 ' + md(last) : '送信なし') + '</span></div>' +
+        '<div class="pp-big"><span class="v">' + c[0] + '<span>通</span></span><span class="r">' + pct(c[1], c[0]) + '<span>返信率</span></span></div>' +
+        '<div class="share" title="全体に占める送信の割合"><span style="width:' + (all ? c[0] / all * 100 : 0) + '%;background:var(--p-' + p.toLowerCase() + ')"></span></div>' +
+        '<div class="pp-rows">' + bars + '</div>' +
+        '<div class="pp-foot">' + (c[1] ? '返信1件に約 <b>' + per(c[0], c[1]) + '</b> 通' : 'まだ返信なし') + '　全体の送信の <b>' + pct(c[0], all, 0) + '</b></div></div>';
+    });
+    $('people').innerHTML = html;
+    $('nowScope').textContent = scopeLabel();
+  }
+
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function renderChart() {
+    var box = $('chart'), rows = sentRows(true);
+    var W = Math.max(box.clientWidth, 280), H = 250, pl = 34, pr = 8, pt = 26, pb = 30;
+    var nl = sortedNotes(); if (nl.length) pt = 46;
+    var end = ANCHOR, start;
+    if (state.period === 'all') start = rows.reduce(function (m, r) { return Math.min(m, dnum(r.d)); }, end);
+    else start = end - (+state.period) + 1;
+    var span = end - start + 1, weekly = span > 45, buckets = [], map = {};
+    if (weekly) {
+      var s0 = start - ((new Date(start * 864e5).getUTCDay() + 6) % 7);
+      for (var w = s0; w <= end; w += 7) { var b = { from: w, to: w + 6, n: {}, t: 0, rep: 0 }; buckets.push(b); for (var i = 0; i < 7; i++) map[w + i] = b; }
+    } else {
+      for (var d = start; d <= end; d++) { var bb = { from: d, to: d, n: {}, t: 0, rep: 0 }; buckets.push(bb); map[d] = bb; }
+    }
+    rows.forEach(function (r) {
+      var b = map[dnum(r.d)]; if (!b) return;
+      var k = PEOPLE.indexOf(r.who) >= 0 ? r.who : 'OTHER';
+      b.n[k] = (b.n[k] || 0) + 1; b.t++; if (r.st.charAt(0) === '1') b.rep++;
+    });
+    $('chartTitle').textContent = (weekly ? '週ごと' : '日別') + 'の送信と返信';
+    var max = buckets.reduce(function (m, b) { return Math.max(m, b.t); }, 0) || 10;
+    var stepY = [5, 10, 20, 25, 50, 100, 200, 250, 500].find(function (s) { return max / s <= 4; }) || 1000;
+    var top = Math.ceil(max / stepY) * stepY;
+    var iw = W - pl - pr, ih = H - pt - pb, n = buckets.length, slot = iw / n, bw = Math.max(Math.min(slot * .64, 34), 3);
+    var col = { YUSUKE: cssVar('--p-yusuke'), KODAI: cssVar('--p-kodai'), ANNA: cssVar('--p-anna'), OTHER: cssVar('--p-other') };
+    var line = cssVar('--line'), muted = cssVar('--muted'), ink = cssVar('--ink'), yel = cssVar('--yellow'), navy = '#031147';
+    var y = function (v) { return pt + ih - v / top * ih; };
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (weekly ? '週ごと' : '日別') + 'の送信数（担当別）と返信数">';
+    for (var g = 0; g <= top; g += stepY) s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="' + line + '" stroke-width="1"/><text x="' + (pl - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end" fill="' + muted + '">' + g + '</text>';
+    var every = Math.max(1, Math.ceil(40 / slot));
+    var idxOf = function (dn) { return weekly ? Math.floor((dn - s0) / 7) : dn - start; };
+    var gold = cssVar('--gold-ink'), flags = '';
+    nl.forEach(function (nt, k) {
+      if (!nt.start) return;
+      var ns = dnum(nt.start), ne = nt.end ? dnum(nt.end) : end;
+      if (ns > end || ne < start) return;
+      var x0 = pl + slot * idxOf(Math.max(ns, start)), x1 = pl + slot * (idxOf(Math.min(ne, end)) + 1);
+      s += '<rect x="' + x0 + '" y="' + pt + '" width="' + Math.max(x1 - x0, 2) + '" height="' + ih + '" fill="' + yel + '" fill-opacity=".13"/>';
+      if (ns >= start) {
+        s += '<line x1="' + x0 + '" x2="' + x0 + '" y1="20" y2="' + (pt + ih) + '" stroke="' + gold + '" stroke-width="1.5" stroke-dasharray="3 3"/>';
+        flags += '<g><title>' + esc((k + 1) + '. ' + nt.title + '（' + md(nt.start) + '〜' + (nt.end ? md(nt.end) : '') + '）') + '</title><circle cx="' + x0 + '" cy="10" r="9" fill="' + yel + '"/><text x="' + x0 + '" y="13.5" text-anchor="middle" fill="' + navy + '" font-weight="700" font-size="10.5">' + (k + 1) + '</text></g>';
+      }
+    });
+    $('lgNote').hidden = !nl.length;
+    buckets.forEach(function (b, i) {
+      var x = pl + slot * i + (slot - bw) / 2, acc = 0;
+      s += '<g class="bk" data-i="' + i + '">';
+      s += '<rect x="' + (pl + slot * i) + '" y="' + pt + '" width="' + slot + '" height="' + ih + '" fill="transparent"/>';
+      ['YUSUKE', 'KODAI', 'ANNA', 'OTHER'].forEach(function (k) {
+        var v = b.n[k] || 0; if (!v) return;
+        var y1 = y(acc + v), h = y(acc) - y1; acc += v;
+        s += '<rect x="' + x + '" y="' + y1 + '" width="' + bw + '" height="' + Math.max(h - 1, 1) + '" rx="2" fill="' + col[k] + '"/>';
+      });
+      if (b.t) s += '<text x="' + (x + bw / 2) + '" y="' + (y(b.t) - (b.rep ? 22 : 5)) + '" text-anchor="middle" fill="' + ink + '" font-weight="700">' + b.t + '</text>';
+      if (b.rep) s += '<circle cx="' + (x + bw / 2) + '" cy="' + (y(b.t) - 10) + '" r="8" fill="' + yel + '"/><text x="' + (x + bw / 2) + '" y="' + (y(b.t) - 6.5) + '" text-anchor="middle" fill="' + navy + '" font-weight="700" font-size="10">' + b.rep + '</text>';
+      if (i % every === 0 || i === n - 1 && n - 1 - (Math.floor((n - 1) / every) * every) >= every) {
+        var lab = weekly ? md(dstr(b.from)) + '〜' : md(dstr(b.from));
+        s += '<text x="' + (pl + slot * i + slot / 2) + '" y="' + (H - 10) + '" text-anchor="middle" fill="' + muted + '">' + lab + '</text>';
+      }
+      s += '</g>';
+    });
+    s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="' + muted + '" stroke-width="1"/>' + flags + '</svg><div class="tip" id="tip" hidden></div>';
+    box.innerHTML = s;
+    var tip = $('tip');
+    box.querySelectorAll('.bk').forEach(function (g) {
+      g.addEventListener('pointerenter', function () {
+        var b = buckets[+g.getAttribute('data-i')];
+        var head = weekly ? md(dstr(b.from)) + '〜' + md(dstr(b.to)) : md(dstr(b.from)) + '（' + DOW[new Date(b.from * 864e5).getUTCDay()] + '）';
+        var parts = PEOPLE.filter(function (p) { return b.n[p]; }).map(function (p) { return p + ' <b>' + b.n[p] + '</b>'; });
+        if (b.n.OTHER) parts.push('担当なし <b>' + b.n.OTHER + '</b>');
+        tip.innerHTML = '<b>' + head + '</b><br>送信 <b>' + b.t + '</b>' + (b.t ? '・返信 <b>' + b.rep + '</b>（' + pct(b.rep, b.t) + '）' : '') + (parts.length ? '<br>' + parts.join('　') : '');
+        tip.hidden = false;
+        var idx = +g.getAttribute('data-i'), cx = (pl + slot * idx + slot / 2) / W * box.clientWidth;
+        tip.style.left = Math.min(Math.max(cx, 90), box.clientWidth - 90) + 'px';
+        tip.style.top = (y(b.t) - 30) / H * 250 + 'px';
+      });
+      g.addEventListener('pointerleave', function () { tip.hidden = true; });
+    });
+  }
+
+  function renderStock() {
+    var pool = R.filter(function (r) { return !r.sent; });
+    var skip = pool.filter(function (r) { return r.memo || r.why; });
+    var wait = pool.filter(function (r) { return !r.memo && !r.why; });
+    var a = wait.filter(function (r) { return r.rank === 'A'; }).length, b = wait.length - a;
+    var recent = R.filter(function (r) { return r.sent && r.d && dnum(r.d) > ANCHOR - 14; }).length;
+    var pace = recent / 14;
+    var html = '<h3>まだ送っていない相手</h3>' +
+      '<div class="stock-big"><span class="v">' + wait.length + '<span>件</span></span>' +
+      (pace >= 0.5 ? '<span class="d">直近14日のペース（1日 約<b>' + Math.round(pace) + '</b>通）で約 <b>' + Math.max(1, Math.round(wait.length / pace)) + '</b> 日分</span>' : '') + '</div>';
+    if (wait.length) html += '<div class="split" aria-label="ランク別"><span class="a" style="width:' + (a / wait.length * 100) + '%">A ' + a + '</span><span class="b" style="flex:1">B ' + b + '</span></div>';
+    html += '<div class="kvs"><div><div class="k">送らないと決めた</div><div class="v">' + skip.length + '<span>件</span></div></div>' +
+      '<div><div class="k">リスト全体</div><div class="v">' + R.length + '<span>件</span></div></div>' +
+      '<div><div class="k">送信済</div><div class="v">' + R.filter(function (r) { return r.sent; }).length + '<span>件</span></div></div></div>';
+    var sr = R.filter(function (r) { return r.sent && r.d; });
+    var A = sr.filter(function (r) { return r.rank === 'A'; }), B = sr.filter(function (r) { return r.rank === 'B'; });
+    var ra = A.filter(function (r) { return r.st.charAt(0) === '1'; }).length / (A.length || 1), rb = B.filter(function (r) { return r.st.charAt(0) === '1'; }).length / (B.length || 1);
+    if (A.length >= 50 && B.length >= 50 && ra > rb * 1.5)
+      html += '<div class="hint"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg><span>返信はAランクに集まっています（A <b>' + pct(ra, 1) + '</b>／B <b>' + pct(rb, 1) + '</b>）。残りはAランクから送るのがおすすめです。</span></div>';
+    $('stock').innerHTML = html;
+  }
+
+  function renderTend() {
+    var rows = sentRows(true);
+    function block(title, groups) {
+      var best = -1, bi = -1;
+      groups.forEach(function (g, i) { g.k = g.rows.filter(function (r) { return r.st.charAt(0) === '1'; }).length; g.r = g.rows.length ? g.k / g.rows.length : 0; if (g.rows.length >= 30 && g.r > best) { best = g.r; bi = i; } });
+      var mx = Math.max.apply(null, groups.map(function (g) { return g.r; })) || 1;
+      return '<div><h4>' + title + '</h4>' + groups.map(function (g, i) {
+        return '<div class="tb' + (i === bi && best > 0 ? ' top' : '') + '"><span class="k">' + g.label + '</span><span class="bar"><span style="width:' + (g.r / mx * 100) + '%"></span><em>' + g.k + ' / ' + g.rows.length + '通</em></span><span class="v">' + pct(g.k, g.rows.length) + '</span></div>';
+      }).join('') + '</div>';
+    }
+    var bands = [[0, 500, '500人未満'], [500, 1000, '500〜1千'], [1000, 3000, '1千〜3千'], [3000, 10000, '3千〜1万'], [10000, Infinity, '1万以上']];
+    $('tend').innerHTML = '<h3>返信が来やすい相手</h3><div class="sub">' + scopeLabel() + 'の送信のうち、返信があった割合</div>' +
+      block('ランク', ['A', 'B'].map(function (k) { return { label: k + 'ランク', rows: rows.filter(function (r) { return r.rank === k; }) }; })) +
+      block('フォロワー数', bands.map(function (b) { return { label: b[2], rows: rows.filter(function (r) { return r.fol != null && r.fol >= b[0] && r.fol < b[1]; }) }; }));
+  }
+
+  // ---------- くわしく ----------
+  function renderStageTable() {
+    var rows = sentRows(false);
+    var cols = PEOPLE.map(function (p) { return { p: p, c: stageCounts(rows.filter(function (r) { return r.who === p; })), rows: rows.filter(function (r) { return r.who === p; }) }; });
+    var tot = { p: '合計', c: stageCounts(rows), rows: rows };
+    cols.push(tot);
+    var h = '<thead><tr><th class="l">ステージ</th>' + cols.map(function (c) { return '<th>' + (c.p === '合計' ? '合計' : whoTag(c.p)) + '</th>'; }).join('') + '<th>何通で1件</th></tr></thead><tbody>';
+    for (var k = 0; k < 8; k++) {
+      h += '<tr' + (k === 7 ? ' class="last"' : '') + '><td><span class="stg"><small>' + MARK[k] + '</small>' + STAGES[k] + '</span></td>' + cols.map(function (c) {
+        return '<td><span class="c">' + c.c[k] + '</span><span class="p' + (k && c.c[k] ? ' hi' : '') + '">' + (k ? pct(c.c[k], c.c[k - 1]) : '起点') + '</span>' +
+          (k ? '<span class="p dm"><em>DM比</em>' + pctDm(c.c[k], c.c[0]) + '</span>' : '') + '</td>';
+      }).join('') + '<td><span class="c">' + (k ? (tot.c[k] ? '約' + per(tot.c[0], tot.c[k]) : '—') : '—') + '</span></td></tr>';
+    }
+    var refs = [[2, 'CL希望しない'], [5, '二次面談希望 ×'], [4, '一次面談 ×'], [6, '二次面談 ×'], [7, '成約 ×']];
+    refs.forEach(function (rf) {
+      h += '<tr class="ref"><td>（参考）' + rf[1] + '</td>' + cols.map(function (c) {
+        return '<td><span class="c">' + c.rows.filter(function (r) { return r.st.charAt(rf[0] - 1) === '0'; }).length + '</span></td>';
+      }).join('') + '<td></td></tr>';
+    });
+    h += '<tr><td><span class="stg">送信 → 成約（通算）</span></td>' + cols.map(function (c) { return '<td><span class="c">' + pct(c.c[7], c.c[0], 2) + '</span></td>'; }).join('') + '<td></td></tr></tbody>';
+    $('stageTbl').innerHTML = h;
+  }
+
+  var planBase = {};
+  function planDefaults() {
+    var c = stageCounts(R.filter(function (r) { return r.sent && r.d; }));
+    planBase = {
+      rReply: c[0] && c[1] ? +(c[1] / c[0] * 100).toFixed(1) : 3,
+      rFirst: c[1] && c[4] ? +(c[4] / c[1] * 100).toFixed(1) : 15,
+      rDeal: c[4] && c[7] ? +(c[7] / c[4] * 100).toFixed(1) : 30
+    };
+    Object.keys(planBase).forEach(function (k) { $(k).value = planBase[k]; });
+  }
+  function renderPlan() {
+    var goal = +$('goal').value;
+    $('goalOut').innerHTML = goal + '<span>件</span>';
+    var rr = (+$('rReply').value || 0) / 100, rf = (+$('rFirst').value || 0) / 100, rd = (+$('rDeal').value || 0) / 100;
+    if (!rr || !rf || !rd) { $('planRes').innerHTML = '<p class="verdict short">率を0より大きい数にしてください。</p>'; return; }
+    var first = Math.ceil(goal / rd), rep = Math.ceil(first / rf), sends = Math.ceil(rep / rr);
+    var active = PEOPLE.filter(function (p) { return R.some(function (r) { return r.sent && r.d && r.who === p && dnum(r.d) > ANCHOR - 14; }); }).length || 1;
+    var day = Math.ceil(sends / 30);
+    var recent = R.filter(function (r) { return r.sent && r.d && dnum(r.d) > ANCHOR - 14; }).length, paceDay = recent / 14;
+    var expect = paceDay * 30 * rr * rf * rd;
+    var steps = [['送信', sends, '通'], ['返信', rep, '件'], ['一次面談', first, '件'], ['成約', goal, '件']];
+    $('planRes').innerHTML = '<ol class="flow">' + steps.map(function (s, i) {
+      return '<li style="--w:' + (100 - i * 12) + '%"' + (i === 3 ? ' class="deal"' : '') + '><span>' + s[0] + '</span><b>' + s[1].toLocaleString() + '<span>' + s[2] + '/月</span></b></li>';
+    }).join('') + '</ol>' +
+      '<div class="pace"><div><div class="k">必要な送信（1日）</div><div class="v">' + day + '<span>通</span></div><div class="sub">' + active + '人で分けると1人 約' + Math.ceil(day / active) + '通</div></div>' +
+      '<div><div class="k">今のペース（直近14日）</div><div class="v">' + Math.round(paceDay) + '<span>通/日</span></div><div class="sub">この率なら月 約' + (expect >= 10 ? Math.round(expect) : expect.toFixed(1)) + '件の成約</div></div></div>' +
+      (paceDay >= day ? '<p class="verdict ok">今のペースで目標に届きます。</p>' : '<p class="verdict short">目標まで、1日あと約 ' + Math.ceil(day - paceDay) + ' 通。</p>');
+  }
+
+  function stateOf(r) {
+    if (r.st.charAt(6) === '1') return ['成約', 'won'];
+    if (closed(r)) { var k = r.st.indexOf('0') + 1; return [MARK[k] + STAGES[k] + 'で終了', 'end']; }
+    for (var i = 0; i < TODO.length; i++) if (TODO[i].test(r)) return [TODO[i].title, ''];
+    return ['—', 'end'];
+  }
+  function renderReplies() {
+    var list = R.filter(function (r) { return r.sent && whoOk(r) && (r.st.charAt(0) !== '-' || depth(r) > 0); });
+    list.sort(function (a, b) { var ca = closed(a) ? 1 : 0, cb = closed(b) ? 1 : 0; return ca - cb || depth(b) - depth(a) || (b.d || '').localeCompare(a.d || ''); });
+    $('replyScope').textContent = '全期間・' + (state.who === 'all' ? '全員' : state.who) + '　' + list.length + '人（進行中が上）';
+    if (!list.length) { $('replyTbl').innerHTML = '<tbody><tr><td class="l">まだ返信はありません。</td></tr></tbody>'; return; }
+    $('replyTbl').innerHTML = '<thead><tr><th class="l">アカウント</th><th class="l">担当</th><th>送信日</th><th class="l">②〜⑧</th><th class="l">いまの状態</th><th class="l">メモ</th></tr></thead><tbody>' +
+      list.map(function (r) {
+        var dots = '';
+        for (var k = 1; k <= 7; k++) { var v = r.st.charAt(k - 1); dots += '<i class="' + (v === '1' ? (k === 7 ? 'd' : 'y') : v === '0' ? 'n' : '') + '" title="' + MARK[k] + STAGES[k] + '"></i>'; }
+        var s = stateOf(r);
+        return '<tr><td class="acct"><a href="' + ig(r.u) + '" target="_blank" rel="noopener">@' + esc(r.u) + '</a><small>' + esc(r.name) + '</small></td><td class="l">' + whoTag(r.who) + '</td><td class="num">' + (r.d ? md(r.d) : '—') + '</td><td class="l"><span class="prog">' + dots + '</span></td><td class="l"><span class="state ' + s[1] + '">' + esc(s[0]) + '</span></td><td class="memo">' + esc(r.memo) + '</td></tr>';
+      }).join('') + '</tbody>';
+  }
+
+  // ---------- 施策メモ（このページのデータベース experiments に保存。ページの「＋施策を追加」か、Claude に頼んで書く） ----------
+  var NOTES = [], NDB = null, DB_STATE = 'loading', NOTE_WRITE = null, editing = null;
+  var METRICS = { reply: ['返信率', 1, 0], cl: ['CL希望率', 2, 1], first: ['一次面談率', 4, 0], deal: ['成約率', 7, 0] }; // [名前, 分子のステージ, 分母のステージ]
+  var WHO_OK = { all: 1, YUSUKE: 1, KODAI: 1, ANNA: 1 };
+  function isDate(v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v); }
+  function todayJst() { return dstr(Math.floor((Date.now() + 9 * 3600e3) / 864e5)); }
+  function cleanNote(id, d) {
+    d = d || {};
+    return {
+      id: id, start: isDate(d.start) ? d.start : '', end: isDate(d.end) ? d.end : '', baseEnd: isDate(d.baseEnd) ? d.baseEnd : '', kind: d.kind === 'list' ? 'list' : 'send',
+      title: String(d.title || '').slice(0, 60), detail: String(d.detail || '').slice(0, 400), result: String(d.result || '').slice(0, 200),
+      who: WHO_OK[d.who] ? d.who : 'all', metric: METRICS[d.metric] ? d.metric : 'reply', createdAt: +d.createdAt || 0
+    };
+  }
+  function sortedNotes() {
+    return NOTES.filter(function (n) { return n.start && n.title; }).sort(function (a, b) { return a.start.localeCompare(b.start) || a.createdAt - b.createdAt; });
+  }
+  function noteStatus(n) { var t = todayJst(); if (n.start > t) return 'plan'; if (n.end && n.end < t) return 'done'; return 'live'; }
+  function noteRange(n) { return md(n.start) + '〜' + (n.end ? md(n.end) : ''); }
+  // 開始前と開始後を比べる。開始後に入っているランクだけで比べ（Bランクの混ざり方の違いを消す）、送ってから7日以上たった分だけの返信率も出す
+  function noteCompare(n) {
+    var rows = R.filter(function (r) { return r.sent && r.d && (n.who === 'all' || r.who === n.who); });
+    var inWin = function (v) { return v >= n.start && (!n.end || v <= n.end); };
+    var after, before, sep = [], fallback = false;
+    if (n.kind === 'list') {
+      // リストの作り方：同じ時期に送った相手のうち、新しい方式で追加した相手 vs 前の方式で追加した相手（送り方の変化は両方に同じようにかかる）
+      var oldList = function (r) { return !r.add || r.add < n.start; };
+      after = rows.filter(function (r) { return r.add && inWin(r.add) && r.d >= n.start; });
+      before = rows.filter(function (r) { return oldList(r) && r.d >= n.start && (!n.end || r.d <= n.end); });
+      if (!before.length) { fallback = true; before = rows.filter(function (r) { return oldList(r) && r.d < n.start && (!n.baseEnd || r.d <= n.baseEnd); }); }
+    } else {
+      // 送り方：送信日で前後に分ける。基準より後に始めた「リストの作り方」の相手は両方から除く
+      after = rows.filter(function (r) { return inWin(r.d); });
+      before = rows.filter(function (r) { return r.d < n.start && (!n.baseEnd || r.d <= n.baseEnd); });
+      var base = n.baseEnd || dstr(dnum(n.start) - 1);
+      sortedNotes().forEach(function (L, k) {
+        if (L === n || L.kind !== 'list' || L.start <= base) return;
+        var hit = function (r) { return r.add && r.add >= L.start && (!L.end || r.add <= L.end); };
+        var cut = after.filter(hit).length + before.filter(hit).length;
+        after = after.filter(function (r) { return !hit(r); }); before = before.filter(function (r) { return !hit(r); });
+        sep.push({ no: k + 1, title: L.title, n: cut });
+      });
+    }
+    var ranks = {}, dropped = {};
+    after.forEach(function (r) { ranks[r.rank] = 1; });
+    if (after.length) {
+      before = before.filter(function (r) { if (ranks[r.rank]) return true; dropped[r.rank || '空欄'] = (dropped[r.rank || '空欄'] || 0) + 1; return false; });
+    }
+    var ripe = dstr(ANCHOR - 7);
+    var aRipe = after.filter(function (r) { return r.d <= ripe; }), bRipe = before.filter(function (r) { return r.d <= ripe; });
+    return { b: stageCounts(before), a: stageCounts(after), ranks: Object.keys(ranks).sort(), dropped: dropped, sep: sep, fallback: fallback,
+      aRipe: stageCounts(aRipe), bRipe: stageCounts(bRipe), young: after.length - aRipe.length };
+  }
+  var CMP_ROWS = [['reply', '返信率', '÷送信'], ['cl', 'CL希望率', '÷返信'], ['first', '一次面談', '÷送信'], ['deal', '成約', '÷送信']];
+  function rateCell(c, M, cls) {
+    if (!c[M[2]]) return '<b class="' + cls + '">—</b>';
+    return '<b class="' + cls + '">' + (c[M[1]] / c[M[2]] * 100).toFixed(1) + '%<small>' + c[M[1]] + '/' + c[M[2]] + '</small></b>';
+  }
+  function cmpRow(key, label, unit, b, a, main) {
+    var M = METRICS[key], dl = '<span></span>';
+    if (b[M[2]] && a[M[2]]) {
+      var dp = (a[M[1]] / a[M[2]] - b[M[1]] / b[M[2]]) * 100, cls = Math.abs(dp) < 0.05 ? 'flat' : dp > 0 ? 'up' : 'down';
+      dl = '<span class="delta ' + cls + '">' + (dp > 0 ? '+' : dp < 0 ? '−' : '±') + Math.abs(dp).toFixed(1) + 'pt</span>';
+    }
+    return '<div class="cmp-row' + (main ? ' main' : '') + '"><span class="k">' + label + '<small>' + unit + '</small></span>' + rateCell(b, M, 'bf') + rateCell(a, M, 'af') + dl + '</div>';
+  }
+  function noteCard(n, no) {
+    var st = noteStatus(n), c = noteCompare(n), t = todayJst();
+    var days = Math.round(dnum(t) - dnum(n.start)) + 1;
+    var stLabel = st === 'plan' ? 'これから' : st === 'done' ? '終了' : '試し中・' + days + '日目';
+    var scope = (n.who === 'all' ? '全員' : esc(n.who)) + 'のDM' + (c.ranks.length && Object.keys(c.dropped).length ? '・' + c.ranks.join('') + 'ランク' : '');
+    var isList = n.kind === 'list';
+    var hb = isList ? '前の方式<small>' + (c.fallback ? '〜' + md(dstr(dnum(n.start) - 1)) + '送信' : 'これまでの追加') + '</small>' : '開始前' + (n.baseEnd ? '<small>〜' + md(n.baseEnd) + '</small>' : '');
+    var ha = isList ? '新しい方式<small>' + md(n.start) + '〜の追加</small>' : '開始後<small>' + md(n.start) + '〜</small>';
+    var cmp = '<div class="cmp"><div class="cmp-h"><span>' + scope + '</span><span>' + hb + '</span><span>' + ha + '</span><span>差</span></div>' +
+      '<div class="cmp-row"><span class="k">送信</span><b class="bf">' + c.b[0] + '</b><b class="af">' + c.a[0] + '</b><span></span></div>' +
+      CMP_ROWS.map(function (m) { return cmpRow(m[0], m[1], m[2], c.b, c.a, n.metric === m[0]); }).join('');
+    var notes = [];
+    if (st === 'plan') notes.push('始まったら、開始日からの送信で比べます。');
+    else if (!c.a[0] && isList) notes.push('新しい方式で追加した相手への送信はまだありません。送ったら、同じ時期に送った前の方式の相手と比べます。');
+    else if (!c.a[0]) notes.push(n.start > dstr(ANCHOR) ? 'この数字は ' + esc(DATA.updatedAt) + ' 時点です。「最新の数字にして保存」で開始後の送信が入ります。' : '開始後の送信がまだありません。');
+    else {
+      if (isList) notes.push(c.fallback ? '同じ時期に前の方式の相手へ送っていないので、' + md(n.start) + ' より前の送信と比べています（送り方などほかの変化も混ざります）。' : md(n.start) + ' 以降に送った相手のうち、前の方式で追加した相手と比べています（同じ時期の送り方の変化は両方に同じようにかかります）。');
+      if (!isList && n.baseEnd && dnum(n.baseEnd) < dnum(n.start) - 1) notes.push('開始前は ' + md(n.baseEnd) + ' までの送信で比べています（' + md(dstr(dnum(n.baseEnd) + 1)) + '〜' + md(dstr(dnum(n.start) - 1)) + ' の分は入れていません）。');
+      c.sep.forEach(function (x) { notes.push('同じ時期に始めた ' + (x.no <= 20 ? String.fromCharCode(0x245F + x.no) : x.no) + '「' + esc(x.title) + '」（リストの作り方）で追加した相手' + (x.n ? 'の ' + x.n + '通' : '') + 'は、混ざらないように除いています。'); });
+      var dk = Object.keys(c.dropped);
+      if (dk.length) notes.push('開始後は' + c.ranks.join('・') + 'ランクだけなので、開始前も同じランクで比べています（' + dk.map(function (k) { return k + (k === '空欄' ? '' : 'ランク') + c.dropped[k] + '通'; }).join('・') + 'は除外）。');
+      if (c.young) {
+        if (c.aRipe[0]) notes.push('開始後の' + c.young + '通は送ってから7日たっておらず、まだ返信が来る途中です。7日以上たった分だけだと、返信率 <b>' + (c.bRipe[0] ? (c.bRipe[1] / c.bRipe[0] * 100).toFixed(1) + '%' : '—') + ' → ' + (c.aRipe[1] / c.aRipe[0] * 100).toFixed(1) + '%</b>（開始後 ' + c.aRipe[0] + '通）。');
+        else notes.push('開始後の送信はすべて送ってから7日以内で、まだ返信が来る途中です。');
+      }
+    }
+    cmp += notes.map(function (x) { return '<div class="cmp-note">' + x + '</div>'; }).join('') + '</div>';
+    var acts = NOTE_WRITE === false || !NDB ? '' : '<div class="nt-acts"><button class="btn sm" type="button" data-act="edit" data-id="' + esc(n.id) + '">編集</button>' +
+      (st !== 'done' ? '<button class="btn sm" type="button" data-act="end" data-id="' + esc(n.id) + '">終わりにする</button>' : '') +
+      '<button class="btn sm danger" type="button" data-act="del" data-id="' + esc(n.id) + '">削除</button></div>';
+    return '<article class="card nt ' + st + '"><span class="nt-no">' + no + '</span><div class="nt-main">' +
+      '<div class="nt-head"><span class="nt-state">' + stLabel + '</span><span class="nt-date">' + noteRange(n) + '</span><span class="nt-kind">' + (n.kind === 'list' ? 'リストの作り方' : '送り方') + '</span>' + (n.who === 'all' ? '<span class="who"><i></i>全員</span>' : whoTag(n.who)) + '<span>見る数字：' + METRICS[n.metric][0] + '</span></div>' +
+      '<h3>' + esc(n.title) + '</h3>' + (n.detail ? '<p class="nt-detail">' + esc(n.detail) + '</p>' : '') +
+      (n.result ? '<p class="nt-result"><b>結果</b>' + esc(n.result) + '</p>' : '') + acts + '</div>' + cmp + '</article>';
+  }
+  function renderNotes() {
+    var box = $('notesList'), list = sortedNotes();
+    var live = list.filter(function (n) { return noteStatus(n) === 'live'; }).length;
+    $('notesBadge').textContent = live;
+    $('notesBadge').className = 'badge' + (live ? '' : ' zero');
+    $('noteAdd').hidden = !(NDB && NOTE_WRITE !== false);
+    if (DB_STATE === 'loading') { box.innerHTML = '<div class="card nempty"><p class="sub">施策メモを読み込んでいます…</p></div>'; return; }
+    if (DB_STATE === 'none') { box.innerHTML = '<div class="card nempty"><p>施策メモはまだありません。</p></div>'; return; }
+    if (DB_STATE === 'error') { box.innerHTML = '<div class="card nempty"><p>施策メモを読み込めませんでした。ページを開き直してください。</p></div>'; return; }
+    if (!list.length) {
+      box.innerHTML = '<div class="card nempty"><p><b>まだ施策メモはありません。</b>新しいことを試し始めたら、1件ずつ残していきましょう。開始日の前と後で、返信率などを自動で比べます。</p>' +
+        '<div class="eg">書き方の例：<b>10/12から／KODAI／DMの1行目を「旅好きの方へ」に変える／返信率を見る</b></div>' +
+        '<p class="sub">「＋ 施策を追加」から書くか、Claude に「旅キャリの施策メモ：…」と送ってください。</p></div>';
+      return;
+    }
+    var html = '';
+    for (var i = list.length - 1; i >= 0; i--) html += noteCard(list[i], i + 1);
+    box.innerHTML = html;
+  }
+  function renderKVNotes() {
+    var el = $('kvNotes'), list = sortedNotes(), act = [];
+    list.forEach(function (n, i) { if (noteStatus(n) === 'live') act.push({ n: n, no: i + 1 }); });
+    if (!act.length) { el.hidden = true; el.innerHTML = ''; return; }
+    var t = todayJst();
+    el.innerHTML = '<span class="k">試し中</span>' + act.slice(-3).reverse().map(function (x) {
+      return '<a href="#notesSec"><i>' + x.no + '</i><span>' + esc(x.n.title) + '</span><small>' + (Math.round(dnum(t) - dnum(x.n.start)) + 1) + '日目</small></a>';
+    }).join('') + (act.length > 3 ? '<span class="k">ほか' + (act.length - 3) + '件</span>' : '');
+    el.hidden = false;
+  }
+  function openNoteForm(n, toEnd) {
+    editing = n ? n.id : null;
+    $('noteFormTitle').textContent = n ? '施策を編集' : '施策を追加';
+    $('nfStart').value = n ? n.start : todayJst();
+    $('nfTitle').value = n ? n.title : '';
+    $('nfWho').value = n ? n.who : (state.who !== 'all' ? state.who : 'all');
+    $('nfMetric').value = n ? n.metric : 'reply';
+    $('nfDetail').value = n ? n.detail : '';
+    $('nfBase').value = n ? n.baseEnd : '';
+    $('nfKind').value = n ? n.kind : 'send';
+    $('nfEnd').value = n ? (n.end || (toEnd ? todayJst() : '')) : '';
+    $('nfResult').value = n ? n.result : '';
+    $('nfEndRow').hidden = !n;
+    $('nfMsg').textContent = '';
+    $('noteForm').hidden = false;
+    $('noteForm').scrollIntoView({ block: 'nearest' });
+    (toEnd ? $('nfResult') : $('nfTitle')).focus();
+  }
+  function closeNoteForm() { $('noteForm').hidden = true; editing = null; }
+  function dbErr(e) {
+    var c = e && e.code;
+    if (c === 'invalid_argument') { NOTE_WRITE = false; renderNotes(); return 'このページでメモを書く権限がありません。菊地さんに頼むか、Claude に送ってください。'; }
+    if (c === 'quota_exceeded') return '保存できる量の上限です。古いメモを削除してから保存してください。';
+    if (c === 'revoked') return 'このページの権限が変わりました。開き直してください。';
+    return '保存できませんでした。もう一度押してください。';
+  }
+  $('noteAdd').addEventListener('click', function () { openNoteForm(null); });
+  $('nfCancel').addEventListener('click', closeNoteForm);
+  $('noteForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!NDB) return;
+    var body = {
+      start: $('nfStart').value, title: $('nfTitle').value.trim().slice(0, 60), who: $('nfWho').value, metric: $('nfMetric').value,
+      detail: $('nfDetail').value.trim().slice(0, 400), baseEnd: isDate($('nfBase').value) ? $('nfBase').value : '', kind: $('nfKind').value === 'list' ? 'list' : 'send', updatedAt: Date.now()
+    };
+    if (!isDate(body.start)) { $('nfMsg').textContent = '「いつから」を入れてください。'; $('nfStart').focus(); return; }
+    if (!body.title) { $('nfMsg').textContent = '「何を変えた」を入れてください。'; $('nfTitle').focus(); return; }
+    if (body.baseEnd && body.baseEnd >= body.start) { $('nfMsg').textContent = '比べる「前」の最後の日は、「いつから」より前の日にしてください。'; $('nfBase').focus(); return; }
+    var job;
+    if (editing) {
+      body.end = isDate($('nfEnd').value) ? $('nfEnd').value : '';
+      body.result = $('nfResult').value.trim().slice(0, 200);
+      if (body.end && body.end < body.start) { $('nfMsg').textContent = '「いつまで」は「いつから」より後の日にしてください。'; return; }
+      job = NDB.collection('experiments').doc(editing).update(body);
+    } else {
+      body.end = ''; body.result = ''; body.createdAt = Date.now();
+      job = NDB.collection('experiments').doc('e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).set(body);
+    }
+    $('nfSave').disabled = true; $('nfMsg').textContent = '保存しています…';
+    job.then(function () { closeNoteForm(); }).catch(function (er) { $('nfMsg').textContent = dbErr(er); }).then(function () { $('nfSave').disabled = false; });
+  });
+  $('notesList').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]'); if (!b || !NDB) return;
+    var id = b.getAttribute('data-id'), n = NOTES.filter(function (x) { return x.id === id; })[0]; if (!n) return;
+    var act = b.getAttribute('data-act');
+    if (act === 'edit') openNoteForm(n, false);
+    else if (act === 'end') openNoteForm(n, true);
+    else if (act === 'del') {
+      if (!b.classList.contains('armed')) {
+        b.classList.add('armed'); b.textContent = 'もう一度押すと削除';
+        setTimeout(function () { if (b.isConnected) { b.classList.remove('armed'); b.textContent = '削除'; } }, 4000);
+        return;
+      }
+      b.disabled = true;
+      NDB.collection('experiments').doc(id).delete().catch(function (er) { b.disabled = false; b.textContent = dbErr(er); });
+    }
+  });
+
+  // 写しは1時間おきに作り直すので、保存したときリストに写しより新しい変更があれば知らせる（2分までは同じ作り直しのうち）
+  function renderStale() {
+    var lag = DATA.dataTs && DATA.listTs ? DATA.listTs - DATA.dataTs : 0;
+    $('stale').hidden = !(lag > 2 * 60e3);
+    if ($('stale').hidden) return;
+    var next = DATA.dataTs + 3600e3;
+    $('staleTxt').innerHTML = 'この数字は <b>' + clock(DATA.dataTs) + '</b> 時点のリストの写しからです。リストはそのあと <b>' + clock(DATA.listTs) + '</b> にも更新されていて、その分はまだ入っていないかもしれません。' +
+      '写しは1時間おきに作り直されるので、' + (next > Date.now() ? '<b>' + clock(next) + '</b> ごろより後に' : 'いま') + '「最新の数字にして保存」を押すと入ります。';
+  }
+  function renderAll() {
+    load();
+    $('stamp').textContent = DATA.updatedAt + ' 時点';
+    $('stamp').parentNode.title = DATA.dataTs ? 'リストの写しが作られた時刻（保存したのは ' + DATA.savedAt + '）' : '';
+    $('foot').textContent = 'データ元：旅キャリ 抽出リスト「リスト」タブ（' + DATA.updatedAt + ' 時点・' + R.length + '行' + (DATA.dataTs ? '・' + DATA.savedAt + ' に保存' : '') + '）';
+    renderStale();
+    ['segPeriod', 'segWho'].forEach(function (id) {
+      var key = id === 'segPeriod' ? 'period' : 'who';
+      $(id).querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === state[key])); });
+    });
+    renderKV(); renderTodo(); renderPeople(); renderChart(); renderStock(); renderTend(); renderStageTable(); renderReplies();
+    planDefaults(); renderPlan(); renderNotes(); renderKVNotes();
+  }
+  function rerender() {
+    ['segPeriod', 'segWho'].forEach(function (id) {
+      var key = id === 'segPeriod' ? 'period' : 'who';
+      $(id).querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === state[key])); });
+    });
+    renderKV(); renderTodo(); renderPeople(); renderChart(); renderStock(); renderTend(); renderStageTable(); renderReplies();
+  }
+  $('segPeriod').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; state.period = b.getAttribute('data-v'); save(); rerender(); });
+  $('segWho').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; state.who = b.getAttribute('data-v'); save(); rerender(); });
+  ['goal', 'rReply', 'rFirst', 'rDeal'].forEach(function (id) { $(id).addEventListener('input', renderPlan); });
+  $('planReset').addEventListener('click', function () { planDefaults(); renderPlan(); });
+  $('sheetLink').href = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID;
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(renderChart, 150); });
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderChart); } catch (e) {}
+  new MutationObserver(renderChart).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  // 施策メモ：GitHub版は notes.json を読むだけ（追加・編集は Claude に頼んで notes.json を直す）
+  fetch('notes.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (list) {
+    NOTES = (list || []).map(function (d) { return cleanNote(d.id, d); });
+    DB_STATE = 'ok'; renderNotes(); renderKVNotes(); renderChart();
+  }).catch(function () { DB_STATE = 'error'; renderNotes(); });
+  renderAll();
+
+  // ---------- 最新の数字にする：リストをその場で読み直す ----------
+  function ownInfo(tx) { $('ownInfo').textContent = tx || ''; $('ownInfo').hidden = !tx; }
+  var ob = $('ownBtn'); ob.hidden = false; ob.textContent = '最新の数字にする';
+  ob.addEventListener('click', function () {
+    ob.disabled = true; ob.textContent = '読み込み中…'; ownInfo('');
+    tcFetch().then(function (snap) { DATA = snap; renderAll(); })
+      .catch(function () { ownInfo('リストを読み込めませんでした。少し待ってからもう一度押してください。'); })
+      .then(function () { ob.disabled = false; ob.textContent = '最新の数字にする'; });
+  });
+}
+// 旅キャリ 抽出リスト「リスト」タブを、ページを開いたときに直接読む（リンクを知っている全員が見られる設定が必要）
+// DM文などの長い列は読まない（A ユーザー名, B 表示名, E 送信, G ランク, H フォロワー, L 追加日, M 送信日, N 担当, O〜U ②〜⑧, V メモ, W 送らない理由）
+var TC_CSV = 'https://docs.google.com/spreadsheets/d/1NEBlZAyrmNFHxlt067h4TgsPZKeJZl3HnbeJxF0N6OA/gviz/tq?tqx=out:csv&headers=1&gid=1569472407&tq=' + encodeURIComponent('select A,B,E,G,H,L,M,N,O,P,Q,R,S,T,U,V,W');
+function tcFetch() {
+  return fetch(TC_CSV + '&t=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
+    .then(function (tx) { var s = TC_CORE.snapshot(tx); if (!s.rows.length) throw new Error('empty'); return s; });
+}
+(function () {
+  var box = document.getElementById('bootMsg');
+  tcFetch().then(function (snap) { DATA = snap; box.hidden = true; tcMain(); })
+    .catch(function (e) {
+      box.className = 'stale'; box.innerHTML = '<span>リストを読み込めませんでした（' + String(e && e.message || e).replace(/[<>&]/g, '') + '）。ページを開き直すか、少し待ってからもう一度開いてください。</span>';
+    });
+})();
+</script>
+
+</html>
