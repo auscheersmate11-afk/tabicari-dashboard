@@ -11,7 +11,7 @@
 <style>
 /* 運営用の入口。3つのページをタブで切り替える。
    運営ボード・共有ダッシュボードは同じサイトなので iframe で表示。
-   DMダッシュボード（claude.ai のページ）は claude.ai 側が埋め込みを禁止している（frame-ancestors 'self'）ので、新しいタブで開くカードにしている。 */
+   DMダッシュボードも dm/（claude.ai 版を GitHub に移したもの）を埋め込む。embed:false にすると新しいタブで開くカードになる。 */
 :root {
   --bg: #f3f6fb; --surface: #ffffff; --ink: #101a38; --muted: #5b6886; --line: #dde4f0;
   --head: #0b1d5c; --yellow: #fdc805; --sky: #2f86d6;
@@ -105,8 +105,7 @@ main { flex: 1; min-height: 0; position: relative; }
   // embed:false は埋め込み不可のページ（新しいタブで開く）
   var PAGES = [
     { id: 'ops', label: '運営ボード', short: '運営', url: '../ops/', embed: true },
-    { id: 'dm', label: 'DMダッシュボード', short: 'DM', url: 'https://claude.ai/artifact/4XEJKVSoaqyEnzokfExDHC', embed: false,
-      note: 'このページは claude.ai の中で動いていて、ほかのページの中には表示できない決まりになっています。下のボタンから新しいタブで開いてください（「最新の数字にして保存」や施策メモもそちらで使えます）。' },
+    { id: 'dm', label: 'DMダッシュボード', short: 'DM', url: '../dm/', embed: true },
     { id: 'share', label: '共有ダッシュボード', short: '共有', url: '../', embed: true }
   ];
   var tabs = document.getElementById('tabs'), main = document.getElementById('main');
