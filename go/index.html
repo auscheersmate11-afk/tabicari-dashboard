@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="旅キャリGo">
+<meta name="theme-color" content="#031147">
+<title>旅キャリGo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@600;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* 旅キャリGo：アポインターがスマホ1つで「配られた人に1通目 → 共有顧客リストに記録」まで終わらせる画面。
+   データの出し入れは Apps Script「旅キャリ 配布」の tg_api.gs（Webアプリ）。合言葉は URL の #k=。
+   Instagram の送信は人が押す（コピーして DM 画面を開くところまで）。 */
+:root {
+  --bg: #eef2f8; --surface: #ffffff; --ink: #101a38; --muted: #5b6886; --line: #dde4f0; --soft: #f4f7fc;
+  --navy: #031147; --navy2: #173c8e; --sky: #2f86d6; --sky-soft: #e6f0fb;
+  --yellow: #fdc805; --yellow-ink: #3a2c00; --gold: #946f00; --yellow-soft: #fff4c4;
+  --ok: #2f7a47; --ok-soft: #e2f2e6; --warn: #b8432c; --warn-soft: #fbe4de;
+  --btn: #031147; --btn-ink: #ffffff;
+  --font: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --num: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --cond: "Barlow Condensed", "Barlow", Arial, sans-serif;
+  --r: 16px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1022; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f; --soft: #18213b;
+    --navy: #c3d1f5; --sky: #6fb0f0; --sky-soft: #16294a; --gold: #f5cf3c; --yellow-soft: #3a3010;
+    --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+    --btn: #fdc805; --btn-ink: #031147; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1022; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f; --soft: #18213b;
+  --navy: #c3d1f5; --sky: #6fb0f0; --sky-soft: #16294a; --gold: #f5cf3c; --yellow-soft: #3a3010;
+  --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+  --btn: #fdc805; --btn-ink: #031147; color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.6; -webkit-text-size-adjust: 100%; }
+button, input, textarea { font: inherit; color: inherit; }
+a { color: var(--sky); }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.num { font-family: var(--num); font-variant-numeric: tabular-nums; }
+
+/* ---- 枠：スマホ＝上のバー＋下のタブ／PC＝左のナビ ---- */
+.app { min-height: 100dvh; display: grid; grid-template-columns: 1fr; }
+.side { display: none; }
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: #031147; color: #fff; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 19px; letter-spacing: .02em; white-space: nowrap; flex: none; }
+.brand svg { width: 22px; height: 22px; }
+.brand b { color: #fdc805; font-family: var(--num); font-weight: 700; }
+.top .who { margin-left: auto; min-width: 0; flex: 1; text-align: right; font-size: 13px; color: #b9c6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-btn { border: 0; background: rgba(255,255,255,.12); color: #fff; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; cursor: pointer; flex: none; }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn.spin svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1080px; width: 100%; margin: 0 auto; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--surface); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+.tab { border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px 0; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; border-radius: 12px; position: relative; }
+.tab svg { width: 24px; height: 24px; }
+.tab[aria-selected="true"] { color: var(--ink); background: var(--soft); }
+.tab .badge, .nav-btn .badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 18px; height: 18px; border-radius: 9px; background: var(--yellow); color: #031147;
+  font: 700 11px/18px var(--num); text-align: center; padding: 0 5px; }
+@media (min-width: 860px) {
+  .app { grid-template-columns: 236px 1fr; }
+  .top, .tabbar { display: none; }
+  .side { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100dvh; background: #031147; color: #fff; padding: 26px 16px; }
+  .side .brand { margin: 0 8px 22px; font-size: 22px; }
+  .nav-btn { border: 0; background: none; color: #dfe7fb; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; position: relative; text-align: left; }
+  .nav-btn svg { width: 20px; height: 20px; }
+  .nav-btn[aria-selected="true"] { background: rgba(255,255,255,.12); color: #fff; }
+  .nav-btn .badge { position: static; margin-left: 4px; }
+  .side .me { margin-top: auto; font-size: 13px; color: #b9c6e6; padding: 0 8px; }
+  .side .icon-btn { margin: 10px 8px 0; width: auto; padding: 0 12px; gap: 6px; display: flex; font-size: 13px; font-weight: 700; }
+  main { padding: 28px 32px 48px; }
+}
+
+/* ---- 今日：上の大きなカード ---- */
+.hero { position: relative; overflow: hidden; border-radius: 22px; padding: 18px 18px 16px; color: #fff;
+  background: linear-gradient(135deg, #031147 0%, #0d2468 60%, #173c8e 100%); display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.hero::after { content: ""; position: absolute; right: -60px; top: -70px; width: 220px; height: 220px; border-radius: 50%; border: 26px solid rgba(255,255,255,.05); }
+.ring { width: 96px; height: 96px; position: relative; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1; }
+.ring .c b { font: 700 34px/1 var(--num); }
+.ring .c small { font: 600 12px/1.4 var(--num); color: #b9c6e6; }
+.hero h1 { margin: 0; font-size: 19px; font-weight: 900; letter-spacing: .01em; }
+.hero h1 .num { color: #fdc805; font-size: 24px; }
+.hero .sub { font-size: 12px; color: #b9c6e6; margin: 2px 0 10px; }
+.segs { display: grid; grid-template-columns: 15fr 15fr 10fr; gap: 6px; }
+.seg { height: 8px; border-radius: 4px; background: rgba(255,255,255,.16); overflow: hidden; }
+.seg i { display: block; height: 100%; width: 0; background: #fdc805; border-radius: 4px; transition: width .5s ease; }
+.seg-l { display: grid; grid-template-columns: 15fr 15fr 10fr; gap: 6px; font: 600 10px/1.8 var(--num); color: #b9c6e6; }
+.seg-l span:nth-child(2) { text-align: center; } .seg-l span:nth-child(3) { text-align: right; }
+.hero .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #dfe7fb; position: relative; z-index: 1; }
+.hero .meta b { color: #fdc805; font: 700 17px var(--num); margin: 0 2px; }
+.hero.done { background: linear-gradient(135deg, #1d5b33, #2f7a47); }
+
+.sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 22px 2px 10px; }
+.sec-h h2 { margin: 0; font-size: 16px; font-weight: 900; white-space: nowrap; }
+.sec-h .hint { font-size: 12px; color: var(--muted); }
+.cards { display: grid; gap: 14px; }
+@media (min-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
+
+/* ---- 送り先のカード（チケットの形・右の半券は回収までの日数） ---- */
+.card { background: var(--surface); border-radius: var(--r); box-shadow: 0 1px 2px rgba(3,17,71,.06), 0 6px 18px rgba(3,17,71,.05); overflow: hidden;
+  transition: transform .35s ease, opacity .35s ease, max-height .45s ease, margin .45s ease; max-height: 900px; }
+.card.gone { opacity: 0; transform: translateX(40px); max-height: 0; margin-top: -14px; }
+.card.focus { box-shadow: 0 0 0 3px var(--yellow), 0 6px 18px rgba(3,17,71,.08); }
+.tk { display: grid; grid-template-columns: 1fr 78px; position: relative; }
+.tk::before, .tk::after { content: ""; position: absolute; right: 70px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); }
+.tk::before { top: -8px; } .tk::after { bottom: -8px; }
+.tk .main { padding: 14px 10px 10px 14px; display: grid; grid-template-columns: 44px 1fr; gap: 10px; min-width: 0; }
+.av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px; }
+.nm { font-weight: 900; font-size: 16px; line-height: 1.35; word-break: break-word; }
+.hd { font: 600 12px/1.5 var(--num); color: var(--muted); word-break: break-all; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.chip { font-size: 11.5px; line-height: 1; padding: 5px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+.chip.t { background: var(--soft); border-color: transparent; color: var(--muted); }
+.chip.hot { background: var(--yellow-soft); border-color: transparent; color: var(--gold); font-weight: 700; }
+.why { font-size: 12px; color: var(--muted); margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stub { border-left: 2px dashed var(--line); display: grid; place-content: center; text-align: center; background: var(--soft); padding: 8px 4px; }
+.stub small { font: 700 9.5px/1.2 var(--cond); letter-spacing: .14em; color: var(--muted); }
+.stub b { font: 700 34px/1 var(--cond); color: var(--navy); }
+.stub span { font: 700 11px/1.3 var(--font); color: var(--muted); }
+.stub.hot { background: var(--yellow-soft); } .stub.hot b { color: var(--gold); }
+.acts { padding: 4px 14px 14px; display: grid; gap: 8px; }
+.btn { appearance: none; border: 0; border-radius: 12px; min-height: 48px; padding: 10px 14px; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none; text-align: center; line-height: 1.3; }
+.btn svg { width: 19px; height: 19px; flex: none; }
+.btn.go { background: var(--btn); color: var(--btn-ink); }
+.btn.yes { background: var(--yellow); color: #031147; }
+.btn.no { background: var(--soft); color: var(--ink); font-weight: 700; }
+.btn.line { background: transparent; color: var(--ink); border: 1.5px solid var(--line); font-weight: 700; }
+.btn[disabled], .btn.off { opacity: .45; pointer-events: none; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.msgline { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.msgline button { border: 0; background: none; color: var(--sky); text-decoration: underline; text-underline-offset: 3px; font-size: 12.5px; padding: 6px 0; cursor: pointer; white-space: nowrap; }
+.msgline b { color: var(--ink); }
+.note { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.warn { background: var(--warn-soft); color: var(--warn); }
+.note.info { background: var(--sky-soft); color: var(--ink); }
+.note.y { background: var(--yellow-soft); color: var(--ink); }
+.note a { font-weight: 700; }
+.card.opened .btn.yes { animation: nudge 1.6s ease-in-out infinite; }
+@keyframes nudge { 0%,100% { box-shadow: 0 0 0 0 rgba(253,200,5,.0); } 50% { box-shadow: 0 0 0 6px rgba(253,200,5,.45); } }
+.empty { background: var(--surface); border-radius: var(--r); padding: 26px 18px; text-align: center; color: var(--muted); }
+.empty b { display: block; font-size: 17px; color: var(--ink); margin-bottom: 4px; }
+.skel { height: 190px; border-radius: var(--r); background: linear-gradient(90deg, var(--surface) 0%, var(--soft) 50%, var(--surface) 100%); background-size: 200% 100%; animation: sk 1.2s linear infinite; }
+@keyframes sk { to { background-position: -200% 0; } }
+
+/* ---- さがす ---- */
+.panel { background: var(--surface); border-radius: var(--r); padding: 16px; box-shadow: 0 1px 2px rgba(3,17,71,.06); }
+.panel h2 { margin: 0 0 4px; font-size: 17px; font-weight: 900; }
+.panel p.lead { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.field { display: flex; gap: 8px; }
+.field input, .inp { flex: 1; min-width: 0; height: 48px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--soft); padding: 0 14px; font-size: 16px; }
+.field input:focus, .inp:focus { outline: none; border-color: var(--sky); background: var(--surface); }
+.field .btn { flex: none; min-height: 48px; }
+.res { margin-top: 14px; display: grid; gap: 10px; }
+.res .big { font-size: 18px; font-weight: 900; }
+.lbl { font-size: 12px; font-weight: 700; color: var(--muted); margin: 4px 0 -4px; }
+
+/* ---- 文章（A〜D）の選び方 ---- */
+.seg-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg-pick button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.seg-pick button b { font-family: var(--num); margin-right: 4px; }
+.seg-pick button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: transparent; }
+.preview { white-space: pre-wrap; background: var(--soft); border-radius: 14px; padding: 14px; font-size: 14px; line-height: 1.75; max-height: 42vh; overflow: auto; }
+.preview mark { background: var(--yellow-soft); color: inherit; border-radius: 4px; padding: 0 2px; font-weight: 700; }
+
+/* ---- 自分 ---- */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { background: var(--surface); border-radius: 14px; padding: 12px; }
+.tile small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; }
+.tile b { font: 700 28px/1.15 var(--num); }
+.tile span { font-size: 12px; color: var(--muted); margin-left: 4px; }
+.tiles.five { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 560px) { .tiles.five { grid-template-columns: repeat(5, 1fr); } }
+.goal { margin-top: 10px; }
+.bar { height: 10px; border-radius: 5px; background: var(--soft); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--yellow); border-radius: 5px; }
+.days { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; align-items: end; height: 120px; margin-top: 8px; }
+.days div { display: grid; align-items: end; height: 100%; position: relative; }
+.days i { display: block; background: var(--navy2, #173c8e); border-radius: 4px 4px 0 0; min-height: 2px; }
+:root[data-theme="dark"] .days i { background: #6fb0f0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .days i { background: #6fb0f0; } }
+.days em { position: absolute; top: -2px; left: 0; right: 0; text-align: center; font: 700 10px var(--num); color: var(--muted); font-style: normal; }
+.days-l { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; font: 600 9.5px/1.6 var(--num); color: var(--muted); text-align: center; }
+table.msg { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.msg th, table.msg td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+table.msg th:first-child, table.msg td:first-child { text-align: left; }
+table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
+.links { display: grid; gap: 8px; margin-top: 4px; }
+
+/* ---- 下から出る画面・お知らせ ---- */
+.scrim { position: fixed; inset: 0; background: rgba(3,10,40,.45); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 61; background: var(--surface); border-radius: 22px 22px 0 0; padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  max-height: 92dvh; overflow: auto; transform: translateY(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); display: grid; gap: 12px; }
+.sheet.on { transform: none; }
+.sheet .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 2px; }
+.sheet h3 { margin: 0; font-size: 17px; font-weight: 900; }
+@media (min-width: 860px) {
+  .sheet { left: 50%; right: auto; bottom: auto; top: 50%; width: 560px; border-radius: 22px; transform: translate(-50%, -46%) scale(.98); opacity: 0; pointer-events: none; transition: all .2s; }
+  .sheet.on { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+  .sheet .grab { display: none; }
+}
+.reasons { display: grid; gap: 8px; }
+.reasons label { display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; cursor: pointer; font-weight: 700; font-size: 14px; }
+.reasons input { width: 18px; height: 18px; accent-color: #031147; }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translate(-50%, 30px); opacity: 0; z-index: 80; background: #101a38; color: #fff;
+  border-radius: 14px; padding: 12px 14px; font-size: 14px; display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100vw - 32px); transition: all .25s; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.toast button { border: 0; background: none; color: #fdc805; font-weight: 900; cursor: pointer; padding: 4px; white-space: nowrap; }
+@media (min-width: 860px) { .toast { bottom: 28px; left: calc(50% + 118px); } }
+.over { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px; background: rgba(3,10,40,.6); }
+.over .box { background: var(--surface); border-radius: 22px; padding: 22px 20px; max-width: 420px; width: 100%; display: grid; gap: 12px; text-align: center; }
+.over .box .em { font-size: 44px; line-height: 1; }
+.over .box h3 { margin: 0; font-size: 19px; font-weight: 900; }
+.over .box p { margin: 0; font-size: 14px; color: var(--muted); text-align: left; }
+.over .box ul { margin: 0; padding-left: 1.2em; text-align: left; font-size: 14px; }
+.burst { position: fixed; z-index: 95; pointer-events: none; font-size: 22px; animation: fly 1.2s ease-out forwards; }
+@keyframes fly { to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; } }
+.testbar { background: #b8432c; color: #fff; text-align: center; font-size: 12px; font-weight: 700; padding: 4px 8px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="testbar" id="testbar" hidden>テスト中：記録は共有顧客リストの写しへ</div>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>旅キャリ<b>Go</b></div>
+    <button class="nav-btn" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>今日<span class="badge" data-badge hidden></span></button>
+    <button class="nav-btn" data-tab="find" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>さがす</button>
+    <button class="nav-btn" data-tab="me" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>自分</button>
+    <div class="me" data-who></div>
+    <button class="icon-btn" data-reload><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg>最新にする</button>
+  </aside>
+  <div>
+    <header class="top">
+      <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>旅キャリ<b>Go</b></div>
+      <div class="who" data-who></div>
+      <button class="icon-btn" data-reload aria-label="最新にする"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></button>
+    </header>
+    <main>
+      <section id="v-today">
+        <div class="hero" id="hero">
+          <div class="ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="10"/><circle id="ringArc" cx="50" cy="50" r="42" fill="none" stroke="#fdc805" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 264" opacity="0"/></svg>
+            <div class="c"><b class="num" id="hSent">–</b><small id="hLimit">/ 40通</small></div></div>
+          <div>
+            <h1 id="hTitle">読み込み中…</h1>
+            <div class="sub">15通ごとにひと休み。2〜3回に分けて送ろう</div>
+            <div class="segs"><div class="seg"><i id="s1"></i></div><div class="seg"><i id="s2"></i></div><div class="seg"><i id="s3"></i></div></div>
+            <div class="seg-l"><span>1回目 15</span><span>2回目 15</span><span>3回目 10</span></div>
+          </div>
+          <div class="meta" id="hMeta"></div>
+        </div>
+        <div class="sec-h"><h2>DMを送る</h2><span class="hint">配られた人・おすすめ順</span></div>
+        <div class="cards" id="cards"><div class="skel"></div><div class="skel"></div></div>
+        <div id="doneBox"></div>
+      </section>
+
+      <section id="v-find" hidden>
+        <div class="panel">
+          <h2>自分で見つけた人をチェック</h2>
+          <p class="lead">Instagramのユーザー名・プロフィールのURL・共有リンクのどれを貼ってもOK。もう誰かが送っていないか、すぐに分かります。</p>
+          <div class="field"><input id="q" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例：tabi_hanako ／ instagram.com/…"><button class="btn line" id="pasteBtn" type="button">貼り付け</button></div>
+          <button class="btn go" id="checkBtn" type="button" style="width:100%;margin-top:10px">調べる</button>
+          <div class="res" id="res"></div>
+        </div>
+      </section>
+
+      <section id="v-me" hidden>
+        <div id="meBox"><div class="skel"></div></div>
+      </section>
+    </main>
+  </div>
+  <nav class="tabbar">
+    <button class="tab" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>今日<span class="badge" data-badge hidden></span></button>
+    <button class="tab" data-tab="find" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>さがす</button>
+    <button class="tab" data-tab="me" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>自分</button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="toastBtn" hidden></button></div>
+<div class="over" id="over" hidden><div class="box" id="overBox"></div></div>
+
+<script>
+'use strict';
+// Apps Script の Web アプリ（tg_api.gs）。デプロイを作り直したときだけ変える
+const API = 'https://script.google.com/macros/s/AKfycbzOyZftD6Cv0ZtZN3FO8eYM-jZYZQ13CdLhWG84hPR50jpg6Vb4U1hqMBGAcIuryUBDlQ/exec';
+const GOAL_MONTH = 500;   // 個別専用ページと同じ月の目標
+const UNDO_MS = 3500;
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ls = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+             set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }, del(k) { try { localStorage.removeItem(k); } catch (e) {} } };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ---- 合言葉（URL の #k=）。ホーム画面に追加しても使えるよう、端末にも覚える ----
+const params = new URLSearchParams(location.search);
+const DEMO = params.has('demo');
+let KEY = '';
+(() => {
+  const m = location.hash.match(/k=([A-Za-z0-9_-]{16,})/);
+  if (m) { KEY = m[1]; ls.set('tg_key', KEY); } else KEY = ls.get('tg_key', '');
+})();
+
+let D = null;            // サーバーから来たデータ
+let pend = new Map();    // 取り消しを待っている操作 id → {timer, run}
+const sending = new Set();   // サーバーに送っている途中の id（カードを出さない）
+const hidden = id => pend.has(id) || sending.has(id);
+let lastOpened = '';
+
+// ---- サーバーとのやり取り ----
+async function api(action, body = {}, tries = 2, keepalive = false) {
+  if (DEMO) return demoApi(action, body);
+  keepalive = keepalive || document.visibilityState === 'hidden';   // Instagram に移る瞬間に送る分も届くように
+  let res;
+  try {
+    res = await fetch(API, { method: 'POST', body: JSON.stringify(Object.assign({ action, key: KEY }, body)), keepalive, redirect: 'follow' });
+  } catch (e) { if (tries > 0) { await sleep(1500); return api(action, body, tries - 1); } return { ok: false, error: 'net' }; }
+  let j; try { j = await res.json(); } catch (e) { return { ok: false, error: 'server' }; }
+  if (!j.ok && j.error === 'busy' && tries > 0) { await sleep(3000); return api(action, body, tries - 1); }
+  return j;
+}
+const ERR = { key: 'このURLでは開けません。運営からもらった専用URLで開き直してください。', net: '通信できませんでした。電波のよいところでもう一度。',
+  server: 'うまく処理できませんでした。少し待ってもう一度押してください。', busy: 'いま混み合っています。少し待ってもう一度押してください。',
+  limit: '今日の上限（40通）に届きました。続きは明日！', test: 'テスト用の設定がまだありません（運営に連絡してください）。',
+  id: 'このカードはもう使えません（期限切れなど）。最新にしてください。', state: 'このカードはもう終わっています。最新にしてください。',
+  q: 'ユーザー名かURLを読み取れませんでした。', who: 'このURLの人が配布先にいません。運営に連絡してください。' };
+const errMsg = j => ERR[j && j.error] || ERR.server;
+
+// ---- 文章 ----
+function nameOf(c) { return ls.get('tg_name_' + c.id, '') || c.dmName || shortName(c.disp) || c.user; }
+function shortName(s) { s = String(s || '').replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu, '').split(/[|｜/／@＠・,，、\s（(]/).filter(Boolean)[0] || ''; return s.length <= 12 ? s : ''; }
+function letterOf(c) { const v = ls.get('tg_msg_' + c.id, '') || ls.get('tg_defmsg', 'A'); return D && D.tpl[v] ? v : 'A'; }
+function buildText(letter, name) { return (D.tpl[letter] || D.tpl.A).split('〇〇').join(name); }
+function previewHtml(letter, name) { return esc(D.tpl[letter] || D.tpl.A).split('〇〇').join('<mark>' + esc(name) + '</mark>'); }
+function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
+function profUrl(u) { return 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
+
+// コピー：まず同期の方法（iPhone の Safari でも確実）→ 念のため Clipboard API も
+function copyText(t) {
+  let ok = false;
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0;font-size:16px';
+    document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, t.length);
+    ok = document.execCommand('copy'); ta.remove();
+  } catch (e) {}
+  try { if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).catch(() => {}); ok = ok || !!navigator.clipboard; } catch (e) {}
+  return ok;
+}
+
+// ---- 表示 ----
+const COLORS = ['#b8860b', '#d2603a', '#2f86d6', '#2f7a47', '#7a5cc7', '#c2462e', '#0f7b8a', '#5b6886'];
+function avColor(s) { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
+function initial(c) { const s = (c.dmName || shortName(c.disp) || c.user || '?').replace(/^[^\p{L}\p{N}]+/u, ''); return [...s][0] || '?'; }
+
+function render() {
+  if (!D) return;
+  $$('[data-who]').forEach(el => el.textContent = D.name + 'さん' + (D.test ? '（テスト）' : ''));
+  $('#testbar').hidden = !D.test;
+  renderHero(); renderCards(); renderMe();
+  const n = D.cards.filter(c => !hidden(c.id)).length;
+  $$('[data-badge]').forEach(b => { b.hidden = !n; b.textContent = n; });
+  saveCache();
+}
+
+function renderHero() {
+  const s = D.stats, sent = s.today, lim = D.limit, left = Math.max(0, lim - sent);
+  $('#hSent').textContent = sent; $('#hLimit').textContent = '/ ' + lim + '通';
+  const C = 2 * Math.PI * 42; $('#ringArc').setAttribute('stroke-dasharray', (Math.min(1, sent / lim) * C).toFixed(1) + ' ' + C.toFixed(1)); $('#ringArc').setAttribute('opacity', sent ? 1 : 0);
+  $('#s1').style.width = Math.min(100, sent / 15 * 100) + '%';
+  $('#s2').style.width = Math.min(100, Math.max(0, sent - 15) / 15 * 100) + '%';
+  $('#s3').style.width = Math.min(100, Math.max(0, sent - 30) / 10 * 100) + '%';
+  const open = D.cards.filter(c => !hidden(c.id)).length;
+  $('#hero').classList.toggle('done', sent >= lim);
+  $('#hTitle').innerHTML = sent >= lim ? '今日の送信完了！おつかれさまでした🎉' : '今日のDM あと<span class="num"> ' + left + ' </span>通';
+  $('#hMeta').innerHTML = '<span>配布の残り<b>' + open + '</b>件</span><span>今月<b>' + s.month + '</b>/ ' + GOAL_MONTH + '通</span><span>連続<b>' + s.streak + '</b>日</span>';
+}
+
+function cardHtml(c) {
+  const name = nameOf(c), L = letterOf(c), full = D.stats.today >= D.limit;
+  const hot = c.left <= 0;
+  const chips = c.places.map(p => '<span class="chip">' + esc(p) + '</span>').join('') + (hot ? '<span class="chip hot">今日が送信期限</span>' : '');
+  let warn = '', acts;
+  if (c.warn === 'others') {
+    warn = '<div class="note warn">⚠ ほかの人がもう送っていました。<b>送らなくてOK</b>です（リストから外してください）。</div>';
+    acts = '<button class="btn no" data-act="skipOthers">リストから外す</button>';
+  } else if (c.warn === 'mine') {
+    warn = '<div class="note info">共有顧客リストにもう記入されています。送っていたら「送信済み」を押してください。</div>';
+    acts = '<div class="row2"><button class="btn yes" data-act="sent">✓ 送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
+  } else {
+    acts = '<div class="msgline"><span>文章 <b>' + L + '</b>（' + esc(D.tplName[L]) + '）・宛名 <b>' + esc(name) + '様</b></span><button data-act="tpl">見る・変える</button></div>' +
+      '<a class="btn go' + (full ? ' off' : '') + '" data-act="go" href="' + dmUrl(c.user) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>コピーしてInstagramを開く</a>' +
+      '<div class="note y" data-after hidden>コピーしました。Instagramで<b>長押し→ペースト</b>して送信 → 続けて<b>紹介動画（2通目）</b>も送ったら、ここに戻って「送信済み」を押してね。<a href="' + esc(D.video) + '" target="_blank" rel="noopener">紹介動画</a></div>' +
+      '<div class="row2"><button class="btn yes' + (full ? ' off' : '') + '" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
+  }
+  return '<article class="card' + (ls.get('tg_open_' + c.id, '') ? ' opened' : '') + '" data-id="' + esc(c.id) + '">' +
+    '<div class="tk"><div class="main"><div class="av" style="background:' + avColor(c.user) + '">' + esc(initial(c)) + '</div><div style="min-width:0">' +
+    '<div class="nm">' + esc(c.disp || name) + '</div><div class="hd">@' + esc(c.user) + ' ・ <a href="' + profUrl(c.user) + '" target="_blank" rel="noopener">プロフィール</a></div>' +
+    '<div class="chips">' + chips + '</div>' + (c.why ? '<div class="why">' + esc(c.why) + '</div>' : '') + '</div></div>' +
+    '<div class="stub' + (hot ? ' hot' : '') + '"><small>DEADLINE</small><b>' + (c.left <= 0 ? '今日' : c.left) + '</b><span>' + (c.left <= 0 ? 'まで' : '日後まで') + '</span></div></div>' +
+    '<div class="acts">' + warn + acts + '</div></article>';
+}
+
+function renderCards() {
+  const list = D.cards.filter(c => !hidden(c.id));
+  const box = $('#cards');
+  if (!list.length) {
+    box.innerHTML = '<div class="empty"><b>' + (D.cards.length ? '今日の分はぜんぶ終わり！' : 'いま送る人はいません') + '</b>' +
+      (D.stats.today ? '今日は ' + D.stats.today + '通 送りました。' : '') + '明日の朝7時台に、次の送り先が届きます。自分で見つけた人は「さがす」から。</div>';
+  } else box.innerHTML = list.map(cardHtml).join('');
+}
+
+function bindCards() {
+  $('#cards').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const el = b.closest('.card'), c = D.cards.find(x => x.id === el.dataset.id); if (!c) return;
+    const act = b.dataset.act;
+    if (act === 'go') { onGo(c, el); return; }               // リンクはそのまま開く（コピーは先に）
+    e.preventDefault();
+    if (act === 'sent') onSent(c, el);
+    else if (act === 'skip') openSkip(c, el);
+    else if (act === 'skipOthers') doSkip(c, el, 'ほかの人が送信済み');
+    else if (act === 'tpl') openTpl(c, el);
+  });
+}
+
+function onGo(c, el) {
+  const ok = copyText(buildText(letterOf(c), nameOf(c)));
+  ls.set('tg_open_' + c.id, String(Date.now())); lastOpened = c.id;
+  el.classList.add('opened'); const a = $('[data-after]', el); if (a) a.hidden = false;
+  toast(ok ? 'コピーしました。Instagramで貼り付けて送ってね' : 'コピーできませんでした。「見る・変える」から文章を長押しでコピーしてね');
+}
+
+// 送信済み・送らない：カードを先に消して、数秒「取り消す」を出してからサーバーへ
+function later(c, el, label, run) {
+  el.classList.add('gone');
+  const go = async () => { pend.delete(c.id); sending.add(c.id); try { await run(); } finally { sending.delete(c.id); render(); } };
+  const t = setTimeout(go, UNDO_MS);
+  pend.set(c.id, { timer: t, run: go });
+  setTimeout(() => { renderHero(); renderCards(); updateBadge(); }, 380);
+  toast(label, '取り消す', () => { clearTimeout(t); pend.delete(c.id); renderHero(); renderCards(); updateBadge(); toast('取り消しました'); });
+}
+function updateBadge() { const n = D.cards.filter(c => !hidden(c.id)).length; $$('[data-badge]').forEach(b => { b.hidden = !n; b.textContent = n; }); }
+
+function onSent(c, el) {
+  const msg = letterOf(c);
+  later(c, el, '送信済みにしました', async () => {
+    const j = await api('sent', { id: c.id, msg });
+    if (j.ok) {
+      D.cards = D.cards.filter(x => x.id !== c.id);
+      if (j.kind === 'ok' && j.row) { D.stats.today = j.todaySent; D.stats.month++; D.stats.total++; }
+      ls.set('tg_defmsg', msg); ls.del('tg_open_' + c.id); ls.del('tg_name_' + c.id); ls.del('tg_msg_' + c.id);
+      afterSend(j);
+    } else { toast(errMsg(j)); if (j.error === 'id' || j.error === 'state') setTimeout(load, 300); }
+  });
+}
+function afterSend(j) {
+  const n = D.stats.today;
+  if (j.others) toast('記録しました（ほかの人も送っていた相手でした）');
+  if (n >= D.limit) { burst(); showOver('🎉', '今日の送信完了！', '<p>' + n + '通 送りました。おつかれさまでした！ 1日' + D.limit + '通までにしているのは、アカウントを守るためです。続きは明日。</p>', 'OK'); return; }
+  const k = 'tg_rest_' + D.today + '_' + Math.floor(n / 15);
+  if (n > 0 && n % 15 === 0 && !ls.get(k, '')) { ls.set(k, '1'); showOver('☕', 'ひと休みしよう', '<p>' + n + '通 送りました！ 続けて送りすぎると、Instagramに止められることがあります。<b>少し時間をあけてから</b>続きを送ってください。</p>', '続ける'); }
+  if (!D.cards.length && n < D.limit) burst();
+}
+
+function doSkip(c, el, reason) {
+  later(c, el, '「送らない」にしました', async () => {
+    const j = await api('skip', { id: c.id, reason });
+    if (j.ok) { D.cards = D.cards.filter(x => x.id !== c.id); ls.del('tg_open_' + c.id); }
+    else toast(errMsg(j));
+  });
+}
+
+// ---- 下から出る画面 ----
+function openSheet(html) { const s = $('#sheet'); s.innerHTML = '<div class="grab"></div>' + html; $('#scrim').classList.add('on'); s.classList.add('on'); return s; }
+function closeSheet() { $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on'); }
+
+function tplPicker(L) { return '<div class="seg-pick">' + ['A', 'B', 'C', 'D'].map(k => '<button type="button" data-l="' + k + '" aria-pressed="' + (k === L) + '"><b>' + k + '</b>' + esc(D.tplName[k]) + '</button>').join('') + '</div>'; }
+
+function openTpl(c, el) {
+  let L = letterOf(c), name = nameOf(c);
+  const s = openSheet('<h3>@' + esc(c.user) + ' さんへの1通目</h3>' + tplPicker(L) +
+    '<div class="lbl">宛名（〇〇様 の部分）</div><input class="inp" id="tName" value="' + esc(name) + '">' +
+    '<div class="preview" id="tPrev"></div>' +
+    '<a class="btn go" id="tGo" href="' + dmUrl(c.user) + '" target="_blank" rel="noopener">この文章でコピーしてInstagramを開く</a>' +
+    '<button class="btn line" id="tClose" type="button">閉じる</button>');
+  const draw = () => { $('#tPrev', s).innerHTML = previewHtml(L, name); };
+  draw();
+  $$('.seg-pick button', s).forEach(b => b.onclick = () => { L = b.dataset.l; $$('.seg-pick button', s).forEach(x => x.setAttribute('aria-pressed', x === b)); ls.set('tg_msg_' + c.id, L); draw(); });
+  $('#tName', s).oninput = e => { name = e.target.value.trim() || nameOf(c); ls.set('tg_name_' + c.id, e.target.value.trim()); draw(); };
+  $('#tGo', s).onclick = () => { closeSheet(); renderCards(); const el2 = $('.card[data-id="' + c.id + '"]'); onGo(c, el2 || el); };
+  $('#tClose', s).onclick = () => { closeSheet(); renderCards(); };
+}
+
+function openSkip(c, el) {
+  const s = openSheet('<h3>あえて送らない理由</h3><div class="reasons">' + D.reasons.map((r, i) => '<label><input type="radio" name="rs" value="' + esc(r) + '"' + (i === 0 ? ' checked' : '') + '>' + esc(r) + '</label>').join('') + '</div>' +
+    '<input class="inp" id="rOther" placeholder="ひとこと（その他のとき）" maxlength="50">' +
+    '<div class="row2"><button class="btn line" id="rCancel" type="button">やめる</button><button class="btn go" id="rOk" type="button">送らないにする</button></div>' +
+    '<p style="margin:0;font-size:12px;color:var(--muted)">「送らない」にした人は、ほかの人にも配られません。</p>');
+  $('#rCancel', s).onclick = closeSheet;
+  $('#rOk', s).onclick = () => {
+    let r = ($('input[name=rs]:checked', s) || {}).value || 'その他'; const o = $('#rOther', s).value.trim();
+    if (r === 'その他' && o) r = 'その他：' + o; else if (o) r += '（' + o + '）';
+    closeSheet(); doSkip(c, el, r);
+  };
+}
+
+// ---- さがす ----
+function bindFind() {
+  const run = async () => {
+    const q = $('#q').value.trim(); if (!q) { $('#q').focus(); return; }
+    const res = $('#res'); res.innerHTML = '<div class="skel" style="height:80px"></div>';
+    const j = await api('check', { q });
+    if (!j.ok) { res.innerHTML = '<div class="note warn">' + esc(errMsg(j)) + '</div>'; return; }
+    showFind(j);
+  };
+  $('#checkBtn').onclick = run;
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+  $('#pasteBtn').onclick = async () => {
+    try { const t = await navigator.clipboard.readText(); if (t) { $('#q').value = t.trim(); run(); } }
+    catch (e) { $('#q').focus(); toast('入力欄を長押しして「ペースト」してください'); }
+  };
+}
+function showFind(j) {
+  const res = $('#res'), u = j.user;
+  const stop = (t, s) => '<div class="note warn"><div class="big">' + t + '</div>' + (s || '') + '</div><div class="hd">@' + esc(u) + '</div>';
+  if (j.kind === 'mine') { res.innerHTML = '<div class="note ok"><div class="big">あなたが送信済みです</div>' + esc(j.date || '') + ' に共有顧客リストに記入されています。</div>'; return; }
+  if (j.kind === 'others') { res.innerHTML = stop('送らないでください', (j.by ? esc(j.by) + 'さんが' : 'ほかの人が') + '送信済みです' + (j.date ? '（' + esc(j.date) + '）' : '') + '。'); return; }
+  if (j.kind === 'assigned') { res.innerHTML = stop('送らないでください', 'ほかの人に配布中の相手です。'); return; }
+  if (j.kind === 'ops') { res.innerHTML = stop('送らないでください', '運営がもう送った相手です。'); return; }
+  if (j.kind === 'yours') {
+    res.innerHTML = '<div class="note info"><div class="big">あなたの配布リストにいます</div>「今日」のカードから送ってください。</div><button class="btn go" id="toCard" type="button">カードを開く</button>';
+    $('#toCard').onclick = () => { showTab('today'); const el = $('.card[data-id="' + j.id + '"]'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('focus'); setTimeout(() => el.classList.remove('focus'), 2500); } };
+    return;
+  }
+  let L = ls.get('tg_defmsg', 'A'), name = j.dmName || shortName(j.disp) || '';
+  const head = j.kind === 'excluded'
+    ? '<div class="note y"><div class="big">まだ誰も送っていません</div>ただし、リストでは対象外にしていた相手です（' + esc(j.why || '') + '）。プロフィールを見て決めてください。</div>'
+    : '<div class="note ok"><div class="big">まだ誰も送っていません！</div>送ったら「送った！」を押すと、共有顧客リストに記入されます。</div>';
+  res.innerHTML = head + '<div class="hd">@' + esc(u) + ' ・ <a href="' + profUrl(u) + '" target="_blank" rel="noopener">プロフィールを見る</a></div>' +
+    '<div class="lbl">文章</div>' + tplPicker(L) + '<div class="lbl">宛名（〇〇様 の部分）</div><input class="inp" id="fName" value="' + esc(name) + '" placeholder="例：はなこ">' +
+    '<details><summary style="cursor:pointer;font-size:13px;color:var(--sky);padding:6px 0">文章を見る</summary><div class="preview" id="fPrev"></div></details>' +
+    '<a class="btn go" id="fGo" href="' + dmUrl(u) + '" target="_blank" rel="noopener">コピーしてInstagramを開く</a>' +
+    '<button class="btn yes" id="fSent" type="button">送った！（共有顧客リストに記入）</button>';
+  const draw = () => { $('#fPrev').innerHTML = previewHtml(L, name || '〇〇'); };
+  draw();
+  $$('.seg-pick button', res).forEach(b => b.onclick = () => { L = b.dataset.l; $$('.seg-pick button', res).forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); });
+  $('#fName').oninput = e => { name = e.target.value.trim(); draw(); };
+  $('#fGo').onclick = e => {
+    if (!name) { e.preventDefault(); $('#fName').focus(); toast('宛名（お名前）を入れてください'); return; }
+    toast(copyText(buildText(L, name)) ? 'コピーしました。Instagramで貼り付けて送ってね' : 'コピーできませんでした');
+  };
+  $('#fSent').onclick = async () => {
+    const b = $('#fSent'); b.disabled = true; b.textContent = '記入中…';
+    const r = await api('addSelf', { q: u, msg: L });
+    if (r.ok && r.kind === 'ok') {
+      ls.set('tg_defmsg', L);
+      if (D) { D.stats.today = r.todaySent || D.stats.today + 1; D.stats.month++; D.stats.total++; render(); }
+      res.innerHTML = '<div class="note ok"><div class="big">記入しました！</div>@' + esc(u) + ' を共有顧客リストに足しました。</div>';
+      $('#q').value = ''; afterSend(r);
+    } else if (r.ok && r.stopped) showFind(r);
+    else { b.disabled = false; b.textContent = '送った！（共有顧客リストに記入）'; toast(errMsg(r)); }
+  };
+}
+
+// ---- 自分 ----
+function renderMe() {
+  const s = D.stats, pct = v => (s.total ? Math.round(v / s.total * 1000) / 10 : 0);
+  const mx = Math.max(1, ...s.days.map(d => d.n));
+  const goalP = Math.min(100, s.month / GOAL_MONTH * 100);
+  const rows = ['A', 'B', 'C', 'D', '—'].filter(k => s.byMsg[k]).map(k => { const b = s.byMsg[k]; return '<tr><td><b>' + k + '</b> ' + esc(D.tplName[k] || '未記入') + '</td><td class="num">' + b.n + '</td><td class="num">' + b.reply + '</td><td class="num">' + (b.n ? Math.round(b.reply / b.n * 1000) / 10 : 0) + '%</td></tr>'; }).join('');
+  $('#meBox').innerHTML =
+    '<div class="tiles"><div class="tile"><small>今日</small><b>' + s.today + '</b><span>通</span></div><div class="tile"><small>今月</small><b>' + s.month + '</b><span>通</span></div><div class="tile"><small>これまで</small><b>' + s.total + '</b><span>通</span></div></div>' +
+    '<div class="panel goal" style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700"><span>今月の目標 ' + GOAL_MONTH + '通</span><span class="num">' + s.month + ' / ' + GOAL_MONTH + '</span></div><div class="bar" style="margin-top:6px"><i style="width:' + goalP + '%"></i></div></div>' +
+    '<div class="sec-h"><h2>送ったあと</h2><span class="hint">共有顧客リストの◯から</span></div>' +
+    '<div class="tiles five"><div class="tile"><small>返信</small><b>' + s.reply + '</b><span>' + s.replyRate + '%</span></div><div class="tile"><small>面談希望</small><b>' + s.want + '</b><span>' + pct(s.want) + '%</span></div>' +
+    '<div class="tile"><small>日程確定</small><b>' + s.fixed + '</b><span>' + pct(s.fixed) + '%</span></div><div class="tile"><small>一次面談</small><b>' + s.first + '</b><span>' + pct(s.first) + '%</span></div><div class="tile"><small>成約</small><b>' + s.deal + '</b><span>' + pct(s.deal) + '%</span></div></div>' +
+    '<div class="sec-h"><h2>この2週間の送信</h2><span class="hint">連続 ' + s.streak + '日</span></div>' +
+    '<div class="panel"><div class="days">' + s.days.map(d => '<div><em>' + (d.n || '') + '</em><i style="height:' + (d.n / mx * 92) + '%"></i></div>').join('') + '</div><div class="days-l">' + s.days.map((d, i) => '<span>' + (i % 2 ? '' : d.d.replace(/^0/, '').replace('/0', '/')) + '</span>').join('') + '</div></div>' +
+    (rows ? '<div class="sec-h"><h2>文章ごとの返信</h2></div><div class="panel"><table class="msg"><tr><th>文章</th><th>送信</th><th>返信</th><th>返信率</th></tr>' + rows + '</table></div>' : '') +
+    '<div class="sec-h"><h2>もっと見る</h2></div><div class="links">' +
+    '<a class="btn line" href="' + esc(D.mePage) + '" target="_blank" rel="noopener">くわしい数字（個別専用ページ）</a>' +
+    (D.sheet ? '<a class="btn line" href="' + esc(D.sheet) + '" target="_blank" rel="noopener">専用スプシ（配布リスト・送ったリスト）</a>' : '') + '</div>' +
+    '<p style="font-size:12px;color:var(--muted);margin:14px 2px 0">返信・面談・成約の◯は、今まで通り共有顧客リストに入れてください（このアプリの数字はそこから計算しています）。</p>';
+}
+
+// ---- お知らせ ----
+let toastT = 0;
+function toast(msg, btn, fn) {
+  const t = $('#toast'); $('#toastMsg').textContent = msg; const b = $('#toastBtn');
+  b.hidden = !btn; if (btn) { b.textContent = btn; b.onclick = () => { t.classList.remove('on'); fn && fn(); }; }
+  t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), btn ? UNDO_MS : 2800);
+}
+function showOver(em, title, body, btn, fn) {
+  $('#overBox').innerHTML = '<div class="em">' + em + '</div><h3>' + title + '</h3>' + body + (btn ? '<button class="btn go" id="overOk" type="button">' + btn + '</button>' : '');
+  $('#over').hidden = false; const b = $('#overOk'); if (b) b.onclick = () => { $('#over').hidden = true; fn && fn(); };
+}
+function burst() {
+  const em = ['🎉', '✈️', '✨', '🍵', '🌏', '💛'];
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('div'); s.className = 'burst'; s.textContent = em[i % em.length];
+    s.style.left = (40 + Math.random() * 20) + 'vw'; s.style.top = '55vh';
+    s.style.setProperty('--dx', (Math.random() * 80 - 40) + 'vw'); s.style.setProperty('--dy', -(20 + Math.random() * 50) + 'vh'); s.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 1300);
+  }
+}
+
+// ---- 画面の切り替え・読み込み ----
+function showTab(t) {
+  ['today', 'find', 'me'].forEach(k => { $('#v-' + k).hidden = k !== t; });
+  $$('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  ls.set('tg_tab', t); window.scrollTo(0, 0);
+}
+let loading = false, loadedAt = 0;
+async function load() {
+  if (loading) return; loading = true; $$('[data-reload]').forEach(b => b.classList.add('spin'));
+  const j = await api('me');
+  loading = false; $$('[data-reload]').forEach(b => b.classList.remove('spin'));
+  if (!j.ok) {
+    if (!D) { $('#cards').innerHTML = '<div class="empty"><b>読み込めませんでした</b>' + esc(errMsg(j)) + '</div>'; $('#hTitle').textContent = '—'; }
+    else toast(errMsg(j));
+    if (j.error === 'key') ls.del('tg_key');
+    return;
+  }
+  D = j; loadedAt = Date.now(); render(); saveCache(); firstRun();
+}
+// 前回の中身を端末に置いて、開いた瞬間に出す（サーバーの返事は数秒かかるため。届いたら差し替える）
+function todayJst() { const p = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); const g = t => (p.find(x => x.type === t) || {}).value; return g('year') + '/' + g('month') + '/' + g('day'); }
+function saveCache() { if (D && !DEMO) ls.set('tg_cache', JSON.stringify({ k: KEY.slice(0, 6), d: D })); }
+function loadCache() {
+  try { const c = JSON.parse(ls.get('tg_cache', '') || 'null'); if (c && c.k === KEY.slice(0, 6) && c.d && c.d.today === todayJst()) { D = c.d; render(); } } catch (e) {}
+}
+function firstRun() {
+  if (ls.get('tg_agree', '')) return;
+  showOver('✈️', '旅キャリGoへようこそ', '<p>' + esc(D.name) + 'さん専用のページです。</p><ul><li>このURLは<b>ほかの人に渡さないで</b>ください</li><li>送り先の情報は外に出さないでください</li><li>DMの送信は自分で押します（アプリは文章のコピーとDM画面を開くところまで）</li><li>1日' + D.limit + '通まで・15通ごとにひと休み</li></ul><p>ホーム画面に追加すると、アプリのように開けます（iPhoneは共有ボタン→「ホーム画面に追加」）。</p>', 'わかりました', () => ls.set('tg_agree', '1'));
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // 閉じる前に、取り消し待ちの操作はすぐ送る
+    pend.forEach((p, id) => { clearTimeout(p.timer); pend.delete(id); p.run(); });
+    return;
+  }
+  if (lastOpened) {   // Instagram から戻ってきた
+    const el = $('.card[data-id="' + lastOpened + '"]');
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('送れたら「送信済み」を押してね'); }
+    lastOpened = '';
+  }
+  if (Date.now() - loadedAt > 5 * 60 * 1000 && !pend.size) load();
+});
+
+$$('[data-tab]').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+$$('[data-reload]').forEach(b => b.onclick = () => load());
+$('#scrim').onclick = () => { closeSheet(); renderCards(); };
+bindCards(); bindFind();
+showTab(['today', 'find', 'me'].includes(ls.get('tg_tab', 'today')) ? ls.get('tg_tab', 'today') : 'today');
+if (!KEY && !DEMO) {
+  $('#hTitle').textContent = '専用URLで開いてください';
+  $('#cards').innerHTML = '<div class="empty"><b>専用URLで開いてください</b>運営から届いた「#k=…」付きのURLで開くと使えます。</div>';
+  $('#meBox').innerHTML = '';
+} else { if (!DEMO) loadCache(); load(); }
+
+// ---- 見本（?demo=1）：架空のデータ。どこにも記録しない ----
+function demoApi(action, body) {
+  if (action !== 'me') return Promise.resolve(action === 'check' ? { ok: true, kind: 'new', user: 'tabi_hanako' } : { ok: true, kind: 'ok', row: 1, todaySent: (D ? D.stats.today + 1 : 1) });
+  const T = 'はじめまして！\n\n旅キャリ運営の齋藤と申します！\n\n〇〇様の投稿を拝見し、\n海外を心から楽しまれている\n"旅への熱量"が伝わりご連絡しました。\n\n（見本の文章です）';
+  const days = Array.from({ length: 14 }, (_, i) => ({ d: '11/' + String(i + 1).padStart(2, '0'), n: [3, 8, 0, 12, 15, 9, 20, 18, 0, 14, 22, 16, 11, 12][i] }));
+  return Promise.resolve({ ok: true, name: '見本', test: false, today: '2026/11/14', limit: 40, distToday: 20,
+    stats: { total: 312, month: 168, today: 12, reply: 21, replyRate: 6.7, want: 9, fixed: 6, first: 4, deal: 1, streak: 9, days,
+      byMsg: { A: { n: 180, reply: 13 }, B: { n: 70, reply: 5 }, C: { n: 40, reply: 2 }, D: { n: 22, reply: 1 } } },
+    cards: [
+      { id: 'd1', user: 'sora_trip_diary', disp: 'そら｜週末海外', dmName: 'そら', places: ['台湾', 'ソウル'], why: '国旗の絵文字6個・訪問国数を書いている', left: 2, warn: '' },
+      { id: 'd2', user: 'mai_worldwalk', disp: 'まい｜30ヶ国ひとり旅', dmName: 'まい', places: ['ポルトガル', 'モロッコ'], why: '「30ヶ国」と訪問国数を書いている', left: 1, warn: '' },
+      { id: 'd3', user: 'yuto_backpack', disp: 'ゆうと｜バックパッカー', dmName: 'ゆうと', places: ['ベトナム', 'ラオス'], why: '海外の地名がプロフィールに3つ', left: 0, warn: '' },
+      { id: 'd4', user: 'nana_cafe_abroad', disp: 'なな｜海外カフェ巡り', dmName: 'なな', places: ['メルボルン'], why: '海外の投稿が直近12件中9件', left: 2, warn: 'others' }],
+    tpl: { A: T, B: T.replace('はじめまして！', 'はじめまして。'), C: T + '✈️', D: '突然のDM失礼いたします。\n\n' + T }, tplName: { A: 'あなたが必要', B: '経験を仕事に', C: '経験を仕事に（絵文字）', D: '旅行を海外出張に' },
+    reasons: ['鍵アカウント（非公開）', 'アカウントが見つからない', '旅・海外の人ではない', 'お店・会社・講師のアカウント', 'DM・勧誘お断りと書いてある', 'その他'],
+    video: '#', mePage: '../me/?p=demo', sheet: '' });
+}
+</script>
+</body>
+</html>
