@@ -66,6 +66,7 @@ a { color: var(--sky); }
 .icon-btn.spin svg { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1080px; width: 100%; margin: 0 auto; }
+#v-me { margin: -14px -16px 0; }
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(3, 1fr);
   background: var(--surface); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
 .tab { border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px 0; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; border-radius: 12px; position: relative; }
@@ -85,7 +86,11 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
   .side .me { margin-top: auto; font-size: 13px; color: #b9c6e6; padding: 0 8px; }
   .side .icon-btn { margin: 10px 8px 0; width: auto; padding: 0 12px; gap: 6px; display: flex; font-size: 13px; font-weight: 700; }
   main { padding: 28px 32px 48px; }
+  #v-me { margin: -28px -32px -48px; }
 }
+
+/* ---- 自分：個別専用ページ（me/）をそのまま出す ---- */
+#meFrame { display: block; width: 100%; height: calc(100vh - 150px); border: 0; background: var(--bg); }
 
 /* ---- 今日：上の大きなカード ---- */
 .hero { position: relative; overflow: hidden; border-radius: 22px; padding: 18px 18px 16px; color: #fff;
@@ -586,25 +591,28 @@ function showFind(j) {
   };
 }
 
-// ---- 自分 ----
+// ---- 自分：個別専用ページ（me/?p=…）をそのまま中に出す ----
+// 2026-11-10 ユーザー「個人で配布する旅キャリGoの『自分』ページは、個別専用ページのままでいい。デザインとかも全てそろえて」
+// サーバーの mePage（名前から作るトークン＝LINE案内タブ D列と同じURL）を iframe で開く。同じサイトなので高さを中身に合わせる。
 function renderMe() {
-  const s = D.stats, pct = v => (s.total ? Math.round(v / s.total * 1000) / 10 : 0);
-  const mx = Math.max(1, ...s.days.map(d => d.n));
-  const goalP = Math.min(100, s.month / GOAL_MONTH * 100);
-  const rows = ['A', 'B', 'C', 'D', '—'].filter(k => s.byMsg[k]).map(k => { const b = s.byMsg[k]; return '<tr><td><b>' + k + '</b> ' + esc(D.tplName[k] || '未記入') + '</td><td class="num">' + b.n + '</td><td class="num">' + b.reply + '</td><td class="num">' + (b.n ? Math.round(b.reply / b.n * 1000) / 10 : 0) + '%</td></tr>'; }).join('');
-  $('#meBox').innerHTML =
-    '<div class="tiles"><div class="tile"><small>今日</small><b>' + s.today + '</b><span>通</span></div><div class="tile"><small>今月</small><b>' + s.month + '</b><span>通</span></div><div class="tile"><small>これまで</small><b>' + s.total + '</b><span>通</span></div></div>' +
-    '<div class="panel goal" style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700"><span>今月の目標 ' + GOAL_MONTH + '通</span><span class="num">' + s.month + ' / ' + GOAL_MONTH + '</span></div><div class="bar" style="margin-top:6px"><i style="width:' + goalP + '%"></i></div></div>' +
-    '<div class="sec-h"><h2>送ったあと</h2><span class="hint">共有顧客リストの◯から</span></div>' +
-    '<div class="tiles five"><div class="tile"><small>返信</small><b>' + s.reply + '</b><span>' + s.replyRate + '%</span></div><div class="tile"><small>面談希望</small><b>' + s.want + '</b><span>' + pct(s.want) + '%</span></div>' +
-    '<div class="tile"><small>日程確定</small><b>' + s.fixed + '</b><span>' + pct(s.fixed) + '%</span></div><div class="tile"><small>一次面談</small><b>' + s.first + '</b><span>' + pct(s.first) + '%</span></div><div class="tile"><small>成約</small><b>' + s.deal + '</b><span>' + pct(s.deal) + '%</span></div></div>' +
-    '<div class="sec-h"><h2>この2週間の送信</h2><span class="hint">連続 ' + s.streak + '日</span></div>' +
-    '<div class="panel"><div class="days">' + s.days.map(d => '<div><em>' + (d.n || '') + '</em><i style="height:' + (d.n / mx * 92) + '%"></i></div>').join('') + '</div><div class="days-l">' + s.days.map((d, i) => '<span>' + (i % 2 ? '' : d.d.replace(/^0/, '').replace('/0', '/')) + '</span>').join('') + '</div></div>' +
-    (rows ? '<div class="sec-h"><h2>文章ごとの返信</h2></div><div class="panel"><table class="msg"><tr><th>文章</th><th>送信</th><th>返信</th><th>返信率</th></tr>' + rows + '</table></div>' : '') +
-    '<div class="sec-h"><h2>もっと見る</h2></div><div class="links">' +
-    '<a class="btn line" href="' + esc(D.mePage) + '" target="_blank" rel="noopener">くわしい数字（個別専用ページ）</a>' +
-    (D.sheet ? '<a class="btn line" href="' + esc(D.sheet) + '" target="_blank" rel="noopener">専用スプシ（配布リスト・送ったリスト）</a>' : '') + '</div>' +
-    '<p style="font-size:12px;color:var(--muted);margin:14px 2px 0">返信・面談・成約の◯は、今まで通り共有顧客リストに入れてください（このアプリの数字はそこから計算しています）。</p>';
+  const box = $('#meBox');
+  if (!D || !D.mePage || box.dataset.src === D.mePage) return;   // 同じページは開き直さない
+  box.dataset.src = D.mePage; box.dataset.loaded = '';
+  box.innerHTML = '<iframe id="meFrame" title="個別専用ページ"></iframe>';
+  if (!$('#v-me').hidden) loadMe();
+}
+function loadMe(again) {
+  const box = $('#meBox'), f = $('#meFrame');
+  if (!f || (box.dataset.loaded && !again)) return;
+  box.dataset.loaded = '1';
+  f.onload = () => {
+    try {
+      const doc = f.contentDocument; let last = 0;
+      const fit = () => { const h = Math.ceil(doc.documentElement.scrollHeight); if (Math.abs(h - last) > 2) { last = h; f.style.height = h + 'px'; } };
+      fit(); new ResizeObserver(fit).observe(doc.body);
+    } catch (e) { f.style.height = ''; }   // 別のサイト扱いのとき（ファイルで開いた見本など）は中でスクロール
+  };
+  f.src = box.dataset.src;
 }
 
 // ---- お知らせ ----
@@ -633,6 +641,7 @@ function showTab(t) {
   ['today', 'find', 'me'].forEach(k => { $('#v-' + k).hidden = k !== t; });
   $$('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
   ls.set('tg_tab', t); window.scrollTo(0, 0);
+  if (t === 'me') loadMe();
 }
 let loading = false, loadedAt = 0;
 async function load() {
@@ -673,7 +682,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 $$('[data-tab]').forEach(b => b.onclick = () => showTab(b.dataset.tab));
-$$('[data-reload]').forEach(b => b.onclick = () => load());
+$$('[data-reload]').forEach(b => b.onclick = () => { load(); if (!$('#v-me').hidden && $('#meFrame')) loadMe(true); });
 $('#scrim').onclick = () => { closeSheet(); renderCards(); };
 bindCards(); bindFind();
 showTab(['today', 'find', 'me'].includes(ls.get('tg_tab', 'today')) ? ls.get('tg_tab', 'today') : 'today');
