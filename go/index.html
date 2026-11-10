@@ -169,6 +169,9 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
 .field input, .inp { flex: 1; min-width: 0; height: 48px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--soft); padding: 0 14px; font-size: 16px; }
 .field input:focus, .inp:focus { outline: none; border-color: var(--sky); background: var(--surface); }
 .field .btn { flex: none; min-height: 48px; }
+.at { position: relative; flex: 1; display: flex; min-width: 0; }
+.at span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 700; font-size: 17px; pointer-events: none; }
+.at input { padding-left: 34px; }
 .res { margin-top: 14px; display: grid; gap: 10px; }
 .res .big { font-size: 18px; font-weight: 900; }
 .lbl { font-size: 12px; font-weight: 700; color: var(--muted); margin: 4px 0 -4px; }
@@ -276,8 +279,8 @@ table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
       <section id="v-find" hidden>
         <div class="panel">
           <h2>自分で見つけた人をチェック</h2>
-          <p class="lead">Instagramのユーザー名・プロフィールのURL・共有リンクのどれを貼ってもOK。もう誰かが送っていないか、すぐに分かります。</p>
-          <div class="field"><input id="q" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例：tabi_hanako ／ instagram.com/…"><button class="btn line" id="pasteBtn" type="button">貼り付け</button></div>
+          <p class="lead">Instagramの<b>ユーザー名</b>を入れて「調べる」を押すと、もう誰かが送っていないか、すぐに分かります。</p>
+          <div class="field"><div class="at"><span aria-hidden="true">@</span><input id="q" type="text" inputmode="text" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Instagramのユーザー名" placeholder="ユーザー名（例：tabi_hanako）"></div></div>
           <button class="btn go" id="checkBtn" type="button" style="width:100%;margin-top:10px">調べる</button>
           <div class="res" id="res"></div>
         </div>
@@ -345,7 +348,7 @@ const ERR = { key: 'このURLでは開けません。運営からもらった専
   server: 'うまく処理できませんでした。少し待ってもう一度押してください。', busy: 'いま混み合っています。少し待ってもう一度押してください。',
   limit: '今日の上限（40通）に届きました。続きは明日！', test: 'テスト用の設定がまだありません（運営に連絡してください）。',
   id: 'このカードはもう使えません（期限切れなど）。最新にしてください。', state: 'このカードはもう終わっています。最新にしてください。',
-  q: 'ユーザー名かURLを読み取れませんでした。', who: 'このURLの人が配布先にいません。運営に連絡してください。' };
+  q: 'ユーザー名を読み取れませんでした（英数字・_ ・. だけです）。', who: 'このURLの人が配布先にいません。運営に連絡してください。' };
 const errMsg = j => ERR[j && j.error] || ERR.server;
 
 // ---- 文章 ----
@@ -538,10 +541,8 @@ function bindFind() {
   };
   $('#checkBtn').onclick = run;
   $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
-  $('#pasteBtn').onclick = async () => {
-    try { const t = await navigator.clipboard.readText(); if (t) { $('#q').value = t.trim(); run(); } }
-    catch (e) { $('#q').focus(); toast('入力欄を長押しして「ペースト」してください'); }
-  };
+  // 先頭の @ と空白は入れなくてよい（@ は欄の左に出している）
+  $('#q').addEventListener('input', e => { const v = e.target.value, n = v.replace(/^\s*@/, '').replace(/\s+/g, ''); if (n !== v) e.target.value = n; });
 }
 function showFind(j) {
   const res = $('#res'), u = j.user;
