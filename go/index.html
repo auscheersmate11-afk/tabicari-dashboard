@@ -314,12 +314,16 @@ table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
 const API = 'https://script.google.com/macros/s/AKfycbzOyZftD6Cv0ZtZN3FO8eYM-jZYZQ13CdLhWG84hPR50jpg6Vb4U1hqMBGAcIuryUBDlQ/exec';
 const GOAL_MONTH = 500;   // 個別専用ページと同じ月の目標
 const UNDO_MS = 3500;
+// 最初に選ばれる文章（2026-11-10 ユーザー「Cに変えて」。10/26〜11/7 の共有顧客リストで返信・日程確定が一番多かったのが C）
+const DEF_MSG = 'C';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ls = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
              set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }, del(k) { try { localStorage.removeItem(k); } catch (e) {} } };
+// 前の既定（A）が端末に残っている人も、一度だけ C に戻す（そのあとは今まで通り「前回使った文章」を覚える）
+if (ls.get('tg_defv', '') !== '2') { ls.set('tg_defmsg', DEF_MSG); ls.set('tg_defv', '2'); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ---- 合言葉（URL の #k=）。ホーム画面に追加しても使えるよう、端末にも覚える ----
@@ -359,7 +363,7 @@ const errMsg = j => ERR[j && j.error] || ERR.server;
 // ---- 文章 ----
 function nameOf(c) { return ls.get('tg_name_' + c.id, '') || c.dmName || shortName(c.disp) || c.user; }
 function shortName(s) { s = String(s || '').replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu, '').split(/[|｜/／@＠・,，、\s（(]/).filter(Boolean)[0] || ''; return s.length <= 12 ? s : ''; }
-function letterOf(c) { const v = ls.get('tg_msg_' + c.id, '') || ls.get('tg_defmsg', 'A'); return D && D.tpl[v] ? v : 'A'; }
+function letterOf(c) { const v = ls.get('tg_msg_' + c.id, '') || ls.get('tg_defmsg', DEF_MSG); return D && D.tpl[v] ? v : DEF_MSG; }
 function buildText(letter, name) { return (D.tpl[letter] || D.tpl.A).split('〇〇').join(name); }
 function previewHtml(letter, name) { return esc(D.tpl[letter] || D.tpl.A).split('〇〇').join('<mark>' + esc(name) + '</mark>'); }
 function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
@@ -561,7 +565,7 @@ function showFind(j) {
     $('#toCard').onclick = () => { showTab('today'); const el = $('.card[data-id="' + j.id + '"]'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('focus'); setTimeout(() => el.classList.remove('focus'), 2500); } };
     return;
   }
-  let L = ls.get('tg_defmsg', 'A'), name = j.dmName || shortName(j.disp) || '';
+  let L = ls.get('tg_defmsg', DEF_MSG), name = j.dmName || shortName(j.disp) || '';
   const head = j.kind === 'excluded'
     ? '<div class="note y"><div class="big">まだ誰も送っていません</div>ただし、リストでは対象外にしていた相手です（' + esc(j.why || '') + '）。プロフィールを見て決めてください。</div>'
     : '<div class="note ok"><div class="big">まだ誰も送っていません！</div>送ったら「送った！」を押すと、共有顧客リストに記入されます。</div>';
