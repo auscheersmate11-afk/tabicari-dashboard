@@ -96,6 +96,19 @@ p { margin: 0; }
 .goal-need .v .n { font-size: 26px; color: var(--cyan-ink); margin: 0 2px; }
 .goal.ad .goal-need .v .n { color: var(--yellow-ink); }
 
+.sts { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.st { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 12px; border-radius: 999px; background: var(--mist); border: 1px solid var(--line); }
+:root[data-theme="dark"] .st { background: var(--bg); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .st { background: var(--bg); } }
+.st-l { font-size: 12px; font-weight: 700; color: var(--muted); margin-right: 2px; }
+.st .n { min-width: 22px; text-align: center; font-size: 17px; }
+.st button { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--navy); background: var(--surface); color: var(--navy); font: 800 16px/1 var(--en); cursor: pointer; padding: 0; }
+.st button:hover { background: var(--yellow); }
+:root[data-theme="dark"] .st button { border-color: var(--cyan); color: var(--cyan); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .st button { border-color: var(--cyan); color: var(--cyan); } }
+.goal-help { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); margin-top: -4px; }
+.goal-help button { all: unset; cursor: pointer; color: var(--cyan-ink); font-weight: 700; margin-left: 8px; text-decoration: underline; }
+
 /* セクション */
 .sec { background: var(--surface); border-radius: 18px; border: 1px solid var(--line); box-shadow: var(--shadow); padding: clamp(18px, 3vw, 30px); display: grid; gap: 22px; }
 .sec-hd { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px 20px; }
@@ -204,7 +217,7 @@ p { margin: 0; }
     <div>
       <div class="eye">Sales Plan · <span id="ym">—</span></div>
       <h1>成約目標まで、<em>あと何回</em>？</h1>
-      <p class="lead">今月の転換率から、目標達成に必要なアクション数を逆算しています。</p>
+      <p class="lead">これまでの平均の転換率から、目標に必要なアクション数を逆算しています。目標は＋−で変えられます。</p>
     </div>
     <div class="meta">
       <span class="pill days">残り <span class="n" id="daysLeft">—</span> 日</span>
@@ -353,10 +366,46 @@ p { margin: 0; }
     return h + '</div>' + (per > 1 ? '<div class="unit">● 1つ＝' + per + '通</div>' : '');
   }
 
+  // 目標と今月の成約数：data.json の初期値 → ページで＋−した値（この端末に月ごとに保存）
+  function loadSaved(mon) { try { return JSON.parse(localStorage.getItem('tc-sales-' + mon) || '{}') || {}; } catch (e) { return {}; } }
+  function save(mon, v) { try { localStorage.setItem('tc-sales-' + mon, JSON.stringify(v)); } catch (e) {} }
+  function goalsFor(mon) {
+    var def = (CONF.goals && CONF.goals[mon]) || {}, last = {};
+    try { last = JSON.parse(localStorage.getItem('tc-sales-last') || '{}') || {}; } catch (e) {}
+    var base = (CONF.tabi.wonBase && CONF.tabi.wonBase[mon]);
+    var tabiAuto = base == null ? null : Math.max(0, DATA.won - base);
+    var adAuto = (CONF.ad.team || []).filter(function (x) { return x.date.slice(0, 7) === mon && x.result === 'won'; }).length;
+    var sv = loadSaved(mon);
+    function pick(k, d) { return sv[k] != null ? sv[k] : d; }
+    return {
+      tabiGoal: pick('tabiGoal', def.tabi != null ? def.tabi : (last.tabi != null ? last.tabi : 3)),
+      adGoal: pick('adGoal', def.ad != null ? def.ad : (last.ad != null ? last.ad : 3)),
+      tabiWon: pick('tabiWon', tabiAuto != null ? tabiAuto : 0),
+      adWon: pick('adWon', adAuto),
+      tabiAuto: tabiAuto, edited: Object.keys(sv).length > 0
+    };
+  }
+  function steppers(r, won, goal, auto) {
+    function st(k, v, lab) {
+      return '<div class="st"><span class="st-l">' + lab + '</span><button type="button" data-r="' + r + '" data-k="' + k + '" data-d="-1" aria-label="' + lab + 'を1減らす">−</button>' +
+        '<span class="n">' + v + '</span><button type="button" data-r="' + r + '" data-k="' + k + '" data-d="1" aria-label="' + lab + 'を1増やす">＋</button></div>';
+    }
+    return '<div class="sts">' + st('Goal', goal, '目標') + st('Won', won, '今月の成約') + '</div>';
+  }
+  function bump(r, k, d) {
+    var today = new Date(), mon = today.getFullYear() + '-' + pad(today.getMonth() + 1), G = goalsFor(mon), sv = loadSaved(mon);
+    var key = r + k, cur = G[key];
+    sv[key] = Math.max(k === 'Goal' ? 1 : 0, Math.min(99, cur + d));
+    save(mon, sv);
+    if (k === 'Goal') { var last = {}; try { last = JSON.parse(localStorage.getItem('tc-sales-last') || '{}') || {}; } catch (e) {} last[r] = sv[key]; try { localStorage.setItem('tc-sales-last', JSON.stringify(last)); } catch (e) {} }
+    render();
+  }
+  function resetGoals() { var today = new Date(); try { localStorage.removeItem('tc-sales-' + today.getFullYear() + '-' + pad(today.getMonth() + 1)); } catch (e) {} render(); }
+
   function render() {
     if (!DATA || !CONF) return;
     var today = new Date(); today.setHours(0, 0, 0, 0);
-    var T = ymd(today), mp = CONF.month.split('-'), y = +mp[0], m = +mp[1] - 1;
+    var T = ymd(today), y = today.getFullYear(), m = today.getMonth(), MON = y + '-' + pad(m + 1), G = goalsFor(MON);
     var end = new Date(y, m + 1, 0), daysLeft = Math.max(1, Math.round((end - today) / 864e5) + 1);
     var dl = new Date(end); dl.setDate(dl.getDate() - (CONF.leadDays || 8));
     var dmDays = Math.max(1, Math.round((dl - today) / 864e5) + 1);
@@ -376,7 +425,7 @@ p { margin: 0; }
       n2: adv2 / o.n1,
       won: o.won / n2
     };
-    var tWon = o.won - (tb.wonBefore || 0), tRem = Math.max(0, tb.goal - tWon);
+    var tWon = G.tabiWon, tGoal = G.tabiGoal, tRem = Math.max(0, tGoal - tWon);
     var expect = pend2.length * r.won + pend1.length * r.n1 * r.n2 * r.won;
     if (!isFinite(expect)) expect = 0;
     var target = mode === 'pipe' ? Math.max(0, tRem - expect) : tRem;
@@ -441,12 +490,12 @@ p { margin: 0; }
 
     /* ---------- 広告経由 ---------- */
     var ad = CONF.ad, ref = ad.ref;
-    var mon = CONF.month;
+    var mon = MON;
     var team = (ad.team || []).filter(function (x) { return x.date.slice(0, 7) === mon; });
-    var aWon = team.filter(function (x) { return x.result === 'won'; }).length;
+    var aWonLog = team.filter(function (x) { return x.result === 'won'; }).length, aWon = G.adWon, aGoal = G.adGoal;
     var aHeld = team.filter(function (x) { return x.result === 'won' || x.result === 'lost'; }).length;
     var aUp = team.filter(function (x) { return x.result === 'upcoming' && x.date >= T; }).length;
-    var aRem = Math.max(0, ad.goal - aWon);
+    var aRem = Math.max(0, aGoal - aWon);
     var close = ref.won / ref.decided, attend = ref.held / ref.booked;
     var aNeedHeld = aRem / close, aNeedBook = aNeedHeld / attend, aNewBook = Math.max(0, ceil(aNeedBook) - aUp);
     var AS = [
@@ -464,7 +513,7 @@ p { margin: 0; }
       var k = RL[x.result] || ['gray', x.result]; if (x.result === 'upcoming' && x.date < T) k = ['gray', '結果待ち'];
       return '<span class="chip ' + k[0] + '"><i></i>' + mdw(x.date) + ' ' + k[1] + (x.memo ? '・' + esc(x.memo) : '') + '</span>';
     }).join('') || '<span class="chip gray"><i></i>まだなし</span>';
-    document.getElementById('adTeamSum').textContent = '実施' + aHeld + '回・成約' + aWon + '件';
+    document.getElementById('adTeamSum').textContent = '実施' + aHeld + '回・成約' + aWonLog + '件';
     document.getElementById('adFun').innerHTML =
       '<div class="fr"><span>予約</span><span class="bar"><i style="width:100%"></i></span><span class="c">' + ref.booked + '</span><span class="p dim"></span></div>' +
       '<div class="fr"><span>実施</span><span class="bar"><i style="width:' + (ref.held / ref.booked * 100) + '%"></i></span><span class="c">' + ref.held + '</span><span class="p">' + pct(attend) + '</span></div>' +
@@ -473,16 +522,18 @@ p { margin: 0; }
 
     /* ---------- ゴールカード ---------- */
     document.getElementById('goals').innerHTML =
-      '<div class="goal tabi"><span class="tag">旅キャリDM経由</span><div class="goal-row"><div class="score"><span class="n">' + tWon + '</span><span class="of">/ ' + tb.goal + '</span><small>成約</small></div>' + cups(tWon, tb.goal) + '</div>' +
+      '<div class="goal tabi"><span class="tag">旅キャリDM経由</span><div class="goal-row"><div class="score"><span class="n">' + tWon + '</span><span class="of">/ ' + tGoal + '</span><small>成約</small></div>' + cups(tWon, tGoal) + '</div>' + steppers('tabi', tWon, tGoal, G.tabiAuto) +
       '<div class="goal-need"><span class="k">' + (tRem ? 'あと' + tRem + '件に必要（' + (mode === 'pipe' ? '予定の人も含める' : 'ゼロから') + '）' : '目標達成！') + '</span>' +
       (tRem && allOk ? '<span class="v">一次面談<span class="n">' + ceil(need.n1) + '</span>回 ・ 二次面談<span class="n">' + ceil(need.n2) + '</span>回</span><span class="k">DM ' + fmt(ceil(need.sent)) + '通 → 返信 ' + ceil(need.rep) + '件 → 予約 ' + ceil(need.book) + '件</span>' : '') + '</div></div>' +
-      '<div class="goal ad"><span class="tag">ロードマップ面談（広告経由）</span><div class="goal-row"><div class="score"><span class="n">' + aWon + '</span><span class="of">/ ' + ad.goal + '</span><small>成約</small></div>' + cups(aWon, ad.goal) + '</div>' +
+      '<div class="goal ad"><span class="tag">ロードマップ面談（広告経由）</span><div class="goal-row"><div class="score"><span class="n">' + aWon + '</span><span class="of">/ ' + aGoal + '</span><small>成約</small></div>' + cups(aWon, aGoal) + '</div>' + steppers('ad', aWon, aGoal, aWonLog) +
       '<div class="goal-need"><span class="k">' + (aRem ? 'あと' + aRem + '件に必要' : '目標達成！') + '</span>' +
       (aRem ? '<span class="v">面談<span class="n">' + ceil(aNeedHeld) + '</span>回 ・ 予約<span class="n">' + ceil(aNeedBook) + '</span>件</span><span class="k">週' + (aNeedHeld / daysLeft * 7).toFixed(1) + '回のペースで実施</span>' : '') + '</div></div>';
 
+    document.getElementById('goals').insertAdjacentHTML('beforeend', '<p class="goal-help">目標と今月の成約数は＋−で変えられます。必要な数はその場で計算し直します（この端末に月ごとに保存）。' + (G.edited ? '<button type="button" id="resetGoals">初期値に戻す</button>' : '') + (G.tabiAuto == null ? '<br>旅キャリの今月の成約数は自動で数えられないので、＋−で合わせてください。' : '') + '</p>');
     document.getElementById('notes').innerHTML = [
       '旅キャリの数字は共有顧客リストを開いたときに読み込みます（' + md(tb.since) + '以降に送った分、運営ボードの「リスト別の成果」と同じ数え方）。',
-      'この先の面談予定・広告経由の結果・営業代行の実績は data.json の手入力です（最終更新 ' + md(CONF.updated) + '）。予定は日付が過ぎると自動で外れます。',
+      'この先の面談予定・広告経由の結果・営業代行の実績は data.json の手入力です（最終更新 ' + md(CONF.updated) + '）。予定は日付が過ぎると自動で外れます。月が変わると自動でその月の表示になります。',
+      '転換率は ' + md(tb.since) + ' からの累計で計算しています（件数が多いほどブレが小さいため）。',
       'まだ件数が少ないので、1〜2件の結果で転換率が大きく変わります。特に二次 → 成約と広告経由のチーム実績は参考程度に。'
     ].map(function (s) { return '<li>' + s + '</li>'; }).join('');
   }
@@ -515,6 +566,10 @@ p { margin: 0; }
     });
   });
   document.getElementById('reload').addEventListener('click', load);
+  document.getElementById('goals').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-k]'); if (b) { bump(b.dataset.r, b.dataset.k, +b.dataset.d); return; }
+    if (e.target.closest('#resetGoals')) resetGoals();
+  });
   load();
   setInterval(load, 10 * 60 * 1000);
 })();
