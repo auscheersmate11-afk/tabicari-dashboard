@@ -239,8 +239,8 @@ p { margin: 0; }
         <p>インスタDM → 返信 → 一次面談の予約 → 一次面談 → 二次面談 → 成約</p>
       </div>
       <div class="seg" role="group" aria-label="数え方">
-        <button type="button" data-mode="zero" aria-pressed="true">ゼロから</button>
-        <button type="button" data-mode="pipe" aria-pressed="false">予定の人も含める</button>
+        <button type="button" data-mode="zero" aria-pressed="true">固め（予定は数えない）</button>
+        <button type="button" data-mode="pipe" aria-pressed="false">見込み込み</button>
       </div>
     </div>
     <p class="mode-note" id="tabiNote"></p>
@@ -428,15 +428,15 @@ p { margin: 0; }
     var tWon = G.tabiWon, tGoal = G.tabiGoal, tRem = Math.max(0, tGoal - tWon);
     var expect = pend2.length * r.won + pend1.length * r.n1 * r.n2 * r.won;
     if (!isFinite(expect)) expect = 0;
-    var target = mode === 'pipe' ? Math.max(0, tRem - expect) : tRem;
+    var credit = Math.floor(expect + 1e-9), target = mode === 'pipe' ? Math.max(0, tRem - credit) : tRem;
     var need = {}; need.won = target; need.n2 = target / r.won; need.n1 = need.n2 / r.n2; need.book = need.n1 / r.n1; need.rep = need.book / r.book; need.sent = need.rep / r.rep;
     var allOk = ['rep', 'book', 'n1', 'n2', 'won'].every(function (k) { return isFinite(r[k]) && r[k] > 0; });
 
     var zero = {}; zero.n2 = tRem / r.won; zero.n1 = zero.n2 / r.n2; zero.book = zero.n1 / r.n1; zero.rep = zero.book / r.book; zero.sent = zero.rep / r.rep;
 
     document.getElementById('tabiNote').innerHTML = mode === 'pipe'
-      ? 'すでに予定が入っている人（一次 <b>' + pend1.length + '件</b>・二次 <b>' + pend2.length + '件</b>）から、今の転換率どおりなら <b>約' + expect.toFixed(1) + '件</b> の成約が見込めます。その分を引いた <b>約' + (Math.round(target * 10) / 10) + '件</b> を新しく作るのに必要な数です。'
-      : 'いま予定が入っている人は数えず、残り <b>' + tRem + '件</b> をこれから作る場合に必要な数です。';
+      ? '予定が入っている人（一次 <b>' + pend1.length + '件</b>・二次 <b>' + pend2.length + '件</b>）から見込める成約は約' + expect.toFixed(1) + '件。そのうち確実に数えられる <b>' + credit + '件</b>（端数は切り捨て）だけを引いて、残り <b>' + target + '件</b> を新しく作るのに必要な数です。見込みが外れると届かないので、目安として見てください。'
+      : '予定が入っている人の見込みは数えず、残り <b>' + tRem + '件</b> を全部これから作るつもりで出した数です。予定の人が決まればその分は上乗せ（余裕）になります。';
 
     var STEPS = [
       { k: 'sent', l: 'DM送信', u: '通', per: 100, pace: 'dm' },
@@ -457,10 +457,10 @@ p { margin: 0; }
       else if (s.pace === 'day') sub = '1日 ' + (v / daysLeft).toFixed(1) + '件';
       else if (s.pace === 'week') sub = '週 ' + (v / daysLeft * 7).toFixed(1) + (s.u === '回' ? '回' : '件');
       else sub = mode === 'pipe' ? '残り' + tRem + '件のうち' : '残り';
-      var shown = s.goal ? (mode === 'pipe' ? (Math.round(v * 10) / 10) : v) : cv;
+      var shown = s.goal ? v : cv;
       h += '<div class="rung' + (s.goal ? ' goal-r' : '') + '"><div class="lab"><i>' + (i + 1) + '</i>' + s.l + '</div>' +
         '<div class="viz">' + (isFinite(v) ? dots(s.goal ? v : cv, s.per ? 'sm' : '', s.per) : '') + '</div>' +
-        '<div class="num"><span class="n">' + (isFinite(v) ? (s.goal && mode === 'pipe' ? shown : fmt(shown)) : '—') + '</span><span class="u">' + s.u + '</span><small>' + sub + '</small></div></div>';
+        '<div class="num"><span class="n">' + (isFinite(v) ? fmt(shown) : '—') + '</span><span class="u">' + s.u + '</span><small>' + sub + '</small></div></div>';
     });
     document.getElementById('tabiLadder').innerHTML = h;
 
@@ -523,7 +523,7 @@ p { margin: 0; }
     /* ---------- ゴールカード ---------- */
     document.getElementById('goals').innerHTML =
       '<div class="goal tabi"><span class="tag">旅キャリDM経由</span><div class="goal-row"><div class="score"><span class="n">' + tWon + '</span><span class="of">/ ' + tGoal + '</span><small>成約</small></div>' + cups(tWon, tGoal) + '</div>' + steppers('tabi', tWon, tGoal, G.tabiAuto) +
-      '<div class="goal-need"><span class="k">' + (tRem ? 'あと' + tRem + '件に必要（' + (mode === 'pipe' ? '予定の人も含める' : 'ゼロから') + '）' : '目標達成！') + '</span>' +
+      '<div class="goal-need"><span class="k">' + (tRem ? 'あと' + tRem + '件に必要（' + (mode === 'pipe' ? '見込み込み' : '固め') + '）' : '目標達成！') + '</span>' +
       (tRem && allOk ? '<span class="v">一次面談<span class="n">' + ceil(need.n1) + '</span>回 ・ 二次面談<span class="n">' + ceil(need.n2) + '</span>回</span><span class="k">DM ' + fmt(ceil(need.sent)) + '通 → 返信 ' + ceil(need.rep) + '件 → 予約 ' + ceil(need.book) + '件</span>' : '') + '</div></div>' +
       '<div class="goal ad"><span class="tag">ロードマップ面談（広告経由）</span><div class="goal-row"><div class="score"><span class="n">' + aWon + '</span><span class="of">/ ' + aGoal + '</span><small>成約</small></div>' + cups(aWon, aGoal) + '</div>' + steppers('ad', aWon, aGoal, aWonLog) +
       '<div class="goal-need"><span class="k">' + (aRem ? 'あと' + aRem + '件に必要' : '目標達成！') + '</span>' +
