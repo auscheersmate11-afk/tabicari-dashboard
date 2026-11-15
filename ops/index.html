@@ -273,7 +273,7 @@
     <div class="hd"><div><span class="e">List rank</span><h2>リスト別の成果（A・B・C）</h2></div>
       <div class="r"><div class="rkseg" id="rkSeg"><button data-p="all" class="on">全期間</button><button data-p="month">今月</button><button data-p="d30">直近30日</button></div></div></div>
     <div class="rks" id="rkBox"><div class="fail">読み込み中…</div></div>
-    <p class="rknote">顧客リストの「ユーザー名」（なければプロフィールURL）を、抽出リストの配布台帳・リスト・リスト（B・C）と照らしてランクを付けています。見つからない人は「リスト外」（アポインターが自分で探した人など）。％は1つ前の段階から進んだ割合。期間は顧客リストの日付（送った日）で絞ります。このページは運営だけが見るもので、共有ページには出していません。</p>
+    <p class="rknote">顧客リストの「ユーザー名」（なければプロフィールURL）を、抽出リストの配布台帳・リスト・リスト（B・C）と照らしてランクを付けています。見つからない人は「リスト外」（アポインターが自分で探した人など）。％は1つ前の段階から進んだ割合。送信200件未満のリストはまだブレが大きいので参考程度に。期間は顧客リストの日付（送った日）で絞ります。このページは運営だけが見るもので、共有ページには出していません。</p>
   </section>
 </div>
 <script>
@@ -301,7 +301,7 @@
   function ok(v) { v = String(v || ''); return /[◯○〇✓✔☑]/.test(v) && !/[×✕✖]/.test(v); }
   var ROWS = null, PER = 'all';
   var STEPS = [['送信', 'sent'], ['返信', 'rep'], ['一次予約', 'book'], ['一次面談', 'n1'], ['二次面談', 'n2'], ['成約', 'won']];
-  var GROUPS = [['A', 'Aリスト', 'いちばん条件が良い人'], ['B', 'Bリスト', ''], ['C', 'Cリスト', ''], ['', 'リスト外', '自分で探した人など']];
+  var GROUPS = [['A', 'Aリスト', ''], ['B', 'Bリスト', ''], ['C', 'Cリスト', ''], ['', 'リスト外', '自分で探した人など']];
   function build(cust, lists) {
     var rank = {};
     lists.forEach(function (t) { parseCsv(t).slice(1).forEach(function (r) { var k = uKey(r[0]), v = String(r[1] || '').trim().toUpperCase(); if (k && /^[ABC]$/.test(v) && !rank[k]) rank[k] = v; }); });
@@ -327,7 +327,7 @@
     GROUPS.forEach(function (g) { agg[g[0]] = { sent: 0, rep: 0, book: 0, n1: 0, n2: 0, won: 0 }; });
     ROWS.forEach(function (r) { if (from && (!r.d || r.d < from)) return; var a = agg[r.g]; a.sent++; ['rep', 'book', 'n1', 'n2', 'won'].forEach(function (k) { if (r[k]) a[k]++; }); });
     var best = '', bestR = -1;
-    ['A', 'B', 'C'].forEach(function (g) { var a = agg[g]; if (a.sent >= 30 && a.rep / a.sent > bestR) { bestR = a.rep / a.sent; best = g; } });
+    ['A', 'B', 'C'].forEach(function (g) { var a = agg[g]; if (a.sent >= 200 && a.rep / a.sent > bestR) { bestR = a.rep / a.sent; best = g; } });
     box.innerHTML = GROUPS.map(function (g, gi) {
       var a = agg[g[0]], mx = a.sent || 1;
       var st = STEPS.map(function (s, i) {
@@ -335,7 +335,7 @@
         return '<div class="st"><span>' + s[0] + '</span><div class="tr"><span style="width:' + (v ? Math.max(w, 1.5) : 0) + '%"></span></div><span class="c">' + v.toLocaleString() + '</span><span class="r' + (i && !v ? ' z' : '') + '">' + (i ? pct(v, prev) : '') + '</span></div>';
       }).join('');
       return '<div class="rkc' + (g[0] === best ? ' best' : '') + (g[0] ? '' : ' out') + '" style="animation-delay:' + gi * 0.06 + 's">'
-        + '<div class="t"><div class="b">' + (g[0] || '外') + '</div><div class="nm">' + esc(g[1]) + (g[2] ? '<small>' + esc(g[2]) + '</small>' : '') + '</div></div>'
+        + '<div class="t"><div class="b">' + (g[0] || '外') + '</div><div class="nm">' + esc(g[1]) + ((g[2] || a.sent < 200) ? '<small>' + esc([g[2], a.sent < 200 ? 'まだ件数が少ない' : ''].filter(Boolean).join('・')) + '</small>' : '') + '</div></div>'
         + '<div class="hero"><b>' + pct(a.rep, a.sent) + '</b><span>返信率</span></div>'
         + '<div class="fn">' + st + '</div>'
         + '<div class="ft"><span>送信→成約</span><b>' + pct(a.won, a.sent) + '</b><span>返信→成約</span><b>' + pct(a.won, a.rep) + '</b></div>'
