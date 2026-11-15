@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>旅キャリ セールス逆算</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@700;900&display=swap">
+<style>
+/* セールス逆算ページ。デザインは Cheers mate のサイト（紺 #142D4E・シアン #0097D4・黄 #F2C94C・ミスト #EEF6FB、Manrope＋Noto）に寄せて、
+   運営ボード（濃紺グラデ＋Barlow）と見分けがつくようにしている。
+   旅キャリの実績は共有顧客リストをブラウザから直接読む。予定の日付・広告経由の結果は data.json（手入力、個人名なし）。 */
+:root {
+  --navy: #142D4E; --navy2: #294F7A; --navy-deep: #0E2039;
+  --yellow: #F2C94C; --yellow2: #F7DB83; --yellow-soft: #FFFBEA; --yellow-ink: #8A6400;
+  --mist: #EEF6FB; --mist2: #DCEEF8; --line: #CFE3EF;
+  --cyan: #0097D4; --cyan-ink: #0A7FB5; --cyan-soft: #E8F5FC;
+  --ink: #142D4E; --muted: #5C6B84; --faint: #8A97AB;
+  --surface: #FFFFFF; --bg: #EEF6FB; --track: #E4EEF5;
+  --ok: #1F9D63; --ok-soft: #E3F5EC; --bad: #D9573F; --bad-soft: #FCEBE7;
+  --shadow: 0 12px 34px -18px rgba(20,45,78,.35);
+  --jp: "Noto Sans JP", -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+  --serif: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --en: "Manrope", "Noto Sans JP", sans-serif;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #E8F0F8; --muted: #9FB0C7; --faint: #6F819B; --surface: #13243D; --bg: #0B1729; --track: #1C3150;
+    --line: #22395A; --mist2: #183050; --cyan: #3DB6EA; --cyan-ink: #5CC3F0; --cyan-soft: #12304A;
+    --yellow-soft: #2C2611; --yellow-ink: #F2C94C; --ok: #5BD097; --ok-soft: #12301F; --bad: #F08A76; --bad-soft: #36201B;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #E8F0F8; --muted: #9FB0C7; --faint: #6F819B; --surface: #13243D; --bg: #0B1729; --track: #1C3150;
+  --line: #22395A; --mist2: #183050; --cyan: #3DB6EA; --cyan-ink: #5CC3F0; --cyan-soft: #12304A;
+  --yellow-soft: #2C2611; --yellow-ink: #F2C94C; --ok: #5BD097; --ok-soft: #12301F; --bad: #F08A76; --bad-soft: #36201B;
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--jp); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; border-radius: 4px; }
+.n { font-family: var(--en); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 28px 16px 56px; display: grid; gap: 22px; }
+.eye { font: 700 11.5px var(--en); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan-ink); display: flex; align-items: center; gap: 10px; }
+.eye::before { content: ""; width: 22px; height: 2px; border-radius: 2px; background: var(--yellow); }
+h1, h2, h3 { margin: 0; }
+p { margin: 0; }
+
+/* ヘッダー */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; }
+.top h1 { font: 900 clamp(24px, 3.6vw, 34px)/1.3 var(--serif); margin-top: 8px; }
+.top h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--yellow) 62%, var(--yellow) 92%, transparent 92%); padding: 0 2px; }
+:root[data-theme="dark"] .top h1 em { background: none; color: var(--yellow); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .top h1 em { background: none; color: var(--yellow); } }
+.top .lead { margin-top: 6px; color: var(--muted); font-size: 14px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+.pill.days { background: var(--navy); border-color: var(--navy); color: #fff; }
+.pill.days .n { font-size: 18px; color: var(--yellow); }
+.pill button { all: unset; cursor: pointer; color: var(--cyan-ink); font-weight: 700; }
+
+/* ゴールカード */
+.goals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .goals { grid-template-columns: 1fr; } }
+.goal { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); border: 1px solid var(--line); padding: 22px 22px 20px; display: grid; gap: 16px; position: relative; overflow: hidden; }
+.goal::after { content: ""; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; border-radius: 50%; background: var(--cyan-soft); opacity: .7; }
+.goal.ad::after { background: var(--yellow-soft); }
+.goal > * { position: relative; z-index: 1; }
+.tag { display: inline-flex; align-items: center; gap: 6px; justify-self: start; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--cyan-soft); color: var(--cyan-ink); }
+.goal.ad .tag { background: var(--yellow-soft); color: var(--yellow-ink); }
+.goal-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.score { display: flex; align-items: baseline; gap: 6px; }
+.score .n { font-size: 56px; line-height: 1; color: var(--navy); }
+:root[data-theme="dark"] .score .n { color: var(--ink); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .score .n { color: var(--ink); } }
+.score .of { font: 700 22px var(--en); color: var(--faint); }
+.score small { font-size: 13px; color: var(--muted); font-weight: 700; margin-left: 4px; }
+.cups { display: flex; gap: 8px; }
+.cup { width: 34px; height: 40px; }
+.cup path { stroke-width: 2; }
+.cup .glass { fill: none; stroke: var(--line); }
+.cup .fill { fill: transparent; }
+.cup.on .glass { stroke: var(--navy); }
+.cup.on .fill { fill: var(--yellow); }
+:root[data-theme="dark"] .cup.on .glass { stroke: var(--yellow); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cup.on .glass { stroke: var(--yellow); } }
+.goal-need { display: grid; gap: 4px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.goal-need .k { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.goal-need .v { font-size: 17px; font-weight: 900; }
+.goal-need .v .n { font-size: 26px; color: var(--cyan-ink); margin: 0 2px; }
+.goal.ad .goal-need .v .n { color: var(--yellow-ink); }
+
+/* セクション */
+.sec { background: var(--surface); border-radius: 18px; border: 1px solid var(--line); box-shadow: var(--shadow); padding: clamp(18px, 3vw, 30px); display: grid; gap: 22px; }
+.sec-hd { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px 20px; }
+.sec-hd h2 { font: 900 clamp(20px, 2.6vw, 26px)/1.35 var(--serif); margin-top: 6px; }
+.sec-hd p { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
+.seg { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--mist); border: 1px solid var(--line); }
+:root[data-theme="dark"] .seg { background: var(--bg); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .seg { background: var(--bg); } }
+.seg button { border: 0; background: transparent; color: var(--muted); font: 700 13px var(--jp); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--navy); color: #fff; }
+:root[data-theme="dark"] .seg button[aria-pressed="true"] { background: var(--cyan); color: #0B1729; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .seg button[aria-pressed="true"] { background: var(--cyan); color: #0B1729; } }
+.mode-note { font-size: 13px; color: var(--muted); background: var(--mist); border-radius: 10px; padding: 10px 14px; }
+:root[data-theme="dark"] .mode-note { background: var(--bg); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mode-note { background: var(--bg); } }
+.mode-note b { color: var(--ink); }
+
+/* 必要アクションのはしご */
+.ladder { display: grid; gap: 0; }
+.rung { display: grid; grid-template-columns: 170px minmax(0, 1fr) 170px; gap: 16px; align-items: center; padding: 14px 0; }
+.rung + .rung { border-top: 1px solid var(--line); }
+.rung .lab { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 15px; }
+.rung .lab i { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--cyan-soft); color: var(--cyan-ink); font: 800 12px var(--en); font-style: normal; }
+.rung.goal-r .lab i { background: var(--yellow); color: var(--navy); }
+.rung .viz { min-width: 0; display: grid; gap: 6px; }
+.dots { display: flex; flex-wrap: wrap; gap: 5px; }
+.dots span { width: 16px; height: 16px; border-radius: 50%; background: var(--cyan); }
+.dots span.part { background: linear-gradient(90deg, var(--cyan) 50%, var(--track) 50%); }
+.rung.goal-r .dots span { background: var(--yellow); box-shadow: inset 0 0 0 2px var(--navy); width: 18px; height: 18px; }
+.dots.sm span { width: 12px; height: 12px; }
+.unit { font-size: 11.5px; color: var(--faint); }
+.rung .num { text-align: right; }
+.rung .num .n { font-size: 34px; line-height: 1; }
+.rung .num small { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 700; }
+.rung .num .u { font-size: 14px; font-weight: 700; margin-left: 2px; color: var(--muted); font-family: var(--jp); }
+.conv { display: flex; align-items: center; padding: 0 0 0 186px; position: relative; }
+.conv::before { content: ""; position: absolute; left: 13px; top: -10px; bottom: -10px; border-left: 2px dotted var(--line); }
+.conv span { display: inline-flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px; font-size: 11.5px; color: var(--muted); font-weight: 700; }
+.conv span .n { color: var(--cyan-ink); font-size: 12.5px; }
+@media (max-width: 640px) {
+  .rung { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .rung .viz { grid-column: 1 / -1; order: 3; }
+  .conv { padding-left: 38px; }
+  .fr.fhd { display: none; }
+  .rung .num .n { font-size: 28px; }
+}
+
+/* 2列 */
+.two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+.box { background: var(--mist); border-radius: var(--r); padding: 18px; display: grid; gap: 12px; align-content: start; }
+:root[data-theme="dark"] .box { background: var(--bg); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .box { background: var(--bg); } }
+.box h3 { font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+.box h3 small { font-weight: 500; color: var(--muted); font-size: 12px; }
+
+/* 実績ファネル */
+.fun { display: grid; gap: 7px; }
+.fr { display: grid; grid-template-columns: 82px minmax(0, 1fr) 56px 54px; gap: 10px; align-items: center; font-size: 13px; }
+.fr .bar { height: 12px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.fr .bar i { display: block; height: 100%; border-radius: 999px; background: var(--navy2); }
+:root[data-theme="dark"] .fr .bar i { background: var(--cyan); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fr .bar i { background: var(--cyan); } }
+.fr .c { text-align: right; font: 800 14px var(--en); }
+.fr .p { text-align: right; font: 700 12px var(--en); color: var(--cyan-ink); }
+.fr .p.dim { color: var(--faint); }
+.fhd { font-size: 11px; color: var(--faint); }
+
+/* ペース */
+.pace { display: grid; gap: 10px; }
+.pace-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) 72px; gap: 10px; align-items: center; font-size: 13px; }
+.pace-row .bar { height: 22px; border-radius: 7px; background: var(--track); overflow: hidden; position: relative; }
+.pace-row .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 7px; }
+.pace-row.need .bar i { background: var(--yellow); }
+.pace-row.now .bar i { background: var(--cyan); }
+.pace-row .c { text-align: right; font: 800 15px var(--en); }
+.pace-row .c small { font: 500 11px var(--jp); color: var(--muted); }
+.verdict { font-size: 13.5px; font-weight: 700; padding: 10px 14px; border-radius: 10px; }
+.verdict.bad { background: var(--bad-soft); color: var(--bad); }
+.verdict.ok { background: var(--ok-soft); color: var(--ok); }
+
+/* 予定チップ */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 12.5px; font-weight: 700; }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); }
+.chip.y i { background: var(--yellow); }
+.chip.won { background: var(--yellow-soft); border-color: var(--yellow); }
+.chip.won i { background: var(--yellow); box-shadow: 0 0 0 2px var(--navy); }
+.chip.lost i { background: var(--bad); }
+.chip.gray { color: var(--muted); }
+.chip.gray i { background: var(--faint); }
+.expect { display: flex; align-items: baseline; gap: 8px; font-size: 13px; color: var(--muted); }
+.expect .n { font-size: 26px; color: var(--ink); }
+
+/* 注意 */
+.notes { display: grid; gap: 8px; font-size: 12.5px; color: var(--muted); padding: 4px 4px 0; }
+.notes li { margin-bottom: 4px; }
+.notes ul { margin: 0; padding-left: 18px; }
+.state { padding: 30px; text-align: center; color: var(--muted); font-size: 14px; }
+.warn { font-size: 12.5px; color: var(--bad); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eye">Sales Plan · <span id="ym">—</span></div>
+      <h1>成約目標まで、<em>あと何回</em>？</h1>
+      <p class="lead">今月の転換率から、目標達成に必要なアクション数を逆算しています。</p>
+    </div>
+    <div class="meta">
+      <span class="pill days">残り <span class="n" id="daysLeft">—</span> 日</span>
+      <span class="pill" id="stamp">読み込み中…</span>
+      <span class="pill"><button type="button" id="reload">最新にする</button></span>
+    </div>
+  </header>
+
+  <section class="goals" id="goals" aria-label="今月の目標">
+    <div class="goal tabi"><div class="state">読み込み中…</div></div>
+    <div class="goal ad"><div class="state">読み込み中…</div></div>
+  </section>
+
+  <section class="sec" id="tabi" aria-labelledby="tabiH">
+    <div class="sec-hd">
+      <div>
+        <div class="eye">Tabi Carry · DM</div>
+        <h2 id="tabiH">旅キャリDM：一次・二次の2回で成約</h2>
+        <p>インスタDM → 返信 → 一次面談の予約 → 一次面談 → 二次面談 → 成約</p>
+      </div>
+      <div class="seg" role="group" aria-label="数え方">
+        <button type="button" data-mode="zero" aria-pressed="true">ゼロから</button>
+        <button type="button" data-mode="pipe" aria-pressed="false">予定の人も含める</button>
+      </div>
+    </div>
+    <p class="mode-note" id="tabiNote"></p>
+    <div class="ladder" id="tabiLadder"><div class="state">読み込み中…</div></div>
+    <div class="two">
+      <div class="box">
+        <h3>今月の実績と転換率 <small id="tabiSince"></small></h3>
+        <div class="fun" id="tabiFun"></div>
+      </div>
+      <div class="box">
+        <h3>DMのペース <small id="dmDeadline"></small></h3>
+        <div class="pace" id="dmPace"></div>
+        <h3 style="margin-top:6px">進行中の人 <small>この先の予定</small></h3>
+        <div id="tabiPipe"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="ad" aria-labelledby="adH">
+    <div class="sec-hd">
+      <div>
+        <div class="eye">Roadmap Interview · Ads</div>
+        <h2 id="adH">ロードマップ面談（広告経由）：1回でクロージング</h2>
+        <p>広告 → 面談の予約 → ロードマップ面談 → 成約（セールスチームの分）</p>
+      </div>
+    </div>
+    <div class="ladder" id="adLadder"><div class="state">読み込み中…</div></div>
+    <div class="two">
+      <div class="box">
+        <h3>今月のチームの面談 <small id="adTeamSum"></small></h3>
+        <div class="chips" id="adTeam"></div>
+      </div>
+      <div class="box">
+        <h3>逆算に使った転換率</h3>
+        <div class="fun" id="adFun"></div>
+        <p class="fhd" id="adRefNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes" aria-label="注意">
+    <ul id="notes"></ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var LIST = '1UeSu6tEnX1OwPfV_G6rxD4dIX42_jW8EEXveBNb7kH4';
+  var DEMO = /[?&]demo=1/.test(location.search);
+  var mode = 'zero', DATA = null, CONF = null;
+  try { mode = localStorage.getItem('tc-sales-mode') || 'zero'; } catch (e) {}
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function md(s) { var p = String(s).split('-'); return (+p[1]) + '/' + (+p[2]); }
+  var WD = '日月火水木金土';
+  function mdw(s) { var p = String(s).split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); return (+p[1]) + '/' + (+p[2]) + '（' + WD[d.getDay()] + '）'; }
+  function fmt(n) { return Math.round(n).toLocaleString('ja-JP'); }
+  function pct(r) { if (!isFinite(r)) return '—'; var p = r * 100; return (p < 10 ? p.toFixed(1) : Math.round(p)) + '%'; }
+  function ceil(x) { return isFinite(x) ? Math.ceil(x - 1e-9) : NaN; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[x]; }); }
+  function parseCsv(t) {
+    var rows = [], row = [], f = '', q = false, c;
+    for (var i = 0; i < t.length; i++) {
+      c = t[i];
+      if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+      else if (c === '"') q = true; else if (c === ',') { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; }
+      else f += c;
+    }
+    if (f || row.length) { row.push(f); rows.push(row); }
+    return rows;
+  }
+  function normDate(s) {
+    var m = String(s || '').match(/(\d{4})[\/\-年.](\d{1,2})[\/\-月.](\d{1,2})/);
+    return m ? m[1] + '-' + pad(+m[2]) + '-' + pad(+m[3]) : '';
+  }
+  function ok(v) { v = String(v || ''); return /[◯○〇✓✔☑]/.test(v) && !/[×✕✖]/.test(v); }
+  function isSent(v) { v = String(v || '').trim(); return !!v && v.charAt(0) !== '未'; }
+
+  // 共有顧客リストを集計（運営ボードと同じ判定）
+  function tally(csv, since, today) {
+    var t = parseCsv(csv), head = (t[0] || []).map(function (h) { return String(h).replace(/^[①-⑳]\s*/, '').replace(/\s+/g, ''); });
+    function col(re, fb) { for (var i = 0; i < head.length; i++) if (re.test(head[i])) return i; return fb; }
+    var c = { d: 0, m: col(/^メッセージ$/, 4), rep: col(/^返信$/, 5), book: col(/^日程確定$/, 7), n1: col(/^一次面談実施$/, 8), n2w: col(/^二次面談希望$/, 9), n2: col(/^二次面談実施$/, 10), won: col(/^成約$/, 11) };
+    var o = { sent: 0, rep: 0, book: 0, n1: 0, n2w: 0, n2: 0, won: 0, w7: 0 };
+    var w0 = new Date(today); w0.setDate(w0.getDate() - 7); var W0 = ymd(w0), T = ymd(today);
+    t.slice(1).forEach(function (r) {
+      if (!isSent(r[c.m])) return;
+      var d = normDate(r[c.d]);
+      if (d && d < since) return;
+      o.sent++;
+      if (d && d >= W0 && d < T) o.w7++;
+      ['rep', 'book', 'n1', 'n2w', 'n2', 'won'].forEach(function (k) { if (ok(r[c[k]])) o[k]++; });
+    });
+    return o;
+  }
+
+  function demoCsv() {
+    var rows = ['日付,担当者,ユーザー名,プロフィールURL,メッセージ,返信,面談希望,日程確定,一次面談実施,二次面談希望,二次面談実施,成約'];
+    var spec = [[1, 1, 1, 1, 1, 1, 1], [0, 1, 1, 1, 1, 0, 0], [0, 1, 1, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0, 0]];
+    for (var i = 0; i < 6; i++) spec.push([0, 1, 1, 0, 0, 0, 0]);
+    for (i = 0; i < 24; i++) spec.push([0, 1, 0, 0, 0, 0, 0]);
+    var today = new Date();
+    for (i = 0; i < 3185; i++) {
+      var d = new Date(2026, 9, 1 + Math.floor(i / 3185 * 46)); if (i > 3185 - 1113) d = new Date(today.getTime() - (1 + (i % 7)) * 864e5);
+      var s = spec[i] || [0, 0, 0, 0, 0, 0, 0];
+      rows.push([ymd(d).replace(/-/g, '/'), 'x', 'u' + i, '', 'A', s[1] ? '返信◯' : '', s[2] ? '希望する' : '', s[2] ? '日程確定◯' : '', s[3] ? '実施◯' : '', s[4] ? '二次希望◯' : '', s[5] ? '実施◯' : '', s[6] ? '成約◯' : ''].join(','));
+    }
+    return rows.join('\n');
+  }
+
+  function cups(won, goal) {
+    var h = '<div class="cups" aria-hidden="true">';
+    for (var i = 0; i < goal; i++) h += '<svg class="cup' + (i < won ? ' on' : '') + '" viewBox="0 0 34 40"><path class="fill" d="M8 9h18l-2 15a7 7 0 0 1-14 0z"/><path class="glass" d="M6 4h22l-3 21a8 8 0 0 1-16 0zM17 33v5M11 38h12"/></svg>';
+    return h + '</div>';
+  }
+  function dots(n, cls, per) {
+    per = per || 1;
+    var k = n / per, full = Math.floor(k), part = k - full > 0.01, h = '<div class="dots' + (cls ? ' ' + cls : '') + '">';
+    for (var i = 0; i < Math.min(full, 60); i++) h += '<span></span>';
+    if (part && full < 60) h += '<span class="part"></span>';
+    return h + '</div>' + (per > 1 ? '<div class="unit">● 1つ＝' + per + '通</div>' : '');
+  }
+
+  function render() {
+    if (!DATA || !CONF) return;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var T = ymd(today), mp = CONF.month.split('-'), y = +mp[0], m = +mp[1] - 1;
+    var end = new Date(y, m + 1, 0), daysLeft = Math.max(1, Math.round((end - today) / 864e5) + 1);
+    var dl = new Date(end); dl.setDate(dl.getDate() - (CONF.leadDays || 8));
+    var dmDays = Math.max(1, Math.round((dl - today) / 864e5) + 1);
+    document.getElementById('ym').textContent = y + '.' + (m + 1);
+    document.getElementById('daysLeft').textContent = daysLeft;
+
+    /* ---------- 旅キャリ ---------- */
+    var tb = CONF.tabi, o = DATA;
+    var pend1 = (tb.upcoming1 || []).filter(function (d) { return d >= T; });
+    var pend2 = (tb.upcoming2 || []).filter(function (d) { return d >= T; });
+    var n2 = o.n2 + ((tb.extra && tb.extra.n2) || 0);
+    var adv2 = Math.max(o.n2w, n2 + pend2.length);
+    var r = {
+      rep: o.rep / o.sent,
+      book: o.book / o.rep,
+      n1: o.n1 / Math.max(1, o.book - pend1.length),
+      n2: adv2 / o.n1,
+      won: o.won / n2
+    };
+    var tWon = o.won - (tb.wonBefore || 0), tRem = Math.max(0, tb.goal - tWon);
+    var expect = pend2.length * r.won + pend1.length * r.n1 * r.n2 * r.won;
+    if (!isFinite(expect)) expect = 0;
+    var target = mode === 'pipe' ? Math.max(0, tRem - expect) : tRem;
+    var need = {}; need.won = target; need.n2 = target / r.won; need.n1 = need.n2 / r.n2; need.book = need.n1 / r.n1; need.rep = need.book / r.book; need.sent = need.rep / r.rep;
+    var allOk = ['rep', 'book', 'n1', 'n2', 'won'].every(function (k) { return isFinite(r[k]) && r[k] > 0; });
+
+    var zero = {}; zero.n2 = tRem / r.won; zero.n1 = zero.n2 / r.n2; zero.book = zero.n1 / r.n1; zero.rep = zero.book / r.book; zero.sent = zero.rep / r.rep;
+
+    document.getElementById('tabiNote').innerHTML = mode === 'pipe'
+      ? 'すでに予定が入っている人（一次 <b>' + pend1.length + '件</b>・二次 <b>' + pend2.length + '件</b>）から、今の転換率どおりなら <b>約' + expect.toFixed(1) + '件</b> の成約が見込めます。その分を引いた <b>約' + (Math.round(target * 10) / 10) + '件</b> を新しく作るのに必要な数です。'
+      : 'いま予定が入っている人は数えず、残り <b>' + tRem + '件</b> をこれから作る場合に必要な数です。';
+
+    var STEPS = [
+      { k: 'sent', l: 'DM送信', u: '通', per: 100, pace: 'dm' },
+      { k: 'rep', l: '返信', u: '件', pace: 'day' },
+      { k: 'book', l: '一次の予約', u: '件', pace: 'week' },
+      { k: 'n1', l: '一次面談', u: '回', pace: 'week' },
+      { k: 'n2', l: '二次面談', u: '回', pace: 'week' },
+      { k: 'won', l: '成約', u: '件', goal: true }
+    ];
+    var CONV = { rep: '返信率', book: '予約率', n1: '実施率', n2: '二次へ', won: '成約率' };
+    var h = '';
+    if (!allOk) h = '<p class="warn">まだ実績が足りない段階があるため、逆算できません。</p>';
+    STEPS.forEach(function (s, i) {
+      var v = s.k === 'won' ? target : need[s.k], cv = ceil(v);
+      if (i > 0) h += '<div class="conv"><span>' + CONV[s.k] + ' <b class="n">' + pct(r[s.k]) + '</b></span></div>';
+      var sub = '';
+      if (s.pace === 'dm') sub = dmDays + '日で 1日' + fmt(ceil(v / dmDays)) + '通';
+      else if (s.pace === 'day') sub = '1日 ' + (v / daysLeft).toFixed(1) + '件';
+      else if (s.pace === 'week') sub = '週 ' + (v / daysLeft * 7).toFixed(1) + (s.u === '回' ? '回' : '件');
+      else sub = mode === 'pipe' ? '残り' + tRem + '件のうち' : '残り';
+      var shown = s.goal ? (mode === 'pipe' ? (Math.round(v * 10) / 10) : v) : cv;
+      h += '<div class="rung' + (s.goal ? ' goal-r' : '') + '"><div class="lab"><i>' + (i + 1) + '</i>' + s.l + '</div>' +
+        '<div class="viz">' + (isFinite(v) ? dots(s.goal ? v : cv, s.per ? 'sm' : '', s.per) : '') + '</div>' +
+        '<div class="num"><span class="n">' + (isFinite(v) ? (s.goal && mode === 'pipe' ? shown : fmt(shown)) : '—') + '</span><span class="u">' + s.u + '</span><small>' + sub + '</small></div></div>';
+    });
+    document.getElementById('tabiLadder').innerHTML = h;
+
+    // 実績ファネル
+    var F = [['DM送信', o.sent, null], ['返信', o.rep, r.rep], ['一次の予約', o.book, r.book], ['一次面談', o.n1, r.n1], ['二次面談', n2, r.n2], ['成約', o.won, r.won]];
+    var mx = Math.sqrt(o.sent || 1);
+    document.getElementById('tabiFun').innerHTML = '<div class="fr fhd"><span></span><span>件数（長さは平方根で表示）</span><span style="text-align:right">件数</span><span style="text-align:right">転換率</span></div>' +
+      F.map(function (f) { return '<div class="fr"><span>' + f[0] + '</span><span class="bar"><i style="width:' + Math.max(2, Math.sqrt(f[1]) / mx * 100) + '%"></i></span><span class="c">' + fmt(f[1]) + '</span><span class="p' + (f[2] == null ? ' dim' : '') + '">' + (f[2] == null ? '' : pct(f[2])) + '</span></div>'; }).join('') +
+      '<p class="fhd">一次の実施率は、まだ日付が来ていない予約（' + pend1.length + '件）を除いて計算。二次へ進んだ割合には二次の予定（' + pend2.length + '件）を含む。' + (tb.extraNote ? ' ' + esc(tb.extraNote) + '。' : '') + '</p>';
+    document.getElementById('tabiSince').textContent = md(tb.since) + '〜今日';
+
+    // DMペース
+    var needDay = need.sent / dmDays, nowDay = o.w7 / 7, mxp = Math.max(needDay, nowDay, 1);
+    document.getElementById('dmDeadline').textContent = md(ymd(dl)) + 'までに送り切る';
+    document.getElementById('dmPace').innerHTML =
+      '<div class="pace-row need"><span>必要なペース</span><span class="bar"><i style="width:' + (needDay / mxp * 100) + '%"></i></span><span class="c">' + fmt(ceil(needDay)) + '<small> 通/日</small></span></div>' +
+      '<div class="pace-row now"><span>直近7日の平均</span><span class="bar"><i style="width:' + (nowDay / mxp * 100) + '%"></i></span><span class="c">' + fmt(nowDay) + '<small> 通/日</small></span></div>' +
+      (isFinite(needDay) ? (nowDay >= needDay ? '<p class="verdict ok">今のペースで足ります。</p>' : '<p class="verdict bad">1日あと <span class="n">' + fmt(ceil(needDay - nowDay)) + '</span> 通の上乗せが必要です。</p>') : '') +
+      '<p class="fhd">DMから二次面談までおよそ1週間かかるため、月末の' + (CONF.leadDays || 8) + '日前を締切にしています。</p>';
+
+    // 進行中
+    document.getElementById('tabiPipe').innerHTML = '<div class="chips">' +
+      pend1.map(function (d) { return '<span class="chip"><i></i>一次 ' + mdw(d) + '</span>'; }).join('') +
+      pend2.map(function (d) { return '<span class="chip y"><i></i>二次 ' + mdw(d) + '</span>'; }).join('') +
+      (pend1.length + pend2.length ? '' : '<span class="chip gray"><i></i>予定なし</span>') +
+      '</div><p class="expect" style="margin-top:10px">ここからの成約見込み <span class="n">' + expect.toFixed(1) + '</span>件</p>';
+
+    /* ---------- 広告経由 ---------- */
+    var ad = CONF.ad, ref = ad.ref;
+    var mon = CONF.month;
+    var team = (ad.team || []).filter(function (x) { return x.date.slice(0, 7) === mon; });
+    var aWon = team.filter(function (x) { return x.result === 'won'; }).length;
+    var aHeld = team.filter(function (x) { return x.result === 'won' || x.result === 'lost'; }).length;
+    var aUp = team.filter(function (x) { return x.result === 'upcoming' && x.date >= T; }).length;
+    var aRem = Math.max(0, ad.goal - aWon);
+    var close = ref.won / ref.decided, attend = ref.held / ref.booked;
+    var aNeedHeld = aRem / close, aNeedBook = aNeedHeld / attend, aNewBook = Math.max(0, ceil(aNeedBook) - aUp);
+    var AS = [
+      { l: '面談の予約', v: ceil(aNeedBook), u: '件', sub: aUp ? '予定' + aUp + '件を引くと 新たに' + aNewBook + '件' : '週 ' + (aNeedBook / daysLeft * 7).toFixed(1) + '件', cv: null },
+      { l: 'ロードマップ面談', v: ceil(aNeedHeld), u: '回', sub: '週 ' + (aNeedHeld / daysLeft * 7).toFixed(1) + '回', cv: ['実施率', attend] },
+      { l: '成約', v: aRem, u: '件', sub: '残り', cv: ['成約率', close], goal: true }
+    ];
+    document.getElementById('adLadder').innerHTML = AS.map(function (s, i) {
+      return (s.cv ? '<div class="conv"><span>' + s.cv[0] + ' <b class="n">' + pct(s.cv[1]) + '</b></span></div>' : '') +
+        '<div class="rung' + (s.goal ? ' goal-r' : '') + '"><div class="lab"><i>' + (i + 1) + '</i>' + s.l + '</div><div class="viz">' + dots(s.v) + '</div>' +
+        '<div class="num"><span class="n">' + s.v + '</span><span class="u">' + s.u + '</span><small>' + s.sub + '</small></div></div>';
+    }).join('');
+    var RL = { won: ['won', '成約'], lost: ['lost', '不成約'], resched: ['gray', 'リスケ'], unknown: ['gray', '結果待ち'], upcoming: ['', '予定'] };
+    document.getElementById('adTeam').innerHTML = team.map(function (x) {
+      var k = RL[x.result] || ['gray', x.result]; if (x.result === 'upcoming' && x.date < T) k = ['gray', '結果待ち'];
+      return '<span class="chip ' + k[0] + '"><i></i>' + mdw(x.date) + ' ' + k[1] + (x.memo ? '・' + esc(x.memo) : '') + '</span>';
+    }).join('') || '<span class="chip gray"><i></i>まだなし</span>';
+    document.getElementById('adTeamSum').textContent = '実施' + aHeld + '回・成約' + aWon + '件';
+    document.getElementById('adFun').innerHTML =
+      '<div class="fr"><span>予約</span><span class="bar"><i style="width:100%"></i></span><span class="c">' + ref.booked + '</span><span class="p dim"></span></div>' +
+      '<div class="fr"><span>実施</span><span class="bar"><i style="width:' + (ref.held / ref.booked * 100) + '%"></i></span><span class="c">' + ref.held + '</span><span class="p">' + pct(attend) + '</span></div>' +
+      '<div class="fr"><span>成約</span><span class="bar"><i style="width:' + (ref.won / ref.booked * 100) + '%"></i></span><span class="c">' + ref.won + '</span><span class="p">' + pct(close) + '</span></div>';
+    document.getElementById('adRefNote').textContent = ref.label + '。チームの実績はまだ' + aHeld + '回なので、件数の多いこちらで逆算。' + (ref.note ? ref.note + '。' : '');
+
+    /* ---------- ゴールカード ---------- */
+    document.getElementById('goals').innerHTML =
+      '<div class="goal tabi"><span class="tag">旅キャリDM経由</span><div class="goal-row"><div class="score"><span class="n">' + tWon + '</span><span class="of">/ ' + tb.goal + '</span><small>成約</small></div>' + cups(tWon, tb.goal) + '</div>' +
+      '<div class="goal-need"><span class="k">' + (tRem ? 'あと' + tRem + '件に必要（' + (mode === 'pipe' ? '予定の人も含める' : 'ゼロから') + '）' : '目標達成！') + '</span>' +
+      (tRem && allOk ? '<span class="v">一次面談<span class="n">' + ceil(need.n1) + '</span>回 ・ 二次面談<span class="n">' + ceil(need.n2) + '</span>回</span><span class="k">DM ' + fmt(ceil(need.sent)) + '通 → 返信 ' + ceil(need.rep) + '件 → 予約 ' + ceil(need.book) + '件</span>' : '') + '</div></div>' +
+      '<div class="goal ad"><span class="tag">ロードマップ面談（広告経由）</span><div class="goal-row"><div class="score"><span class="n">' + aWon + '</span><span class="of">/ ' + ad.goal + '</span><small>成約</small></div>' + cups(aWon, ad.goal) + '</div>' +
+      '<div class="goal-need"><span class="k">' + (aRem ? 'あと' + aRem + '件に必要' : '目標達成！') + '</span>' +
+      (aRem ? '<span class="v">面談<span class="n">' + ceil(aNeedHeld) + '</span>回 ・ 予約<span class="n">' + ceil(aNeedBook) + '</span>件</span><span class="k">週' + (aNeedHeld / daysLeft * 7).toFixed(1) + '回のペースで実施</span>' : '') + '</div></div>';
+
+    document.getElementById('notes').innerHTML = [
+      '旅キャリの数字は共有顧客リストを開いたときに読み込みます（' + md(tb.since) + '以降に送った分、運営ボードの「リスト別の成果」と同じ数え方）。',
+      'この先の面談予定・広告経由の結果・営業代行の実績は data.json の手入力です（最終更新 ' + md(CONF.updated) + '）。予定は日付が過ぎると自動で外れます。',
+      'まだ件数が少ないので、1〜2件の結果で転換率が大きく変わります。特に二次 → 成約と広告経由のチーム実績は参考程度に。'
+    ].map(function (s) { return '<li>' + s + '</li>'; }).join('');
+  }
+
+  function load() {
+    var stamp = document.getElementById('stamp'); stamp.textContent = '読み込み中…';
+    var url = 'https://docs.google.com/spreadsheets/d/' + LIST + '/gviz/tq?tqx=out:csv&headers=1&sheet=' + encodeURIComponent('顧客リスト') + '&_=' + Date.now();
+    var csvP = DEMO ? Promise.resolve(demoCsv()) : fetch(url, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (s) { if (/^\s*</.test(s)) throw new Error('not_csv'); return s; });
+    Promise.all([fetch('data.json?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }), csvP]).then(function (a) {
+      CONF = a[0];
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      DATA = tally(a[1], CONF.tabi.since, today);
+      document.getElementById('tabiNote').hidden = false;
+      render();
+      var d = new Date(); stamp.textContent = (DEMO ? 'サンプル表示 ' : '') + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' 読み込み';
+    }).catch(function (e) {
+      console.error(e); stamp.textContent = '読み込めませんでした';
+      document.getElementById('tabiLadder').innerHTML = '<div class="state">顧客リストを読み込めませんでした。少し待って「最新にする」を押してください。</div>';
+      document.getElementById('tabiNote').hidden = true;
+      document.querySelectorAll('.goal .state').forEach(function (x) { x.textContent = '読み込めませんでした'; });
+    });
+  }
+  document.querySelectorAll('.seg button').forEach(function (b) {
+    b.setAttribute('aria-pressed', b.dataset.mode === mode ? 'true' : 'false');
+    b.addEventListener('click', function () {
+      mode = b.dataset.mode;
+      document.querySelectorAll('.seg button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      try { localStorage.setItem('tc-sales-mode', mode); } catch (e) {}
+      render();
+    });
+  });
+  document.getElementById('reload').addEventListener('click', load);
+  load();
+  setInterval(load, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
