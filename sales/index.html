@@ -524,10 +524,10 @@ p { margin: 0; }
     document.getElementById('goals').innerHTML =
       '<div class="goal tabi"><span class="tag">旅キャリDM経由</span><div class="goal-row"><div class="score"><span class="n">' + tWon + '</span><span class="of">/ ' + tGoal + '</span><small>成約</small></div>' + cups(tWon, tGoal) + '</div>' + steppers('tabi', tWon, tGoal, G.tabiAuto) +
       '<div class="goal-need"><span class="k">' + (tRem ? 'あと' + tRem + '件に必要（' + (mode === 'pipe' ? '見込み込み' : '固め') + '）' : '目標達成！') + '</span>' +
-      (tRem && allOk ? '<span class="v">一次面談<span class="n">' + ceil(need.n1) + '</span>回 ・ 二次面談<span class="n">' + ceil(need.n2) + '</span>回</span><span class="k">DM ' + fmt(ceil(need.sent)) + '通 → 返信 ' + ceil(need.rep) + '件 → 予約 ' + ceil(need.book) + '件</span>' : '') + '</div></div>' +
+      (tRem && allOk ? '<span class="v">一次面談<span class="n">' + ceil(need.n1) + '</span>回 → 二次面談<span class="n">' + ceil(need.n2) + '</span>回</span><span class="k">DM ' + fmt(ceil(need.sent)) + '通 → 返信 ' + ceil(need.rep) + '件 → 予約 ' + ceil(need.book) + '件</span>' : '') + '</div></div>' +
       '<div class="goal ad"><span class="tag">ロードマップ面談（広告経由）</span><div class="goal-row"><div class="score"><span class="n">' + aWon + '</span><span class="of">/ ' + aGoal + '</span><small>成約</small></div>' + cups(aWon, aGoal) + '</div>' + steppers('ad', aWon, aGoal, aWonLog) +
       '<div class="goal-need"><span class="k">' + (aRem ? 'あと' + aRem + '件に必要' : '目標達成！') + '</span>' +
-      (aRem ? '<span class="v">面談<span class="n">' + ceil(aNeedHeld) + '</span>回 ・ 予約<span class="n">' + ceil(aNeedBook) + '</span>件</span><span class="k">週' + (aNeedHeld / daysLeft * 7).toFixed(1) + '回のペースで実施</span>' : '') + '</div></div>';
+      (aRem ? '<span class="v">予約<span class="n">' + ceil(aNeedBook) + '</span>件 → 面談<span class="n">' + ceil(aNeedHeld) + '</span>回</span><span class="k">週' + (aNeedHeld / daysLeft * 7).toFixed(1) + '回のペースで実施</span>' : '') + '</div></div>';
 
     document.getElementById('goals').insertAdjacentHTML('beforeend', '<p class="goal-help">目標と今月の成約数は＋−で変えられます。必要な数はその場で計算し直します（この端末に月ごとに保存）。' + (G.edited ? '<button type="button" id="resetGoals">初期値に戻す</button>' : '') + (G.tabiAuto == null ? '<br>旅キャリの今月の成約数は自動で数えられないので、＋−で合わせてください。' : '') + '</p>');
     document.getElementById('notes').innerHTML = [
