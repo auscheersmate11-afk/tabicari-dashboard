@@ -148,7 +148,25 @@ function cmMe_(P) {
   var ig = T.body[CM.IG_TPL] && P.en ? T.body[CM.IG_TPL].replace(/\{NAME\}/g, P.en.trim()) : '';   // 英語の名前が無い人は今までどおり専用スプシの文章
   return { ok: true, name: P.name, en: P.en, ig: ig, igNo: ig ? CM.IG_TPL : '', today: today, perDay: P.perDay, goal: CM.GOAL, stats: st, cards: cards,
     reasons: M.reasons.length ? M.reasons : ['抹茶・カフェと関係ない', 'お店がない・閉店', '連絡先が見つからない', 'インスタしかない', '前に自分で送った', '送れない国', 'その他（メモに書く）'],
-    sheet: 'https://docs.google.com/spreadsheets/d/' + P.sheetId + '/edit' };
+    mp: cmMp_(P.name), sheet: 'https://docs.google.com/spreadsheets/d/' + P.sheetId + '/edit' };
+}
+
+// 「自分」タブのこれまでの数字・グループ・Discord：抹茶の個人ページ（cheers-mypage/matcha/?p=鍵、菊地さんのMacが毎朝作る）の鍵を本人にだけ返す
+// 鍵は (元データ)「個人ページURL」タブのC列（2026-11-18 Claudeが記入。新しい人はMacの tokens.json に鍵ができたら足す）
+function cmMp_(name) {
+  try {
+    var c = CacheService.getScriptCache(), k = 'cm_mp1', v = c.get(k), map;
+    if (v) map = JSON.parse(v);
+    else {
+      map = {};
+      var sh = SpreadsheetApp.openById(CM.MASTER_ID).getSheetByName(CM.URL_TAB);
+      sh.getRange(2, 1, Math.max(1, sh.getLastRow() - 1), 3).getValues().forEach(function (r) {
+        var m = String(r[2] || '').match(/[?&]p=([A-Za-z0-9_-]{16,})/); if (r[0] && m) map[cmNorm_(r[0])] = m[1];
+      });
+      c.put(k, JSON.stringify(map), 21600);
+    }
+    return map[cmNorm_(name)] || '';
+  } catch (e) { return ''; }
 }
 
 function cmSet_(P, req, kind) {
@@ -279,4 +297,39 @@ function cmTestMe() {
   var P = cmPerson_(v), j = cmMe_(P);
   console.log(P.name + '：カード ' + j.cards.length + '件・今日 ' + j.stats.today + '・今月 ' + j.stats.month + '・累計 ' + j.stats.total + '・返信 ' + j.stats.reply);
   if (j.cards[0]) console.log(JSON.stringify(j.cards[0]).slice(0, 400));
+}
+
+
+// 専用スプシ「見込み顧客リスト」の1行目（結合A1）に「Matcha Go!はこちら」（本人の個人ページURL）を入れる。もう入っている人は飛ばす（2026-11-18）
+function cmLinkAll() {
+  var m = SpreadsheetApp.openById(CM.MASTER_ID);
+  var urls = {};
+  m.getSheetByName(CM.URL_TAB).getDataRange().getValues().slice(1).forEach(function (r) { if (r[0] && r[1]) urls[cmNorm_(r[0])] = String(r[1]); });
+  var dest = m.getSheetByName(CM.DEST_TAB).getDataRange().getValues().slice(1);
+  var H = 'Matcha Go!はこちら', S = '（スマホで1件ずつ送れる、あなた専用のページ）\n';
+  var B = '毎朝、新しい会社が届きます。送ったら「ステータス」を「送信完了」に（Customer List へは1時間以内に自動で記入）。送らない会社は「あえて送らない」＋右端の「送らない理由」（その他はメモに一言）。3日たっても送らなかった会社は、ほかのメンバーに回ります。';
+  var done = 0, skip = 0, ng = [];
+  dest.forEach(function (r) {
+    var name = String(r[0]).trim(), su = String(r[3] || ''), id = (su.match(/\/d\/([\w-]+)/) || [])[1];
+    if (!name || !id) return;
+    var url = urls[cmNorm_(name)];
+    if (!url) { ng.push(name + '(URLなし)'); return; }
+    try {
+      var sh = SpreadsheetApp.openById(id).getSheetByName(CM.MY_TAB);
+      if (!sh) { ng.push(name + '(タブなし)'); return; }
+      var c = sh.getRange(1, 1);
+      if (String(c.getValue()).indexOf(H) === 0) { skip++; return; }
+      var base = SpreadsheetApp.newTextStyle().setFontSize(11).setBold(false).setUnderline(false).setForegroundColor('#1F3864').build();
+      var rt = SpreadsheetApp.newRichTextValue().setText(H + S + B)
+        .setTextStyle(0, (H + S + B).length, base)
+        .setTextStyle(0, H.length, SpreadsheetApp.newTextStyle().setFontSize(20).setBold(true).setUnderline(true).setForegroundColor('#2E86D6').build())
+        .setLinkUrl(0, H.length, url)
+        .setTextStyle(H.length, H.length + S.length, SpreadsheetApp.newTextStyle().setFontSize(11).setBold(true).setForegroundColor('#1F3864').build())
+        .build();
+      c.setRichTextValue(rt);
+      sh.setRowHeight(1, 90);
+      done++;
+    } catch (e) { ng.push(name + '(' + e.message + ')'); }
+  });
+  Logger.log('入れた ' + done + '人・もう入っていた ' + skip + '人・できなかった ' + ng.length + '人 ' + ng.join(' / '));
 }

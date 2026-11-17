@@ -88,11 +88,8 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
   .side .me { margin-top: auto; font-size: 13px; color: #b9c6e6; padding: 0 8px; }
   .side .icon-btn { margin: 10px 8px 0; width: auto; padding: 0 12px; gap: 6px; display: flex; font-size: 13px; font-weight: 700; }
   main { padding: 28px 32px 48px; }
-  #v-me { margin: -28px -32px -48px; }
 }
 
-/* ---- 自分：個別専用ページ（me/）をそのまま出す ---- */
-#meFrame { display: block; width: 100%; height: calc(100vh - 150px); border: 0; background: var(--bg); }
 
 /* ---- 今日：上の大きなカード ---- */
 .hero { position: relative; overflow: hidden; border-radius: 22px; padding: 18px 18px 16px; color: #fff;
@@ -233,6 +230,141 @@ table.msg th, table.msg td { padding: 8px 6px; border-bottom: 1px solid var(--li
 table.msg th:first-child, table.msg td:first-child { text-align: left; }
 table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
 .links { display: grid; gap: 8px; margin-top: 4px; }
+
+/* ---- 自分（2026-11-18 作り直し）：これまでの成績・いまの状況・みんなへの貢献（Discord）・グループ・日ごとの送信 ----
+   数字は2つから：その日の送信はこのページの受け口（配布台帳）、これまでの数字・グループ・Discordは
+   菊地さんのMacが毎朝作る「抹茶の個人ページ」の暗号化データ（cheers-mypage/matcha/d/…json。本人の鍵でしか開けない）。 */
+.me-wrap { display: grid; gap: 14px; }
+.me-sec { background: var(--surface); border-radius: 20px; padding: 18px 16px; box-shadow: 0 1px 2px rgba(3,17,71,.06); }
+.me-sec > h2 { margin: 0; font-size: 17px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+.me-sec > h2 .ic { width: 28px; height: 28px; border-radius: 9px; background: var(--yellow-soft); display: grid; place-items: center; font-size: 15px; flex: none; }
+.me-sec > .sub { margin: 4px 0 12px; font-size: 12.5px; color: var(--muted); }
+.cu { font-variant-numeric: tabular-nums; }
+/* KV */
+.mkv { position: relative; overflow: hidden; border-radius: 24px; padding: 20px 18px 18px; color: #fff; background: linear-gradient(140deg, #031147 0%, #0b2163 55%, #173c8e 100%); }
+.mkv::before { content: ""; position: absolute; inset: -40% -20% auto auto; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(253,200,5,.22), transparent 65%); animation: glow 6s ease-in-out infinite; }
+.mkv::after { content: ""; position: absolute; left: -30%; top: 0; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.10), transparent); transform: skewX(-18deg); animation: shine 5.5s ease-in-out 1s infinite; }
+@keyframes glow { 50% { transform: scale(1.15); opacity: .75; } }
+@keyframes shine { 0%, 60% { left: -40%; } 100% { left: 130%; } }
+.mkv .leaf { position: absolute; bottom: -20px; font-size: 16px; opacity: 0; animation: rise 7s linear infinite; pointer-events: none; }
+@keyframes rise { 0% { transform: translateY(0) rotate(0); opacity: 0; } 12% { opacity: .55; } 100% { transform: translateY(-260px) rotate(200deg); opacity: 0; } }
+.mkv-top { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; }
+.lv { position: relative; width: 76px; height: 76px; flex: none; }
+.lv svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.lv circle { fill: none; stroke-width: 7; }
+.lv .bg { stroke: rgba(255,255,255,.14); }
+.lv .fg { stroke: var(--yellow); stroke-linecap: round; transition: stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1); }
+.lv .em { position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; animation: bob 2.6s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-3px) scale(1.06); } }
+.mkv-name { min-width: 0; }
+.mkv-name small { display: block; font-size: 12px; color: #b9c6e6; font-weight: 700; }
+.mkv-name b { display: block; font-size: 19px; font-weight: 900; line-height: 1.3; }
+.mkv-name .lvl { display: inline-flex; gap: 6px; align-items: center; margin-top: 4px; background: rgba(253,200,5,.16); color: #ffe27a; border-radius: 99px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
+.mkv-next { position: relative; z-index: 1; margin-top: 10px; font-size: 12.5px; color: #dfe7fb; }
+.mkv-next b { color: var(--yellow); font-family: var(--num); }
+.flow { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 14px; }
+.flow > div { background: rgba(255,255,255,.08); border-radius: 14px; padding: 10px 6px 9px; text-align: center; position: relative; opacity: 0; transform: translateY(10px); animation: pop .6s cubic-bezier(.2,.8,.2,1) forwards; }
+.flow > div:nth-child(2) { animation-delay: .12s; } .flow > div:nth-child(3) { animation-delay: .24s; } .flow > div:nth-child(4) { animation-delay: .36s; }
+@keyframes pop { to { opacity: 1; transform: none; } }
+.flow > div + div::before { content: "›"; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,.4); font-weight: 900; }
+.flow small { display: block; font-size: 11px; color: #b9c6e6; font-weight: 700; white-space: nowrap; }
+.flow b { display: block; font: 700 clamp(22px, 7vw, 32px)/1.1 var(--num); }
+.flow > div.y b { color: var(--yellow); }
+.flow em { display: block; font-style: normal; font-size: 10.5px; color: #9fb0d8; margin-top: 1px; }
+/* いまの状況 */
+.now-grid { display: grid; grid-template-columns: 132px 1fr; gap: 14px; align-items: center; }
+.ring { position: relative; width: 132px; height: 132px; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 12; }
+.ring .bg { stroke: var(--soft); } .ring .fg { stroke: var(--yellow); stroke-linecap: round; transition: stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1); }
+.ring .pc { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .pc b { font: 700 30px/1 var(--num); } .ring .pc small { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+.now-list { display: grid; gap: 8px; }
+.now-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 700; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+.now-row b { font: 700 20px var(--num); color: var(--ink); } .now-row b span:not(.cu) { font: 700 12px var(--font); color: var(--muted); margin-left: 2px; }
+.pace { margin-top: 12px; border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+.pace.ok { background: var(--ok-soft); color: var(--ok); } .pace.go { background: var(--yellow-soft); color: var(--gold); } .pace.warn { background: var(--warn-soft); color: var(--warn); }
+.pace .e { font-size: 20px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { background: var(--soft); border-radius: 99px; padding: 5px 10px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.chip b { color: var(--ink); font-family: var(--num); font-size: 14px; margin: 0 2px; }
+.chip.hot { background: var(--yellow-soft); color: var(--gold); } .chip.hot b { color: var(--gold); }
+/* 成果の流れ */
+.fun { display: grid; gap: 9px; }
+.fun-row { display: grid; grid-template-columns: 92px 1fr 64px; gap: 8px; align-items: center; font-size: 13px; font-weight: 700; }
+.fun-row .t { color: var(--muted); }
+.fun-row .bar2 { height: 22px; border-radius: 7px; background: var(--soft); overflow: hidden; }
+.fun-row .bar2 i { display: block; height: 100%; width: 0; border-radius: 7px; background: linear-gradient(90deg, #173c8e, #2f86d6); transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
+.fun-row.y .bar2 i { background: linear-gradient(90deg, #f0b400, #fdc805); }
+.fun-row .n { text-align: right; font: 700 18px var(--num); } .fun-row .n small { display: block; font: 700 10.5px var(--font); color: var(--muted); }
+/* 貢献 */
+.ctb-hd { display: flex; gap: 10px; align-items: center; background: var(--sky-soft); border-radius: 14px; padding: 10px 12px; font-size: 13.5px; font-weight: 900; margin-bottom: 12px; }
+.ctb-hd .e { font-size: 26px; animation: bob 2.4s ease-in-out infinite; } .ctb-hd small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+.ctb4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 640px) { .ctb4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.ct { background: var(--soft); border-radius: 14px; padding: 11px 12px; position: relative; overflow: hidden; }
+.ct .e { font-size: 20px; } .ct b { display: block; font: 700 26px/1.15 var(--num); margin-top: 2px; } .ct b span:not(.cu) { font: 700 12px var(--font); color: var(--muted); margin-left: 2px; }
+.ct small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; }
+.ct .wk { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 900; color: var(--ok); background: var(--ok-soft); border-radius: 99px; padding: 1px 8px; }
+.ct .wk.z { color: var(--muted); background: var(--surface); }
+.mini { display: flex; gap: 6px; align-items: flex-end; height: 86px; margin-top: 14px; }
+.mini div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 2px; min-width: 0; }
+.mini i { display: block; width: 100%; max-width: 30px; border-radius: 5px 5px 0 0; height: 0; transition: height 1s cubic-bezier(.2,.8,.2,1); }
+.mini i.p { background: var(--sky); } .mini i.s { background: var(--yellow); border-radius: 0; }
+.mini em { font: 600 10px var(--num); color: var(--muted); font-style: normal; }
+.leg { display: flex; gap: 12px; font-size: 11.5px; color: var(--muted); font-weight: 700; margin-top: 6px; }
+.leg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.fav { margin-top: 10px; font-size: 12.5px; color: var(--muted); font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fav span.b { font-size: 20px; background: var(--soft); border-radius: 10px; padding: 2px 6px; animation: bob 2.8s ease-in-out infinite; }
+.fav span.b:nth-child(3) { animation-delay: .3s; } .fav span.b:nth-child(4) { animation-delay: .6s; }
+/* グループ */
+.grp { border: 1.5px solid var(--line); border-radius: 16px; padding: 12px; margin-top: 10px; }
+.grp-hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.grp-hd b { font-size: 15px; font-weight: 900; } .grp-hd .tag { font-size: 11.5px; font-weight: 900; border-radius: 99px; padding: 2px 9px; background: var(--sky-soft); color: var(--sky); }
+.grp-hd .tag.sh { background: var(--yellow-soft); color: var(--gold); }
+.grp-big { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+.grp-big div { background: var(--soft); border-radius: 12px; padding: 8px; text-align: center; }
+.grp-big small { display: block; font-size: 11px; color: var(--muted); font-weight: 700; } .grp-big b { font: 700 22px var(--num); } .grp-big b span:not(.cu) { font: 700 11px var(--font); color: var(--muted); margin-left: 1px; }
+.seg2 { display: inline-flex; background: var(--soft); border-radius: 99px; padding: 3px; gap: 2px; margin-bottom: 8px; }
+.seg2 button { border: 0; background: none; border-radius: 99px; padding: 5px 11px; font: 700 12px var(--font); color: var(--muted); cursor: pointer; }
+.seg2 button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(3,17,71,.12); }
+.rk { display: grid; gap: 6px; }
+.rk-row { display: grid; grid-template-columns: 22px minmax(0, 92px) 1fr 44px; gap: 8px; align-items: center; font-size: 13px; }
+.rk-row .no { font: 700 14px var(--num); color: var(--muted); text-align: center; }
+.rk-row .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rk-row .bar2 { height: 14px; border-radius: 5px; background: var(--soft); overflow: hidden; }
+.rk-row .bar2 i { display: block; height: 100%; width: 0; border-radius: 5px; background: #9fb0d8; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.rk-row .v { text-align: right; font: 700 15px var(--num); }
+.rk-row.me { background: var(--yellow-soft); border-radius: 10px; padding: 4px 0; } .rk-row.me .nm, .rk-row.me .v { color: var(--gold); } .rk-row.me .bar2 i { background: var(--yellow); }
+.rk-row.top .no { color: var(--gold); }
+.gp { margin-top: 10px; display: grid; gap: 8px; }
+.gp-it { background: var(--soft); border-radius: 12px; padding: 9px 11px; font-size: 12.5px; }
+.gp-it .k { font-weight: 900; font-size: 13px; display: flex; justify-content: space-between; gap: 6px; } .gp-it .k b { font-family: var(--num); }
+.gp-it .bar { margin: 6px 0 4px; height: 8px; } .gp-it .bar i { width: 0; transition: width 1.1s cubic-bezier(.2,.8,.2,1); }
+.gp-it.ok .bar i { background: #3aa35f; } .gp-it.warn .bar i { background: #e0704f; }
+.gp-it .a { color: var(--muted); font-weight: 700; }
+.cmp { margin-top: 8px; display: grid; gap: 6px; }
+.cmp-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--muted); align-items: center; }
+.cmp-row b { font-family: var(--num); color: var(--ink); font-size: 15px; }
+.cmp-row .up { color: var(--ok); } .cmp-row .dn { color: var(--warn); }
+details.old { margin-top: 10px; } details.old summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--sky); }
+/* 日ごと・月ごと */
+.heat, .heat-h { max-width: 440px; }
+.heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 8px; }
+.heat div { aspect-ratio: 1; border-radius: 6px; background: var(--soft); display: grid; place-items: center; font: 600 10px var(--num); color: var(--muted); position: relative; opacity: 0; animation: pop .4s ease forwards; }
+.heat div.l1 { background: #cfe0f6; color: #173c8e; } .heat div.l2 { background: #8fbcec; color: #031147; } .heat div.l3 { background: #2f86d6; color: #fff; } .heat div.l4 { background: #fdc805; color: #3a2c00; }
+.heat div.td { outline: 2px solid var(--navy); outline-offset: 1px; } .heat div.x { visibility: hidden; }
+.heat-h { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; font-size: 10.5px; color: var(--muted); text-align: center; font-weight: 700; margin-top: 10px; }
+.months { display: grid; gap: 7px; }
+.mrow { display: grid; grid-template-columns: 54px 1fr auto; gap: 8px; align-items: center; font-size: 12.5px; }
+.mrow .m { font: 700 13px var(--num); color: var(--muted); }
+.mrow .bar2 { height: 16px; border-radius: 5px; background: var(--soft); overflow: hidden; } .mrow .bar2 i { display: block; height: 100%; width: 0; background: var(--sky); border-radius: 5px; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.mrow.now .bar2 i { background: var(--yellow); }
+.mrow .v { font-weight: 700; color: var(--muted); white-space: nowrap; } .mrow .v b { font: 700 14px var(--num); color: var(--ink); }
+.me-note { font-size: 11.5px; color: var(--muted); margin: 2px 4px 0; line-height: 1.7; }
+.me-wait { font-size: 12.5px; color: var(--muted); background: var(--soft); border-radius: 12px; padding: 10px 12px; }
+@media (prefers-reduced-motion: reduce) { .mkv::before, .mkv::after, .mkv .leaf, .lv .em, .ctb-hd .e, .fav span.b { animation: none !important; } .flow > div, .heat div { animation: none; opacity: 1; transform: none; } }
+.bars i { transition: height 1s cubic-bezier(.2,.8,.2,1); }
 
 /* ---- 下から出る画面・お知らせ ---- */
 .scrim { position: fixed; inset: 0; background: rgba(3,10,40,.45); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .2s; }
@@ -604,23 +736,212 @@ function showFind(j) {
     (j.list ? '<a class="btn line" href="' + esc(j.list) + '" target="_blank" rel="noopener">Customer List を開く</a>' : '');
 }
 
-// ---- 自分：今日・今月・これまでの数字（Cheers mate 用。サーバーの stats をそのまま出す） ----
+// ---- 自分（2026-11-18 作り直し）：旅キャリの個別ページ（me/）を参考に、抹茶の数字で ----
+// その日の送信＝このページの受け口（D.stats：配布台帳）。これまで・サンプル・成約・グループ・Discord＝抹茶の個人ページの暗号化データ（H）。
+// H は菊地さんのMacが毎朝6時すぎに作る（全体共有リスト・サンプル申込フォーム・売上表・Discordの全部屋）。鍵（D.mp）は本人の分だけ受け口が返す。
+const HIST_BASE = 'https://auscheersmate11-afk.github.io/cheers-mypage/matcha/d/';
+const LEVELS = [[0, '🌱', 'はじめの一歩'], [30, '🍃', '芽が出た'], [100, '🍵', '一服の達人'], [300, '⭐', 'ライジングスター'], [500, '🏅', '500通クラブ'],
+  [1000, '🏆', '1000通レジェンド'], [2000, '💎', 'ダイヤモンド'], [4000, '👑', '抹茶キング']];
+let H = null, hTok = '', hLoading = false, grpMode = ls.get('cm_grp', 'dm');
+const fmtN = n => Number(n || 0).toLocaleString('ja-JP');
+const ymNow = () => todayJst().slice(0, 7).replace('/', '-');
+async function sha(s) { return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))); }
+const hex = a => [...a].map(b => b.toString(16).padStart(2, '0')).join('');
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function loadHist() {
+  const tok = D && D.mp; if (!tok || hLoading || (H && hTok === tok)) return;
+  if (DEMO) { H = demoHist(); hTok = tok; renderMe(); return; }
+  if (!window.crypto || !crypto.subtle || !window.DecompressionStream) return;
+  hLoading = true;
+  try {
+    const c = JSON.parse(ls.get('cm_hist', 'null') || 'null');
+    if (c && c.t === tok.slice(0, 6) && c.h && !H) { H = c.h; hTok = tok; renderMe(); }
+    const id = hex(await sha('cm-matcha-id:' + tok)).slice(0, 24);
+    const key = await crypto.subtle.importKey('raw', await sha('cm-matcha-key:' + tok), 'AES-GCM', false, ['decrypt']);
+    const r = await fetch(HIST_BASE + id + '.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error('hist ' + r.status);
+    const j = await r.json();
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(j.n) }, key, unb64(j.c));
+    const txt = await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('deflate'))).text();
+    H = JSON.parse(txt); hTok = tok;
+    ls.set('cm_hist', JSON.stringify({ t: tok.slice(0, 6), h: H }));
+    renderMe();
+  } catch (e) { console.warn(e); }
+  hLoading = false;
+}
+
+// 数字をまとめる（H が無いときは受け口の数字だけ）
+function meNums() {
+  const L = D.stats || {}, now = ymNow(), day = +todayJst().slice(8);
+  const hm = H && H.m ? H.m : {}, hNow = hm[now] || { s: 0, r: 0, f: 0, p: 0, h: 0, o: 0 };
+  const hToday = H && H.now === now && H.days && H.days[now] && H.days[now][String(day)] ? H.days[now][String(day)][0] : 0;
+  const all = H ? H.all : { s: L.total || 0, r: L.reply || 0, f: 0, p: 0, h: 0, o: 0 };
+  const plusToday = Math.max(0, (L.today || 0) - hToday);
+  const month = H && H.now === now ? Math.max(hNow.s + plusToday, L.month || 0) : (L.month || 0);
+  return { L, now, day, all: { ...all, s: Math.max(all.s + (H ? plusToday : 0), L.total || 0) }, mon: { ...hNow, s: month }, today: L.today || 0 };
+}
+function levelOf(s) { let i = 0; LEVELS.forEach((l, k) => { if (s >= l[0]) i = k; }); return i; }
+function ringSvg(r, pct, cls) { const c = 2 * Math.PI * r; return '<svg viewBox="0 0 ' + (2 * r + 14) + ' ' + (2 * r + 14) + '"><circle class="bg" cx="' + (r + 7) + '" cy="' + (r + 7) + '" r="' + r + '"/><circle class="fg ' + (cls || '') + '" cx="' + (r + 7) + '" cy="' + (r + 7) + '" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + c.toFixed(1) + '" data-off="' + (c * (1 - Math.min(1, pct))).toFixed(1) + '"/></svg>'; }
+const cu = (n, cls) => '<span class="cu' + (cls ? ' ' + cls : '') + '" data-to="' + (+n || 0) + '">' + fmtN(n) + '</span>';
+const pctS = (a, b) => b ? (a / b * 100 >= 10 ? Math.round(a / b * 100) : (a / b * 100).toFixed(1)) + '%' : '—';
+
 function renderMe() {
   const box = $('#meBox'); if (!D) return;
-  const s = D.stats, goal = D.goal || GOAL_MONTH, pct = Math.min(100, Math.round(s.month / goal * 100));
-  const days = s.days || [], mx = Math.max(1, ...days.map(d => d.n));
-  const k = (t, v, u) => '<div class="kpi"><small>' + t + '</small><b>' + v + '</b><span>' + u + '</span></div>';
-  const bm = s.byMsg || {}, keys = Object.keys(bm).filter(x => bm[x] && bm[x].n);
-  box.innerHTML =
-    '<div class="kpis">' + k('今日', s.today, '通') + k('今月', s.month, '通') + k('これまで', s.total, '通') + k('返信', s.reply, '件（' + (s.replyRate || 0) + '%）') + '</div>' +
-    '<div class="panel" style="margin-top:12px"><h2>今月の目標</h2><p class="lead" style="margin:0">' + goal + '通まで あと <b>' + Math.max(0, goal - s.month) + '</b>通（' + pct + '%）・連続 <b>' + (s.streak || 0) + '</b>日</p>' +
-    '<div class="goalbar"><i style="width:' + pct + '%"></i></div></div>' +
-    (days.length ? '<div class="panel" style="margin-top:12px"><h2>日ごとの送信</h2><div class="bars">' + days.map((d, i) => '<div' + (i === days.length - 1 ? ' class="t"' : '') + ' title="' + esc(d.d) + '：' + d.n + '通"><em>' + (d.n || '') + '</em><i style="height:' + Math.round(d.n / mx * 80) + 'px"></i><em>' + esc(String(d.d).replace(/^\d+\//, '')) + '</em></div>').join('') + '</div></div>' : '') +
-    (keys.length ? '<div class="panel" style="margin-top:12px"><h2>文章ごとの返信</h2><table class="msgt"><tr><th>文章</th><th>送信</th><th>返信</th><th>返信率</th></tr>' +
-      keys.map(x => '<tr><td><b>' + esc(x) + '</b></td><td>' + bm[x].n + '</td><td>' + bm[x].reply + '</td><td>' + (bm[x].n ? (bm[x].reply / bm[x].n * 100).toFixed(1) : '0') + '%</td></tr>').join('') + '</table></div>' : '') +
-    '<p style="font-size:12px;color:var(--muted);margin:10px 2px">送信は配布台帳の「送信完了」（毎時の記入のあと）、返信は Customer List の「返信」列から数えています。数字は15分ごとに新しくなります。</p>';
+  const N = meNums(), L = N.L, goal = D.goal || GOAL_MONTH, nm = String(D.name || '').replace(/\s/g, '');
+  const lvI = levelOf(N.all.s), lv = LEVELS[lvI], nx = LEVELS[lvI + 1];
+  const lvPct = nx ? (N.all.s - lv[0]) / (nx[0] - lv[0]) : 1;
+  const leaves = ['🍃', '🍵', '✨', '🍃', '🌿'].map((e, i) => '<span class="leaf" style="left:' + (12 + i * 19) + '%;animation-delay:' + (i * 1.3) + 's">' + e + '</span>').join('');
+  let h = '<div class="me-wrap">';
+  // KV
+  h += '<section class="mkv" aria-label="これまでの成績">' + leaves +
+    '<div class="mkv-top"><div class="lv">' + ringSvg(31, lvPct) + '<span class="em" aria-hidden="true">' + lv[1] + '</span></div>' +
+    '<div class="mkv-name"><small>' + esc(nm) + 'さんの これまで</small><b>' + (N.all.o ? '成約 ' + N.all.o + '件、すごい！' : N.all.p ? 'サンプル決済まで届いています！' : N.all.r ? '返信がもらえています！' : N.all.s ? '1通ずつ、積み上がっています' : 'ここから始まります') + '</b>' +
+    '<span class="lvl">Lv.' + (lvI + 1) + ' ' + esc(lv[2]) + '</span></div></div>' +
+    '<div class="mkv-next">' + (nx ? '次のレベル「' + esc(nx[2]) + '」まで あと <b>' + fmtN(nx[0] - N.all.s) + '</b>通' : '最高レベルに到達！ありがとうございます') + '</div>' +
+    '<div class="flow">' +
+      '<div><small>送信</small><b>' + cu(N.all.s) + '</b><em>通</em></div>' +
+      '<div><small>返信</small><b>' + cu(N.all.r) + '</b><em>' + pctS(N.all.r, N.all.s) + '</em></div>' +
+      '<div class="y"><small>サンプル決済</small><b>' + cu(N.all.p) + '</b><em>件</em></div>' +
+      '<div class="y"><small>成約</small><b>' + cu(N.all.o) + '</b><em>件</em></div></div></section>';
+
+  // いまの状況
+  const td = new Date(), dim = new Date(td.getFullYear(), td.getMonth() + 1, 0).getDate();
+  const expect = Math.round(goal * N.day / dim), lag = N.mon.s - expect, left = Math.max(0, goal - N.mon.s), remDays = dim - N.day + 1;
+  const perDay = remDays ? Math.ceil(left / remDays) : left;
+  const pace = N.mon.s >= goal ? ['ok', '🎉', '今月の目標 ' + goal + '通、達成！おめでとうございます'] : lag >= 0 ? ['ok', '🚀', '今日までの目安より ' + lag + '通 先行中。このペースで目標に届きます']
+    : lag > -40 ? ['go', '💪', 'あと ' + (-lag) + '通 で今日までの目安に追いつきます'] : ['warn', '🔥', '今日までの目安まで ' + (-lag) + '通。1日 ' + perDay + '通 で月末に届きます'];
+  h += '<section class="me-sec"><h2><span class="ic">📅</span>いまの状況</h2><p class="sub">' + (+N.now.slice(5)) + '月の目標 ' + goal + '通（' + N.day + '日目 / ' + dim + '日）</p>' +
+    '<div class="now-grid"><div class="ring">' + ringSvg(53, N.mon.s / goal) + '<div class="pc"><b>' + cu(N.mon.s) + '</b><small>/ ' + goal + '通</small></div></div>' +
+    '<div class="now-list"><div class="now-row">今日<b>' + cu(N.today) + '<span>通</span></b></div><div class="now-row">連続で送った日<b>' + cu(L.streak || 0) + '<span>日</span></b></div>' +
+    '<div class="now-row">目標まで<b>' + cu(left) + '<span>通</span></b></div></div></div>' +
+    '<div class="pace ' + pace[0] + '"><span class="e">' + pace[1] + '</span><span>' + esc(pace[2]) + '</span></div>' +
+    (H ? '<div class="chips"><span class="chip">今月の返信<b>' + N.mon.r + '</b>件</span><span class="chip' + (N.mon.p ? ' hot' : '') + '">サンプル決済<b>' + N.mon.p + '</b>件</span><span class="chip' + (N.mon.o ? ' hot' : '') + '">成約<b>' + N.mon.o + '</b>件</span>' + (H.pend ? '<span class="chip hot">決済待ち<b>' + H.pend + '</b>件</span>' : '') + '</div>' : '') +
+    '</section>';
+
+  // 成果の流れ（これまで）
+  if (H) {
+    const A = N.all, mx = Math.max(1, A.s);
+    const row = (t, v, base, y, unit) => '<div class="fun-row' + (y ? ' y' : '') + '"><span class="t">' + t + '</span><span class="bar2"><i data-w="' + Math.max(v ? 2.5 : 0, Math.sqrt(v / mx) * 100).toFixed(1) + '"></i></span><span class="n">' + cu(v) + '<small>' + (unit || pctS(v, base)) + '</small></span></div>';
+    h += '<section class="me-sec"><h2><span class="ic">🎯</span>送った先の成果</h2><p class="sub">これまで全部。下の%は1つ上の段からの割合です</p><div class="fun">' +
+      row('送信', A.s, 0, 0, '通') + row('返信', A.r, A.s) + row('サンプル申込', A.f, A.r) + row('サンプル決済', A.p, A.f || A.r, 1) + row('成約', A.o, A.p, 1) + '</div></section>';
+  }
+
+  // みんなへの貢献（Discord 全部の部屋）
+  h += '<section class="me-sec"><h2><span class="ic">🤝</span>みんなへの貢献</h2><p class="sub">チアーズメイトのDiscord（全部の部屋）での動き</p>';
+  const dc = H && H.dc;
+  if (!dc) h += '<div class="me-wait">' + (H ? 'Discordの数は、明日の朝から出ます。' : (D.mp ? '読み込んでいます…' : 'Discordの数は準備中です。')) + '</div>';
+  else {
+    const sum = dc.c + dc.rp + dc.s, msg = dc.cm + dc.rpm + dc.sm === 0 ? ['👋', '今月はまだ静か。だれかの投稿にスタンプを1つ押してみよう！']
+      : dc.rpm >= 5 || dc.hp >= 8 ? ['🌟', 'たくさんの人に声をかけて、チームを盛り上げています！']
+      : dc.sm > dc.cm + dc.rpm ? ['👏', 'スタンプでみんなを応援してくれています！'] : ['💬', '投稿でチームに参加してくれています！'];
+    const tile = (e, k, v, u, w) => '<div class="ct"><span class="e" aria-hidden="true">' + e + '</span><b>' + cu(v) + '<span>' + u + '</span></b><small>' + k + '</small><span class="wk' + (w ? '' : ' z') + '">今週 +' + fmtN(w) + '</span></div>';
+    h += '<div class="ctb-hd"><span class="e">' + msg[0] + '</span><span>' + esc(msg[1]) + '<small>今月 ' + dc.act + '日 動いて、' + dc.hp + '人 にスタンプや声がけを届けました' + (dc.g ? '・もらったスタンプ ' + fmtN(dc.g) + '個' : '') + '</small></span></div>' +
+      '<div class="ctb4">' + tile('💬', '投稿', dc.c, '回', dc.cw) + tile('🗣️', '声がけ（返信・@）', dc.rp, '回', dc.rpw) + tile('👏', '押したスタンプ', dc.s, '個', dc.sw) + tile('🎁', 'もらったスタンプ', dc.g, '個', dc.gw) + '</div>';
+    const ms = Object.keys(dc.mo || {}).sort(), mmx = Math.max(1, ...ms.map(k => dc.mo[k][0] + dc.mo[k][1]));
+    if (ms.length) h += '<div class="mini" role="img" aria-label="月ごとのDiscordでの動き">' + ms.map(k => { const v = dc.mo[k]; return '<div title="' + (+k.slice(5)) + '月：投稿' + v[0] + '・スタンプ' + v[1] + '"><i class="s" data-h="' + (v[1] / mmx * 70).toFixed(1) + '"></i><i class="p" data-h="' + (v[0] / mmx * 70).toFixed(1) + '"></i><em>' + (+k.slice(5)) + '月</em></div>'; }).join('') + '</div>' +
+      '<div class="leg"><span><i style="background:var(--sky)"></i>投稿・声がけ</span><span><i style="background:var(--yellow)"></i>押したスタンプ</span></div>';
+    if ((dc.top || []).length) h += '<div class="fav">よく押すスタンプ' + dc.top.map(e => '<span class="b">' + esc(e) + '</span>').join('') + '</div>';
+    if (!sum) h += '<p class="me-note">まだDiscordでの動きがありません。自己紹介やグループの部屋に、ひとことからどうぞ。</p>';
+  }
+  h += '</section>';
+
+  // グループ（同期グループ・シャッフルクラス）
+  if (H && (H.g || []).length) {
+    const cur = [], old = [];
+    H.g.forEach(g => { const ks = Object.keys(g.m).sort(); (g.m[N.now] ? cur : old).push({ g, mo: g.m[N.now] ? N.now : ks[ks.length - 1] }); });
+    const one = x => {
+      const g = x.g, rows = g.m[x.mo] || [], sh = /シャッフル/.test(g.name);
+      const val = r => grpMode === 'dm' ? r.dm : (r.c || 0) + (r.rp || 0) + (r.st || 0);
+      const list = rows.filter(r => !r.sup || r.me).map(r => ({ ...r, v: val(r) })).sort((a, b) => b.v - a.v);
+      const me = list.find(r => r.me) || { dm: 0, c: 0, rp: 0, st: 0, v: 0 }, tot = list.reduce((a, r) => a + r.v, 0), mx = Math.max(1, ...list.map(r => r.v));
+      const rank = list.filter(r => r.v > me.v).length + 1, share = tot ? Math.round(me.v / tot * 100) : 0;
+      const gp = (H.gp || []).find(p => p.name === g.name.replace(/（.*）$/, ''));
+      let s = '<div class="grp"><div class="grp-hd"><b>' + esc(g.name) + '</b><span class="tag' + (sh ? ' sh' : '') + '">' + (+x.mo.slice(5)) + '月' + (x.mo === N.now ? '（今月）' : '') + '</span></div>' +
+        '<div class="grp-big"><div><small>グループで</small><b>' + rank + '<span>位 / ' + list.length + '人</span></b></div><div><small>' + (grpMode === 'dm' ? '送信' : 'Discordの動き') + '</small><b>' + cu(me.v) + '<span>' + (grpMode === 'dm' ? '通' : '回') + '</span></b></div><div><small>グループへの貢献</small><b>' + share + '<span>%</span></b></div></div>' +
+        '<div class="rk">' + list.map((r, i) => '<div class="rk-row' + (r.me ? ' me' : '') + (i === 0 && r.v ? ' top' : '') + '"><span class="no">' + (i === 0 && r.v ? '👑' : i + 1) + '</span><span class="nm">' + (r.me ? 'あなた' : esc(String(r.n || '').replace(/\s/g, ''))) + (r.lead ? ' ⭐' : '') + '</span><span class="bar2"><i data-w="' + (r.v / mx * 100).toFixed(1) + '"></i></span><span class="v">' + fmtN(r.v) + '</span></div>').join('') + '</div>';
+      if (gp && x.mo === N.now) {
+        s += '<div class="gp">' + (gp.head ? '<div class="gp-it"><div class="k"><span>' + esc(gp.head) + '</span></div>' + (gp.prog != null ? '<div class="bar"><i data-w="' + gp.prog + '"></i></div>' : '') + (gp.next ? '<div class="a">' + esc(gp.next) + '</div>' : '') + '</div>' : '') +
+          (gp.items || []).slice(0, 4).map(it => '<div class="gp-it ' + (it.st || '') + '"><div class="k"><span>' + esc(it.k) + '</span>' + (it.n != null ? '<b>' + fmtN(it.now) + ' / ' + fmtN(it.n) + (it.u || '') + '</b>' : it.rate != null ? '<b>' + it.rate + '%</b>' : '') + '</div>' +
+            (it.bar != null || it.rate != null ? '<div class="bar"><i data-w="' + Math.min(100, it.bar != null ? it.bar : it.rate) + '"></i></div>' : '') + '<div class="a">' + esc(it.act || it.sub || '') + '</div></div>').join('') + '</div>';
+        const mets = (gp.cmp && gp.cmp.metrics) || [];
+        if (mets.length) s += '<div class="cmp"><div class="lbl" style="margin:6px 0 0">同じ種類のグループ（' + gp.cmp.groups + 'グループ）の平均とくらべると</div>' + mets.map(m => { const d = m.me - m.avg; return '<div class="cmp-row"><span>' + esc(m.k) + '</span><span><b>' + m.me + '</b>' + esc(m.u) + ' <span class="' + (d >= 0 ? 'up' : 'dn') + '">（平均 ' + m.avg + esc(m.u) + (d >= 0 ? ' ▲' : ' ▼') + '）</span></span></div>'; }).join('') + '</div>';
+      }
+      return s + '</div>';
+    };
+    h += '<section class="me-sec"><h2><span class="ic">👥</span>グループでの貢献</h2><p class="sub">同期グループ・シャッフルクラスの仲間の中で</p>' +
+      '<div class="seg2" role="group"><button type="button" data-gm="dm" aria-pressed="' + (grpMode === 'dm') + '">送信の数</button><button type="button" data-gm="dc" aria-pressed="' + (grpMode === 'dc') + '">グループ部屋での動き</button></div>' +
+      (cur.length ? cur.map(one).join('') : '<div class="me-wait">今月入っているグループはありません。</div>') +
+      (old.length ? '<details class="old"><summary>これまでのグループ（' + old.length + '）</summary>' + old.map(one).join('') + '</details>' : '') +
+      '<p class="me-note">「グループ部屋での動き」＝グループの部屋への投稿・声がけ＋押したスタンプ。⭐はリーダー。</p></section>';
+  }
+
+  // 日ごとの送信：直近14日（今日はこのページの数）＋今月のカレンダー
+  const days = L.days || [], dmx = Math.max(1, ...days.map(d => d.n));
+  h += '<section class="me-sec"><h2><span class="ic">📈</span>日ごとの送信</h2><p class="sub">直近14日（今日の分は「送信済み」を押した数）</p>' +
+    '<div class="bars">' + days.map((d, i) => '<div' + (i === days.length - 1 ? ' class="t"' : '') + ' title="' + esc(d.d) + '：' + d.n + '通"><em>' + (d.n || '') + '</em><i data-h="' + Math.round(d.n / dmx * 80) + '" style="height:2px"></i><em>' + esc(String(d.d).replace(/^\d+\//, '')) + '</em></div>').join('') + '</div>';
+  if (H && H.days) {
+    const y = +N.now.slice(0, 4), m = +N.now.slice(5), first = new Date(y, m - 1, 1).getDay(), hd = (H.days[N.now] || {});
+    const lvlc = n => n >= 20 ? 'l4' : n >= 10 ? 'l3' : n >= 5 ? 'l2' : n > 0 ? 'l1' : '';
+    let cells = '';
+    for (let i = 0; i < first; i++) cells += '<div class="x"></div>';
+    for (let d = 1; d <= dim; d++) { const n = d === N.day ? Math.max(N.today, (hd[d] || [0])[0]) : (hd[d] || [0])[0]; cells += '<div class="' + lvlc(n) + (d === N.day ? ' td' : '') + '" style="animation-delay:' + (d * 18) + 'ms" title="' + m + '/' + d + '：' + n + '通">' + (d > N.day || !n ? '' : n) + '</div>'; }
+    h += '<div class="heat-h"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div><div class="heat">' + cells + '</div>' +
+      '<div class="leg"><span><i style="background:#cfe0f6"></i>1〜4</span><span><i style="background:#8fbcec"></i>5〜9</span><span><i style="background:#2f86d6"></i>10〜19</span><span><i style="background:#fdc805"></i>20〜</span></div>';
+  }
+  h += '</section>';
+
+  // 月ごと
+  if (H && H.m) {
+    const ks = [...new Set([N.now, ...Object.keys(H.m)])].sort().reverse().slice(0, 8), mm = Math.max(1, ...ks.map(k => k === N.now ? N.mon.s : H.m[k].s));
+    if (ks.length) h += '<section class="me-sec"><h2><span class="ic">🗓️</span>月ごとの数字</h2><p class="sub">送信・返信・サンプル決済・成約</p><div class="months">' +
+      ks.map(k => { const v = k === N.now ? N.mon : H.m[k]; return '<div class="mrow' + (k === N.now ? ' now' : '') + '"><span class="m">' + k.slice(2).replace('-', '/') + '</span><span class="bar2"><i data-w="' + (v.s / mm * 100).toFixed(1) + '"></i></span><span class="v"><b>' + fmtN(v.s) + '</b>通' + (v.r ? '・返' + v.r : '') + (v.p ? '・🍵' + v.p : '') + (v.o ? '・🤝' + v.o : '') + '</span></div>'; }).join('') +
+      '</div><p class="me-note">返＝返信、🍵＝サンプル決済、🤝＝成約</p></section>';
+  }
+
+  // 文章ごとの返信
+  const bm = L.byMsg || {}, keys = Object.keys(bm).filter(x => bm[x] && bm[x].n);
+  if (keys.length) h += '<section class="me-sec"><h2><span class="ic">✉️</span>文章ごとの返信</h2><p class="sub">配布されたお店に送った分</p><table class="msgt"><tr><th>文章</th><th>送信</th><th>返信</th><th>返信率</th></tr>' +
+    keys.map(x => '<tr><td><b>' + esc(x) + '</b></td><td>' + bm[x].n + '</td><td>' + bm[x].reply + '</td><td>' + (bm[x].n ? (bm[x].reply / bm[x].n * 100).toFixed(1) : '0') + '%</td></tr>').join('') + '</table></section>';
+
+  h += '<p class="me-note">送信・返信・サンプル・成約は Customer List・サンプル申込フォーム・売上表、Discordはチアーズメイトの全部の部屋から、毎朝6時すぎに作り直しています' + (H && H.asof ? '（' + esc(H.asof) + ' 時点）' : '') + '。今日の送信は「送信済み」を押すとすぐ増えます。</p></div>';
+  box.innerHTML = h;
+  box.querySelectorAll('[data-gm]').forEach(b => b.onclick = () => { grpMode = b.dataset.gm; ls.set('cm_grp', grpMode); renderMe(); });
+  animateMe(box);
+  celebrate(N, lvI);
+  if (D.mp && !H) loadHist();
 }
-function loadMe() {}
+// 見えたら動かす：数字のカウントアップ・バー・輪
+function animateMe(box) {
+  const still = document.hidden || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || $('#v-me').hidden;
+  const go = el => {
+    if (el.dataset.w != null) el.style.width = el.dataset.w + '%';
+    else if (el.dataset.h != null) el.style.height = el.dataset.h + 'px';
+    else if (el.dataset.off != null) el.style.strokeDashoffset = el.dataset.off;
+    else if (el.dataset.to != null) countUp2(el, still);
+  };
+  const els = box.querySelectorAll('[data-w],[data-h],[data-off],.cu[data-to]');
+  if (still || !('IntersectionObserver' in window)) { els.forEach(el => { if (el.dataset.to == null) go(el); }); requestAnimationFrame(() => els.forEach(el => { if (el.dataset.to == null) go(el); })); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); requestAnimationFrame(() => go(e.target)); } }), { threshold: .15 });
+  els.forEach(el => io.observe(el));
+}
+function countUp2(el, still) {
+  const to = +el.dataset.to; el.textContent = fmtN(to);
+  if (still || !to) return;
+  const dur = 1100; let t0 = 0;
+  const step = t => { if (!t0) t0 = t; const p = Math.min(1, (t - t0) / dur); el.textContent = fmtN(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step); setTimeout(() => { el.textContent = fmtN(to); }, dur + 300);
+}
+// レベルアップ・新しいサンプル決済・成約のときだけ、紙ふぶき（前に見た数を端末に覚えておく）
+function celebrate(N, lvI) {
+  if (DEMO || $('#v-me').hidden || !H) return;
+  const k = 'cm_seen_' + (KEY || '').slice(0, 6), prev = JSON.parse(ls.get(k, 'null') || 'null'), cur = { lv: lvI, p: N.all.p, o: N.all.o };
+  ls.set(k, JSON.stringify(cur));
+  if (!prev) return;
+  if (cur.o > prev.o) { burst(); toast('🤝 成約 ' + cur.o + '件目！おめでとうございます'); }
+  else if (cur.p > prev.p) { burst(); toast('🍵 サンプル決済 ' + cur.p + '件目！'); }
+  else if (cur.lv > prev.lv) { burst(); toast(LEVELS[cur.lv][1] + ' レベルアップ！「' + LEVELS[cur.lv][2] + '」'); }
+}
+function loadMe() { renderMe(); }
 
 // ---- お知らせ ----
 let toastT = 0;
@@ -708,14 +1029,30 @@ function demoApi(action, body) {
   if (action !== 'me') return Promise.resolve({ ok: true, kind: 'ok', row: 1 });
   const T = n => 'Dear ' + n + ' Team,\n\nI\'m reaching out from Japan. We supply authentic Japanese matcha to cafes, and wholesalers around the world.\n\nQuick question:\nAre you 100% satisfied with your current Matcha?\n\n(見本の文章です)';
   const days = Array.from({ length: 14 }, (_, i) => ({ d: '11/' + String(i + 4).padStart(2, '0'), n: [6, 12, 0, 15, 20, 9, 18, 20, 0, 14, 20, 16, 11, 8][i] }));
-  return Promise.resolve({ ok: true, name: '見本', today: '2026/11/17', perDay: 20, goal: 500,
+  const IG = 'Hi {SHOP} Team,\n\nI’m Hanako from OGJ MATCHA in Japan.\n\nI noticed your Matcha Latte made with Japanese Matcha.\n\nWe work directly with tea producers in Kagoshima and Shizuoka.\n\nWe’d love to offer an additional Japanese Matcha option with different flavour profiles.\n\nWould you be interested in trying our Matcha?\n\nBest,\nHanako\nOGJ MATCHA\n\n(見本の文章です)';
+  return Promise.resolve({ ok: true, name: '見本', ig: IG, igNo: 'T10', today: '2026/11/17', perDay: 20, goal: 500,
     stats: { total: 412, month: 169, today: 8, reply: 27, replyRate: 6.6, streak: 4, days, byMsg: { T09: { n: 300, reply: 21 }, T10: { n: 112, reply: 6 } } },
     cards: [
       { id: 'd1', disp: 'Greystones Cafe', user: 'greystonescafe', method: 'Instagram', country: 'Canada', kind: 'カフェ', site: '', mail: '', text: T('Greystones Cafe'), tno: 'T09', left: 2 },
       { id: 'd2', disp: 'Kokoon Tea', user: 'kokoon_tea', method: 'メール', country: 'Romania', kind: '卸業者', site: 'https://example.com/', mail: 'hello@example.com', text: 'Subject: The matcha source your competitors don\'t know\n\n' + T('Kokoon Tea'), tno: 'T09', left: 1 },
       { id: 'd3', disp: 'Matcha Haus Atelier', user: '', method: 'お問合せフォーム', country: 'Canada', kind: '卸業者', site: 'https://example.com/', mail: '', text: T('Matcha Haus Atelier'), tno: 'T09', left: 0 },
       { id: 'd4', disp: 'MORI Matcha Cafe Atelier', user: 'mori.cph', method: 'Instagram', country: 'Denmark', kind: 'カフェ', site: '', mail: '', text: T('MORI Matcha Cafe Atelier'), tno: 'T10', left: 2 }],
-    reasons: ['抹茶・カフェと関係ない', 'お店がない・閉店', '連絡先が見つからない', 'インスタしかない', '前に自分で送った', '送れない国', 'その他（メモに書く）'], sheet: '#' });
+    reasons: ['抹茶・カフェと関係ない', 'お店がない・閉店', '連絡先が見つからない', 'インスタしかない', '前に自分で送った', '送れない国', 'その他（メモに書く）'], mp: 'demo', sheet: '#' });
+}
+// 見本の「これまで」（架空の人・架空の数字）
+function demoHist() {
+  const d11 = {}; [4, 6, 0, 8, 12, 9, 0, 15, 20, 9, 18, 20, 0, 14, 20, 16, 3].forEach((n, i) => { if (n) d11[String(i + 1)] = [n, n > 15 ? 1 : 0]; });
+  const g = (a, b, c) => [{ dm: a, st: 40, c: 12, rp: 4, n: 'はなこ' }, { dm: 0, st: 0, c: 0, rp: 0, me: 1, ...b }, { dm: c, st: 22, c: 8, rp: 2, n: 'たろう', lead: 1 }, { dm: 35, st: 18, c: 5, rp: 1, n: 'さくら' }];
+  return { n: '見本', asof: '11/17 6:10', now: '2026-11', day: 17, all: { s: 1243, r: 61, f: 9, p: 6, h: 6, o: 1 },
+    m: { '2026-06': { s: 120, r: 5, f: 1, p: 0, h: 0, o: 0 }, '2026-07': { s: 210, r: 9, f: 1, p: 1, h: 1, o: 0 }, '2026-08': { s: 260, r: 14, f: 2, p: 1, h: 1, o: 0 },
+      '2026-09': { s: 230, r: 12, f: 2, p: 2, h: 2, o: 1 }, '2026-10': { s: 240, r: 13, f: 2, p: 1, h: 1, o: 0 }, '2026-11': { s: 183, r: 8, f: 1, p: 1, h: 1, o: 0 } },
+    days: { '2026-11': d11 }, nodate: 0, pend: 1,
+    g: [{ name: '11月シャッフルクラス_a', m: { '2026-11': g(150, { dm: 183, st: 64, c: 21, rp: 9 }, 120) } }, { name: '同期グループ_e', m: { '2026-10': g(90, { dm: 240, st: 80, c: 30, rp: 12 }, 60) } }],
+    gp: [{ name: '11月シャッフルクラス_a', kind: 'シャッフル', head: '17日目 / 30日（11/30まで）', prog: 53, next: '11/30までに、サンプル決済あと1件（残り14日）',
+      items: [{ k: '1人サンプル決済2件', now: 1, n: 2, u: '件', bar: 50, act: '11/30までに、サンプル決済あと1件（残り14日）', st: 'go' }, { k: '1日10件、新規に送る', rate: 82, now: 14, n: 17, u: '日', bar: 82, act: 'きょうも10件以上送る', st: 'ok' }],
+      cmp: { groups: 5, metrics: [{ k: '直近7日の送信', u: '件', me: 92, avg: 48.5 }, { k: 'ルール達成率', u: '%', me: 82, avg: 64 }] } }],
+    dc: { c: 128, rp: 46, s: 512, g: 389, cw: 6, rpw: 4, sw: 31, gw: 22, cm: 21, rpm: 9, sm: 104, gm: 70, act: 15, hp: 12, hpa: 41, top: ['❤️', '👏', '🍵'],
+      mo: { '2026-06': [12, 40, 20], '2026-07': [25, 70, 50], '2026-08': [30, 95, 66], '2026-09': [22, 88, 70], '2026-10': [28, 115, 85], '2026-11': [30, 104, 70] }, since: '2026-06-01' } };
 }
 </script>
 </body>
