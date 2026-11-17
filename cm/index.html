@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cheers mate">
+<meta name="theme-color" content="#031147">
+<title>Cheers mate DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@600;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* Cheers mate DM：抹茶チームのメンバーが、毎朝届くお店（専用スプシ「見込み顧客リスト」）に1通目を送っていく画面。
+   旅キャリGo（go/）と同じ作り・同じ色。データの出し入れは Apps Script「Cheers mate DM」の cm_api.gs（Webアプリ）。合言葉は URL の #k=。
+   ボタンは専用スプシの「ステータス」を 送信完了 / あえて送らない にするだけ。Customer List への記入・回収は今までの毎時の仕組みがやる。
+   端末に覚える値は cm_ で始める（旅キャリGoと同じサイトなので混ざらないように）。
+   Instagram の送信は人が押す（コピーして DM 画面を開くところまで）。 */
+:root {
+  --bg: #eef2f8; --surface: #ffffff; --ink: #101a38; --muted: #5b6886; --line: #dde4f0; --soft: #f4f7fc;
+  --navy: #031147; --navy2: #173c8e; --sky: #2f86d6; --sky-soft: #e6f0fb;
+  --yellow: #fdc805; --yellow-ink: #3a2c00; --gold: #946f00; --yellow-soft: #fff4c4;
+  --ok: #2f7a47; --ok-soft: #e2f2e6; --warn: #b8432c; --warn-soft: #fbe4de;
+  --btn: #031147; --btn-ink: #ffffff;
+  --font: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --num: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --cond: "Barlow Condensed", "Barlow", Arial, sans-serif;
+  --r: 16px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1022; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f; --soft: #18213b;
+    --navy: #c3d1f5; --sky: #6fb0f0; --sky-soft: #16294a; --gold: #f5cf3c; --yellow-soft: #3a3010;
+    --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+    --btn: #fdc805; --btn-ink: #031147; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1022; --surface: #121a31; --ink: #e8edf8; --muted: #9aa8c6; --line: #26324f; --soft: #18213b;
+  --navy: #c3d1f5; --sky: #6fb0f0; --sky-soft: #16294a; --gold: #f5cf3c; --yellow-soft: #3a3010;
+  --ok: #8fd19e; --ok-soft: #173123; --warn: #f39a84; --warn-soft: #3a1d17;
+  --btn: #fdc805; --btn-ink: #031147; color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.6; -webkit-text-size-adjust: 100%; }
+button, input, textarea { font: inherit; color: inherit; }
+a { color: var(--sky); }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.num { font-family: var(--num); font-variant-numeric: tabular-nums; }
+
+/* ---- 枠：スマホ＝上のバー＋下のタブ／PC＝左のナビ ---- */
+.app { min-height: 100dvh; display: grid; grid-template-columns: 1fr; }
+.side { display: none; }
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: #031147; color: #fff; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 19px; letter-spacing: .02em; white-space: nowrap; flex: none; }
+.brand svg { width: 22px; height: 22px; }
+.brand b { color: #fdc805; font-family: var(--num); font-weight: 700; }
+.top .who { margin-left: auto; min-width: 0; flex: 1; text-align: right; font-size: 13px; color: #b9c6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-btn { border: 0; background: rgba(255,255,255,.12); color: #fff; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; cursor: pointer; flex: none; }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn.spin svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1080px; width: 100%; margin: 0 auto; }
+#v-me { margin: -14px -16px 0; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--surface); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+.tab { border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px 0; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; border-radius: 12px; position: relative; }
+.tab svg { width: 24px; height: 24px; }
+.tab[aria-selected="true"] { color: var(--ink); background: var(--soft); }
+.tab .badge, .nav-btn .badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 18px; height: 18px; border-radius: 9px; background: var(--yellow); color: #031147;
+  font: 700 11px/18px var(--num); text-align: center; padding: 0 5px; }
+@media (min-width: 860px) {
+  .app { grid-template-columns: 236px 1fr; }
+  .top, .tabbar { display: none; }
+  .side { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100dvh; background: #031147; color: #fff; padding: 26px 16px; }
+  .side .brand { margin: 0 8px 22px; font-size: 22px; }
+  .nav-btn { border: 0; background: none; color: #dfe7fb; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; position: relative; text-align: left; }
+  .nav-btn svg { width: 20px; height: 20px; }
+  .nav-btn[aria-selected="true"] { background: rgba(255,255,255,.12); color: #fff; }
+  .nav-btn .badge { position: static; margin-left: 4px; }
+  .side .me { margin-top: auto; font-size: 13px; color: #b9c6e6; padding: 0 8px; }
+  .side .icon-btn { margin: 10px 8px 0; width: auto; padding: 0 12px; gap: 6px; display: flex; font-size: 13px; font-weight: 700; }
+  main { padding: 28px 32px 48px; }
+  #v-me { margin: -28px -32px -48px; }
+}
+
+/* ---- 自分：個別専用ページ（me/）をそのまま出す ---- */
+#meFrame { display: block; width: 100%; height: calc(100vh - 150px); border: 0; background: var(--bg); }
+
+/* ---- 今日：上の大きなカード ---- */
+.hero { position: relative; overflow: hidden; border-radius: 22px; padding: 18px 18px 16px; color: #fff;
+  background: linear-gradient(135deg, #031147 0%, #0d2468 60%, #173c8e 100%); display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.hero::after { content: ""; position: absolute; right: -60px; top: -70px; width: 220px; height: 220px; border-radius: 50%; border: 26px solid rgba(255,255,255,.05); }
+.ring { width: 96px; height: 96px; position: relative; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1; }
+.ring .c b { font: 700 34px/1 var(--num); }
+.ring .c small { font: 600 12px/1.4 var(--num); color: #b9c6e6; }
+.hero h1 { margin: 0; font-size: 19px; font-weight: 900; letter-spacing: .01em; }
+.hero h1 .num { color: #fdc805; font-size: 24px; }
+.hero .sub { font-size: 12px; color: #b9c6e6; margin: 2px 0 10px; }
+.segs { display: grid; grid-template-columns: 15fr 15fr 10fr; gap: 6px; }
+.seg { height: 8px; border-radius: 4px; background: rgba(255,255,255,.16); overflow: hidden; }
+.seg i { display: block; height: 100%; width: 0; background: #fdc805; border-radius: 4px; transition: width .5s ease; }
+.seg-l { display: grid; grid-template-columns: 15fr 15fr 10fr; gap: 6px; font: 600 10px/1.8 var(--num); color: #b9c6e6; }
+.seg-l span:nth-child(2) { text-align: center; } .seg-l span:nth-child(3) { text-align: right; }
+.hero .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #dfe7fb; position: relative; z-index: 1; }
+.hero .meta b { color: #fdc805; font: 700 17px var(--num); margin: 0 2px; }
+.hero.done { background: linear-gradient(135deg, #1d5b33, #2f7a47); }
+
+.sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 22px 2px 10px; }
+.sec-h h2 { margin: 0; font-size: 16px; font-weight: 900; white-space: nowrap; }
+.sec-h .hint { font-size: 12px; color: var(--muted); }
+.cards { display: grid; gap: 14px; }
+@media (min-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
+
+/* ---- 送り先のカード（チケットの形・右の半券は回収までの日数） ---- */
+.card { background: var(--surface); border-radius: var(--r); box-shadow: 0 1px 2px rgba(3,17,71,.06), 0 6px 18px rgba(3,17,71,.05); overflow: hidden;
+  transition: transform .35s ease, opacity .35s ease, max-height .45s ease, margin .45s ease; max-height: 900px; }
+.card.gone { opacity: 0; transform: translateX(40px); max-height: 0; margin-top: -14px; }
+.card.focus { box-shadow: 0 0 0 3px var(--yellow), 0 6px 18px rgba(3,17,71,.08); }
+.tk { display: grid; grid-template-columns: 1fr 78px; position: relative; }
+.tk::before, .tk::after { content: ""; position: absolute; right: 70px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); }
+.tk::before { top: -8px; } .tk::after { bottom: -8px; }
+.tk .main { padding: 14px 10px 10px 14px; display: grid; grid-template-columns: 44px 1fr; gap: 10px; min-width: 0; }
+.av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px; }
+.nm { font-weight: 900; font-size: 16px; line-height: 1.35; word-break: break-word; }
+.hd { font: 600 12px/1.5 var(--num); color: var(--muted); word-break: break-all; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.chip { font-size: 11.5px; line-height: 1; padding: 5px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+.chip.t { background: var(--soft); border-color: transparent; color: var(--muted); }
+.chip.hot { background: var(--yellow-soft); border-color: transparent; color: var(--gold); font-weight: 700; }
+.why { font-size: 12px; color: var(--muted); margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stub { border-left: 2px dashed var(--line); display: grid; place-content: center; text-align: center; background: var(--soft); padding: 8px 4px; }
+.stub small { font: 700 9.5px/1.2 var(--cond); letter-spacing: .14em; color: var(--muted); }
+.stub b { font: 700 34px/1 var(--cond); color: var(--navy); }
+.stub span { font: 700 11px/1.3 var(--font); color: var(--muted); }
+.stub.hot { background: var(--yellow-soft); } .stub.hot b { color: var(--gold); }
+.acts { padding: 4px 14px 14px; display: grid; gap: 8px; }
+.btn { appearance: none; border: 0; border-radius: 12px; min-height: 48px; padding: 10px 14px; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none; text-align: center; line-height: 1.3; }
+.btn svg { width: 19px; height: 19px; flex: none; }
+.btn.go { background: var(--btn); color: var(--btn-ink); }
+.btn.yes { background: var(--yellow); color: #031147; }
+.btn.no { background: var(--soft); color: var(--ink); font-weight: 700; }
+.btn.line { background: transparent; color: var(--ink); border: 1.5px solid var(--line); font-weight: 700; }
+.btn[disabled], .btn.off { opacity: .45; pointer-events: none; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.msgline { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.msgline button { border: 0; background: none; color: var(--sky); text-decoration: underline; text-underline-offset: 3px; font-size: 12.5px; padding: 6px 0; cursor: pointer; white-space: nowrap; }
+.msgline b { color: var(--ink); }
+.note { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.warn { background: var(--warn-soft); color: var(--warn); }
+.note.info { background: var(--sky-soft); color: var(--ink); }
+.note.y { background: var(--yellow-soft); color: var(--ink); }
+.note a { font-weight: 700; }
+.card.opened .btn.yes { animation: nudge 1.6s ease-in-out infinite; }
+@keyframes nudge { 0%,100% { box-shadow: 0 0 0 0 rgba(253,200,5,.0); } 50% { box-shadow: 0 0 0 6px rgba(253,200,5,.45); } }
+.empty { background: var(--surface); border-radius: var(--r); padding: 26px 18px; text-align: center; color: var(--muted); }
+.empty b { display: block; font-size: 17px; color: var(--ink); margin-bottom: 4px; }
+.skel { height: 190px; border-radius: var(--r); background: linear-gradient(90deg, var(--surface) 0%, var(--soft) 50%, var(--surface) 100%); background-size: 200% 100%; animation: sk 1.2s linear infinite; }
+@keyframes sk { to { background-position: -200% 0; } }
+
+/* ---- さがす ---- */
+.panel { background: var(--surface); border-radius: var(--r); padding: 16px; box-shadow: 0 1px 2px rgba(3,17,71,.06); }
+.panel h2 { margin: 0 0 4px; font-size: 17px; font-weight: 900; }
+.panel p.lead { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.field { display: flex; gap: 8px; }
+.field input, .inp { flex: 1; min-width: 0; height: 48px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--soft); padding: 0 14px; font-size: 16px; }
+.field input:focus, .inp:focus { outline: none; border-color: var(--sky); background: var(--surface); }
+.field .btn { flex: none; min-height: 48px; }
+.at { position: relative; flex: 1; display: flex; min-width: 0; }
+.at span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 700; font-size: 17px; pointer-events: none; }
+.at input { padding-left: 34px; }
+.res { margin-top: 14px; display: grid; gap: 10px; }
+.res .big { font-size: 18px; font-weight: 900; }
+/* 自分タブ（Cheers mate は個別専用ページがまだ無いので、ここで数字を出す） */
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 640px) { .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.kpi { background: var(--surface); border-radius: var(--r); padding: 14px; box-shadow: 0 1px 2px rgba(3,17,71,.06); min-width: 0; }
+.kpi small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; }
+.kpi b { font: 700 28px var(--num); color: var(--ink); }
+.kpi span { font-size: 12px; color: var(--muted); margin-left: 3px; }
+.goalbar { height: 10px; border-radius: 99px; background: var(--soft); overflow: hidden; margin: 10px 0 4px; }
+.goalbar i { display: block; height: 100%; background: var(--yellow); border-radius: 99px; }
+.bars { display: flex; align-items: flex-end; gap: 4px; height: 110px; margin-top: 10px; }
+.bars div { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+.bars i { display: block; width: 100%; max-width: 22px; background: var(--sky); border-radius: 4px 4px 0 0; min-height: 2px; }
+.bars div.t i { background: var(--yellow); }
+.bars em { font-style: normal; font-size: 10px; color: var(--muted); white-space: nowrap; }
+.msgt { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+.msgt th, .msgt td { padding: 7px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+.msgt th:first-child, .msgt td:first-child { text-align: left; }
+.msgt th { font-size: 11.5px; color: var(--muted); font-weight: 700; }
+.lbl { font-size: 12px; font-weight: 700; color: var(--muted); margin: 4px 0 -4px; }
+
+/* ---- 文章（A〜D）の選び方 ---- */
+.seg-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg-pick button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.seg-pick button b { font-family: var(--num); margin-right: 4px; }
+.seg-pick button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: transparent; }
+.seg-pick.how button { padding: 5px 10px; font-size: 12px; }
+.preview { white-space: pre-wrap; background: var(--soft); border-radius: 14px; padding: 14px; font-size: 14px; line-height: 1.75; max-height: 42vh; overflow: auto; }
+.preview mark { background: var(--yellow-soft); color: inherit; border-radius: 4px; padding: 0 2px; font-weight: 700; }
+
+/* ---- 自分 ---- */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { background: var(--surface); border-radius: 14px; padding: 12px; }
+.tile small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; }
+.tile b { font: 700 28px/1.15 var(--num); }
+.tile span { font-size: 12px; color: var(--muted); margin-left: 4px; }
+.tiles.five { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 560px) { .tiles.five { grid-template-columns: repeat(5, 1fr); } }
+.goal { margin-top: 10px; }
+.bar { height: 10px; border-radius: 5px; background: var(--soft); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--yellow); border-radius: 5px; }
+.days { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; align-items: end; height: 120px; margin-top: 8px; }
+.days div { display: grid; align-items: end; height: 100%; position: relative; }
+.days i { display: block; background: var(--navy2, #173c8e); border-radius: 4px 4px 0 0; min-height: 2px; }
+:root[data-theme="dark"] .days i { background: #6fb0f0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .days i { background: #6fb0f0; } }
+.days em { position: absolute; top: -2px; left: 0; right: 0; text-align: center; font: 700 10px var(--num); color: var(--muted); font-style: normal; }
+.days-l { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; font: 600 9.5px/1.6 var(--num); color: var(--muted); text-align: center; }
+table.msg { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.msg th, table.msg td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+table.msg th:first-child, table.msg td:first-child { text-align: left; }
+table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
+.links { display: grid; gap: 8px; margin-top: 4px; }
+
+/* ---- 下から出る画面・お知らせ ---- */
+.scrim { position: fixed; inset: 0; background: rgba(3,10,40,.45); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 61; background: var(--surface); border-radius: 22px 22px 0 0; padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  max-height: 92dvh; overflow: auto; transform: translateY(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); display: grid; gap: 12px; }
+.sheet.on { transform: none; }
+.sheet .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 2px; }
+.sheet h3 { margin: 0; font-size: 17px; font-weight: 900; }
+@media (min-width: 860px) {
+  .sheet { left: 50%; right: auto; bottom: auto; top: 50%; width: 560px; border-radius: 22px; transform: translate(-50%, -46%) scale(.98); opacity: 0; pointer-events: none; transition: all .2s; }
+  .sheet.on { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+  .sheet .grab { display: none; }
+}
+.reasons { display: grid; gap: 8px; }
+.reasons label { display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; cursor: pointer; font-weight: 700; font-size: 14px; }
+.reasons input { width: 18px; height: 18px; accent-color: #031147; }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translate(-50%, 30px); opacity: 0; z-index: 80; background: #101a38; color: #fff;
+  border-radius: 14px; padding: 12px 14px; font-size: 14px; display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100vw - 32px); transition: all .25s; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.toast button { border: 0; background: none; color: #fdc805; font-weight: 900; cursor: pointer; padding: 4px; white-space: nowrap; }
+@media (min-width: 860px) { .toast { bottom: 28px; left: calc(50% + 118px); } }
+.over { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px; background: rgba(3,10,40,.6); }
+.over .box { background: var(--surface); border-radius: 22px; padding: 22px 20px; max-width: 420px; width: 100%; display: grid; gap: 12px; text-align: center; }
+.over .box .em { font-size: 44px; line-height: 1; }
+.over .box h3 { margin: 0; font-size: 19px; font-weight: 900; }
+.over .box p { margin: 0; font-size: 14px; color: var(--muted); text-align: left; }
+.over .box ul { margin: 0; padding-left: 1.2em; text-align: left; font-size: 14px; }
+.burst { position: fixed; z-index: 95; pointer-events: none; font-size: 22px; animation: fly 1.2s ease-out forwards; }
+@keyframes fly { to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; } }
+.testbar { background: #b8432c; color: #fff; text-align: center; font-size: 12px; font-weight: 700; padding: 4px 8px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="testbar" id="testbar" hidden>テスト中：記録は Customer List の写しへ</div>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M7 2v3M11 2v3"/></svg>Cheers mate<b>DM</b></div>
+    <button class="nav-btn" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>今日<span class="badge" data-badge hidden></span></button>
+    <button class="nav-btn" data-tab="find" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>さがす</button>
+    <button class="nav-btn" data-tab="me" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>自分</button>
+    <div class="me" data-who></div>
+    <button class="icon-btn" data-reload><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg>最新にする</button>
+  </aside>
+  <div>
+    <header class="top">
+      <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M7 2v3M11 2v3"/></svg>Cheers mate<b>DM</b></div>
+      <div class="who" data-who></div>
+      <button class="icon-btn" data-reload aria-label="最新にする"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></button>
+    </header>
+    <main>
+      <section id="v-today">
+        <div class="hero" id="hero">
+          <div class="ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="10"/><circle id="ringArc" cx="50" cy="50" r="42" fill="none" stroke="#fdc805" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 264" opacity="0"/></svg>
+            <div class="c"><b class="num" id="hSent">–</b><small id="hLimit">/ 40通</small></div></div>
+          <div>
+            <h1 id="hTitle">読み込み中…</h1>
+            <div class="sub">15通ごとにひと休み。何回かに分けて送ろう</div>
+            <div class="segs"><div class="seg"><i id="s1"></i></div><div class="seg"><i id="s2"></i></div><div class="seg"><i id="s3"></i></div></div>
+            <div class="seg-l"><span>1〜15</span><span>16〜30</span><span>31〜</span></div>
+          </div>
+          <div class="meta" id="hMeta"></div>
+        </div>
+        <div class="sec-h"><h2>DMを送る</h2><span class="hint">配られたお店・期限の近い順</span></div>
+        <div class="cards" id="cards"><div class="skel"></div><div class="skel"></div></div>
+        <div id="doneBox"></div>
+      </section>
+
+      <section id="v-find" hidden>
+        <div class="panel">
+          <h2>自分で見つけたお店をチェック</h2>
+          <p class="lead">自分で見つけたお店のInstagramの<b>ユーザー名</b>（URLでもOK）を入れて「調べる」を押すと、Customer List でもう誰かが連絡していないか分かります。</p>
+          <div class="field"><div class="at"><span aria-hidden="true">@</span><input id="q" type="text" inputmode="text" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Instagramのユーザー名" placeholder="ユーザー名（例：cafe_nook）"></div></div>
+          <button class="btn go" id="checkBtn" type="button" style="width:100%;margin-top:10px">調べる</button>
+          <div class="res" id="res"></div>
+        </div>
+      </section>
+
+      <section id="v-me" hidden>
+        <div id="meBox"><div class="skel"></div></div>
+      </section>
+    </main>
+  </div>
+  <nav class="tabbar">
+    <button class="tab" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>今日<span class="badge" data-badge hidden></span></button>
+    <button class="tab" data-tab="find" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>さがす</button>
+    <button class="tab" data-tab="me" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>自分</button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="toastBtn" hidden></button></div>
+<div class="over" id="over" hidden><div class="box" id="overBox"></div></div>
+
+<script>
+'use strict';
+// Apps Script の Web アプリ（cm_api.gs）。デプロイしたらここにURLを入れる（空のあいだは ?demo=1 の見本だけ動く）
+const API = '';
+const GOAL_MONTH = 500;   // 月の目標（サーバーから goal が来ればそちら）
+const UNDO_MS = 3500;
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ls = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+             set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }, del(k) { try { localStorage.removeItem(k); } catch (e) {} } };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ---- 合言葉（URL の #k=）。ホーム画面に追加しても使えるよう、端末にも覚える ----
+const params = new URLSearchParams(location.search);
+const DEMO = params.has('demo');
+let KEY = '';
+(() => {
+  const m = location.hash.match(/k=([A-Za-z0-9_-]{16,})/);
+  if (m) { KEY = m[1]; ls.set('cm_key', KEY); } else KEY = ls.get('cm_key', '');
+})();
+
+let D = null;            // サーバーから来たデータ
+let pend = new Map();    // 取り消しを待っている操作 id → {timer, run}
+const sending = new Set();   // サーバーに送っている途中の id（カードを出さない）
+const hidden = id => pend.has(id) || sending.has(id);
+let lastOpened = '';
+
+// ---- サーバーとのやり取り ----
+async function api(action, body = {}, tries = 2, keepalive = false) {
+  if (DEMO) return demoApi(action, body);
+  keepalive = keepalive || document.visibilityState === 'hidden';   // Instagram に移る瞬間に送る分も届くように
+  let res;
+  try {
+    res = await fetch(API, { method: 'POST', body: JSON.stringify(Object.assign({ action, key: KEY }, body)), keepalive, redirect: 'follow' });
+  } catch (e) { if (tries > 0) { await sleep(1500); return api(action, body, tries - 1); } return { ok: false, error: 'net' }; }
+  let j; try { j = await res.json(); } catch (e) { return { ok: false, error: 'server' }; }
+  if (!j.ok && j.error === 'busy' && tries > 0) { await sleep(3000); return api(action, body, tries - 1); }
+  return j;
+}
+const ERR = { key: 'このURLでは開けません。運営からもらった専用URLで開き直してください。', net: '通信できませんでした。電波のよいところでもう一度。',
+  server: 'うまく処理できませんでした。少し待ってもう一度押してください。', busy: 'いま混み合っています。少し待ってもう一度押してください。',
+  test: 'テスト用の設定がまだありません（運営に連絡してください）。',
+  id: 'このカードはもう使えません（期限切れなど）。最新にしてください。', state: 'このカードはもう終わっています。最新にしてください。',
+  q: 'ユーザー名を読み取れませんでした（英数字・_ ・. だけです）。', who: 'このURLの人が配布先にいないか、専用スプシが見つかりません。運営に連絡してください。' };
+const errMsg = j => ERR[j && j.error] || ERR.server;
+
+// ---- 文章・送り方 ----
+// 文章は専用スプシの「1通目の文章」をそのまま使う（宛名も入っている）。メールは1行目の「Subject: …」を件名に分ける
+const HOWS = ['Instagram', 'メール', 'お問合せフォーム'];
+function howOf(c) { const h = ls.get('cm_how_' + c.id, '') || c.method; return HOWS.includes(h) ? h : 'Instagram'; }
+function splitMail(t) { const m = String(t || '').match(/^\s*Subject:\s*(.+)\n+/i); return m ? { subject: m[1].trim(), body: t.slice(m[0].length) } : { subject: '', body: String(t || '') }; }
+function textFor(c, how) { return how === 'メール' ? String(c.text || '') : splitMail(c.text).body; }   // メール以外は件名の行を外す
+function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
+function profUrl(u) { return 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
+function mailUrl(c) { const m = splitMail(c.text); return 'mailto:' + c.mail.split(/[\s,;／/]+/)[0] + '?subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body); }
+// いちばん大きいボタン：送り方ごとに行き先を変える
+function goOf(c) {
+  const how = howOf(c);
+  if (how === 'Instagram' && c.user) return { href: dmUrl(c.user), label: 'コピーしてInstagramを開く', icon: 'ig' };
+  if (how === 'メール' && c.mail) return { href: mailUrl(c), label: 'メールを開く（件名・本文入り）', icon: 'mail' };
+  if (c.site) return { href: c.site, label: how === 'お問合せフォーム' ? 'コピーしてサイトを開く（フォームへ）' : 'コピーしてサイトを開く', icon: 'web' };
+  if (c.user) return { href: profUrl(c.user), label: 'コピーしてInstagramを開く', icon: 'ig' };
+  return { href: '', label: '文章をコピー', icon: 'copy' };
+}
+const ICONS = {
+  ig: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+  web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>' };
+
+// コピー：まず同期の方法（iPhone の Safari でも確実）→ 念のため Clipboard API も
+function copyText(t) {
+  let ok = false;
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0;font-size:16px';
+    document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, t.length);
+    ok = document.execCommand('copy'); ta.remove();
+  } catch (e) {}
+  try { if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).catch(() => {}); ok = ok || !!navigator.clipboard; } catch (e) {}
+  return ok;
+}
+
+// ---- 表示 ----
+const COLORS = ['#b8860b', '#d2603a', '#2f86d6', '#2f7a47', '#7a5cc7', '#c2462e', '#0f7b8a', '#5b6886'];
+function avColor(s) { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
+function initial(c) { const s = (c.disp || c.user || '?').replace(/^[^\p{L}\p{N}]+/u, ''); return [...s][0] || '?'; }
+
+function render() {
+  if (!D) return;
+  $$('[data-who]').forEach(el => el.textContent = D.name + 'さん' + (D.test ? '（テスト）' : ''));
+  $('#testbar').hidden = !D.test;
+  renderHero(); renderCards(); renderMe();
+  const n = D.cards.filter(c => !hidden(c.id)).length;
+  $$('[data-badge]').forEach(b => { b.hidden = !n; b.textContent = n; });
+  saveCache();
+}
+
+function renderHero() {
+  const s = D.stats, sent = s.today, open0 = D.cards.filter(c => !hidden(c.id)).length, lim = Math.max(1, sent + open0), left = open0;
+  $('#hSent').textContent = sent; $('#hLimit').textContent = '/ ' + lim + '通';
+  const C = 2 * Math.PI * 42; $('#ringArc').setAttribute('stroke-dasharray', (Math.min(1, sent / lim) * C).toFixed(1) + ' ' + C.toFixed(1)); $('#ringArc').setAttribute('opacity', sent ? 1 : 0);
+  $('#s1').style.width = Math.min(100, sent / 15 * 100) + '%';
+  $('#s2').style.width = Math.min(100, Math.max(0, sent - 15) / 15 * 100) + '%';
+  $('#s3').style.width = Math.min(100, Math.max(0, sent - 30) / Math.max(1, lim - 30) * 100) + '%';
+  const open = D.cards.filter(c => !hidden(c.id)).length;
+  $('#hero').classList.toggle('done', !open && sent > 0);
+  $('#hTitle').innerHTML = !open ? (sent ? '今日の分ぜんぶ完了！おつかれさまでした🎉' : '今は送る相手がいません') : 'のこり<span class="num"> ' + left + ' </span>件';
+  $('#hMeta').innerHTML = '<span>配布の残り<b>' + open + '</b>件</span><span>今月<b>' + s.month + '</b>/ ' + (D.goal || GOAL_MONTH) + '通</span><span>連続<b>' + s.streak + '</b>日</span>';
+}
+
+function cardHtml(c) {
+  const how = howOf(c), g = goOf(c), hot = c.left <= 0;
+  const chips = [c.country, c.kind].filter(Boolean).map(p => '<span class="chip">' + esc(p) + '</span>').join('') + (hot ? '<span class="chip hot">今日が送信期限</span>' : '');
+  const links = [c.user ? '<a href="' + profUrl(c.user) + '" target="_blank" rel="noopener">@' + esc(c.user) + '</a>' : '', c.site ? '<a href="' + esc(c.site) + '" target="_blank" rel="noopener">サイト</a>' : '', c.mail ? '<span>' + esc(c.mail) + '</span>' : ''].filter(Boolean).join(' ・ ');
+  const acts = '<div class="seg-pick how" role="group" aria-label="送り方">' + HOWS.map(h => '<button type="button" data-act="how" data-h="' + h + '" aria-pressed="' + (h === how) + '">' + (h === 'お問合せフォーム' ? 'フォーム' : h) + '</button>').join('') + '</div>' +
+    '<div class="msgline"><span>文章 <b>' + esc(c.tno || '') + '</b>' + (how === 'メール' && splitMail(c.text).subject ? '（件名つき）' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
+    '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
+    '<div class="note y" data-after hidden>' + (how === 'メール' && c.mail ? '件名と本文が入ったメールが開きます。開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
+    '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
+  return '<article class="card' + (ls.get('cm_open_' + c.id, '') ? ' opened' : '') + '" data-id="' + esc(c.id) + '">' +
+    '<div class="tk"><div class="main"><div class="av" style="background:' + avColor(c.disp || c.user) + '">' + esc(initial(c)) + '</div><div style="min-width:0">' +
+    '<div class="nm">' + esc(c.disp || c.user) + '</div><div class="hd">' + links + '</div>' +
+    '<div class="chips">' + chips + '</div></div></div>' +
+    '<div class="stub' + (hot ? ' hot' : '') + '"><small>DEADLINE</small><b>' + (c.left <= 0 ? '今日' : c.left) + '</b><span>' + (c.left <= 0 ? 'まで' : '日後まで') + '</span></div></div>' +
+    '<div class="acts">' + acts + '</div></article>';
+}
+
+function renderCards() {
+  const list = D.cards.filter(c => !hidden(c.id));
+  const box = $('#cards');
+  if (!list.length) {
+    box.innerHTML = '<div class="empty"><b>' + (D.cards.length ? '今日の分はぜんぶ終わり！' : 'いま送る人はいません') + '</b>' +
+      (D.stats.today ? '今日は ' + D.stats.today + '通 送りました。' : '') + '明日の朝、次のお店が届きます。</div>';
+  } else box.innerHTML = list.map(cardHtml).join('');
+}
+
+function bindCards() {
+  $('#cards').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const el = b.closest('.card'), c = D.cards.find(x => x.id === el.dataset.id); if (!c) return;
+    const act = b.dataset.act;
+    if (act === 'go') { if (b.getAttribute('href') === '#') e.preventDefault(); onGo(c, el); return; }   // リンクはそのまま開く（コピーは先に）
+    e.preventDefault();
+    if (act === 'sent') onSent(c, el);
+    else if (act === 'skip') openSkip(c, el);
+    else if (act === 'tpl') openTpl(c, el);
+    else if (act === 'how') { ls.set('cm_how_' + c.id, b.dataset.h); el.outerHTML = cardHtml(c); }
+  });
+}
+
+function onGo(c, el) {
+  const how = howOf(c), ok = copyText(textFor(c, how));
+  ls.set('cm_open_' + c.id, String(Date.now())); lastOpened = c.id;
+  el.classList.add('opened'); const a = $('[data-after]', el); if (a) a.hidden = false;
+  toast(ok ? 'コピーしました。貼り付けて送ってね' : 'コピーできませんでした。「文章を見る」から長押しでコピーしてね');
+}
+
+// 送信済み・送らない：カードを先に消して、数秒「取り消す」を出してからサーバーへ
+function later(c, el, label, run) {
+  el.classList.add('gone');
+  const go = async () => { pend.delete(c.id); sending.add(c.id); try { await run(); } finally { sending.delete(c.id); render(); } };
+  const t = setTimeout(go, UNDO_MS);
+  pend.set(c.id, { timer: t, run: go });
+  setTimeout(() => { renderHero(); renderCards(); updateBadge(); }, 380);
+  toast(label, '取り消す', () => { clearTimeout(t); pend.delete(c.id); renderHero(); renderCards(); updateBadge(); toast('取り消しました'); });
+}
+function updateBadge() { const n = D.cards.filter(c => !hidden(c.id)).length; $$('[data-badge]').forEach(b => { b.hidden = !n; b.textContent = n; }); }
+
+function onSent(c, el) {
+  const method = howOf(c);
+  later(c, el, '送信済みにしました', async () => {
+    const j = await api('sent', { id: c.id, method });
+    if (j.ok) {
+      D.cards = D.cards.filter(x => x.id !== c.id);
+      D.stats.today++; D.stats.month++; D.stats.total++;
+      ls.del('cm_open_' + c.id); ls.del('cm_how_' + c.id);
+      afterSend(j);
+    } else { toast(errMsg(j)); if (j.error === 'id' || j.error === 'state') setTimeout(load, 300); }
+  });
+}
+function afterSend(j) {
+  const n = D.stats.today;
+  if (!D.cards.length) { burst(); showOver('🎉', '今日の分ぜんぶ完了！', '<p>今日は ' + n + '件 送りました。おつかれさまでした！ Customer List には1時間以内に自動で記入されます。続きは明日の朝。</p>', 'OK'); return; }
+  const k = 'cm_rest_' + D.today + '_' + Math.floor(n / 15);
+  if (n > 0 && n % 15 === 0 && !ls.get(k, '')) { ls.set(k, '1'); showOver('☕', 'ひと休みしよう', '<p>' + n + '通 送りました！ 続けて送りすぎると、Instagramに止められることがあります。<b>少し時間をあけてから</b>続きを送ってください。</p>', '続ける'); }
+}
+
+function doSkip(c, el, reason, note) {
+  later(c, el, '「送らない」にしました', async () => {
+    const j = await api('skip', { id: c.id, reason, note });
+    if (j.ok) { D.cards = D.cards.filter(x => x.id !== c.id); ls.del('cm_open_' + c.id); ls.del('cm_how_' + c.id); }
+    else toast(errMsg(j));
+  });
+}
+
+// ---- 下から出る画面 ----
+function openSheet(html) { const s = $('#sheet'); s.innerHTML = '<div class="grab"></div>' + html; $('#scrim').classList.add('on'); s.classList.add('on'); return s; }
+function closeSheet() { $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on'); }
+
+function openTpl(c, el) {
+  const how = howOf(c), m = splitMail(c.text);
+  const s = openSheet('<h3>' + esc(c.disp || '@' + c.user) + ' への1通目</h3>' +
+    (how === 'メール' && m.subject ? '<div class="lbl">件名</div><div class="preview" style="max-height:none">' + esc(m.subject) + '</div><div class="lbl">本文</div>' : '') +
+    '<div class="preview">' + esc(how === 'メール' ? m.body : m.body) + '</div>' +
+    '<button class="btn go" id="tGo" type="button">' + (how === 'メール' && m.subject ? '本文をコピー' : 'この文章をコピー') + '</button>' +
+    (how === 'メール' && m.subject ? '<button class="btn line" id="tSub" type="button">件名をコピー</button>' : '') +
+    '<button class="btn line" id="tClose" type="button">閉じる</button>');
+  $('#tGo', s).onclick = () => toast(copyText(m.body) ? 'コピーしました' : 'コピーできませんでした。長押しで選んでコピーしてね');
+  if ($('#tSub', s)) $('#tSub', s).onclick = () => toast(copyText(m.subject) ? '件名をコピーしました' : 'コピーできませんでした');
+  $('#tClose', s).onclick = () => { closeSheet(); renderCards(); };
+}
+
+function openSkip(c, el) {
+  const s = openSheet('<h3>あえて送らない理由</h3><div class="reasons">' + D.reasons.map((r, i) => '<label><input type="radio" name="rs" value="' + esc(r) + '"' + (i === 0 ? ' checked' : '') + '>' + esc(r) + '</label>').join('') + '</div>' +
+    '<input class="inp" id="rOther" placeholder="ひとこと（その他のときは必ず）" maxlength="60">' +
+    '<div class="row2"><button class="btn line" id="rCancel" type="button">やめる</button><button class="btn go" id="rOk" type="button">送らないにする</button></div>' +
+    '<p style="margin:0;font-size:12px;color:var(--muted)">専用スプシでも「あえて送らない」になり、翌朝運営が回収します。</p>');
+  $('#rCancel', s).onclick = closeSheet;
+  $('#rOk', s).onclick = () => {
+    const r = ($('input[name=rs]:checked', s) || {}).value || D.reasons[D.reasons.length - 1], o = $('#rOther', s).value.trim();
+    if (/その他/.test(r) && !o) { $('#rOther', s).focus(); toast('ひとこと書いてください'); return; }
+    closeSheet(); doSkip(c, el, r, o);
+  };
+}
+
+// ---- さがす（Customer List を見るだけ） ----
+function bindFind() {
+  const run = async () => {
+    const q = $('#q').value.trim(); if (!q) { $('#q').focus(); return; }
+    const res = $('#res'); res.innerHTML = '<div class="skel" style="height:80px"></div>';
+    const j = await api('check', { q });
+    if (!j.ok) { res.innerHTML = '<div class="note warn">' + esc(errMsg(j)) + '</div>'; return; }
+    showFind(j);
+  };
+  $('#checkBtn').onclick = run;
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+  $('#q').addEventListener('input', e => { const v = e.target.value, n = v.replace(/^\s*@/, '').replace(/\s+/g, ''); if (n !== v) e.target.value = n; });
+}
+function showFind(j) {
+  const res = $('#res'), u = j.user, who = '<div class="hd">@' + esc(u) + ' ・ <a href="' + profUrl(u) + '" target="_blank" rel="noopener">プロフィールを見る</a></div>';
+  if (j.kind === 'mine') { res.innerHTML = '<div class="note ok"><div class="big">あなたが連絡済みです</div>' + esc(j.date || '') + ' に Customer List に記入されています' + (j.disp ? '（' + esc(j.disp) + '）' : '') + '。</div>' + who; return; }
+  if (j.kind === 'others') { res.innerHTML = '<div class="note warn"><div class="big">送らないでください</div>' + (j.by ? esc(j.by) + 'さんが' : 'ほかの人が') + '連絡済みです' + (j.date ? '（' + esc(j.date) + '）' : '') + '。</div>' + who; return; }
+  res.innerHTML = '<div class="note ok"><div class="big">まだ誰も連絡していません！</div>Customer List にはいません。送ったら Customer List に記入してください。</div>' + who +
+    (j.list ? '<a class="btn line" href="' + esc(j.list) + '" target="_blank" rel="noopener">Customer List を開く</a>' : '');
+}
+
+// ---- 自分：今日・今月・これまでの数字（Cheers mate 用。サーバーの stats をそのまま出す） ----
+function renderMe() {
+  const box = $('#meBox'); if (!D) return;
+  const s = D.stats, goal = D.goal || GOAL_MONTH, pct = Math.min(100, Math.round(s.month / goal * 100));
+  const days = s.days || [], mx = Math.max(1, ...days.map(d => d.n));
+  const k = (t, v, u) => '<div class="kpi"><small>' + t + '</small><b>' + v + '</b><span>' + u + '</span></div>';
+  const bm = s.byMsg || {}, keys = Object.keys(bm).filter(x => bm[x] && bm[x].n);
+  box.innerHTML =
+    '<div class="kpis">' + k('今日', s.today, '通') + k('今月', s.month, '通') + k('これまで', s.total, '通') + k('返信', s.reply, '件（' + (s.replyRate || 0) + '%）') + '</div>' +
+    '<div class="panel" style="margin-top:12px"><h2>今月の目標</h2><p class="lead" style="margin:0">' + goal + '通まで あと <b>' + Math.max(0, goal - s.month) + '</b>通（' + pct + '%）・連続 <b>' + (s.streak || 0) + '</b>日</p>' +
+    '<div class="goalbar"><i style="width:' + pct + '%"></i></div></div>' +
+    (days.length ? '<div class="panel" style="margin-top:12px"><h2>日ごとの送信</h2><div class="bars">' + days.map((d, i) => '<div' + (i === days.length - 1 ? ' class="t"' : '') + ' title="' + esc(d.d) + '：' + d.n + '通"><em>' + (d.n || '') + '</em><i style="height:' + Math.round(d.n / mx * 80) + 'px"></i><em>' + esc(String(d.d).replace(/^\d+\//, '')) + '</em></div>').join('') + '</div></div>' : '') +
+    (keys.length ? '<div class="panel" style="margin-top:12px"><h2>文章ごとの返信</h2><table class="msgt"><tr><th>文章</th><th>送信</th><th>返信</th><th>返信率</th></tr>' +
+      keys.map(x => '<tr><td><b>' + esc(x) + '</b></td><td>' + bm[x].n + '</td><td>' + bm[x].reply + '</td><td>' + (bm[x].n ? (bm[x].reply / bm[x].n * 100).toFixed(1) : '0') + '%</td></tr>').join('') + '</table></div>' : '') +
+    '<p style="font-size:12px;color:var(--muted);margin:10px 2px">送信は配布台帳の「送信完了」（毎時の記入のあと）、返信は Customer List の「返信」列から数えています。数字は15分ごとに新しくなります。</p>';
+}
+function loadMe() {}
+
+// ---- お知らせ ----
+let toastT = 0;
+function toast(msg, btn, fn) {
+  const t = $('#toast'); $('#toastMsg').textContent = msg; const b = $('#toastBtn');
+  b.hidden = !btn; if (btn) { b.textContent = btn; b.onclick = () => { t.classList.remove('on'); fn && fn(); }; }
+  t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), btn ? UNDO_MS : 2800);
+}
+function showOver(em, title, body, btn, fn) {
+  $('#overBox').innerHTML = '<div class="em">' + em + '</div><h3>' + title + '</h3>' + body + (btn ? '<button class="btn go" id="overOk" type="button">' + btn + '</button>' : '');
+  $('#over').hidden = false; const b = $('#overOk'); if (b) b.onclick = () => { $('#over').hidden = true; fn && fn(); };
+}
+function burst() {
+  const em = ['🎉', '🍵', '✨', '☕', '🌏', '💛'];
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('div'); s.className = 'burst'; s.textContent = em[i % em.length];
+    s.style.left = (40 + Math.random() * 20) + 'vw'; s.style.top = '55vh';
+    s.style.setProperty('--dx', (Math.random() * 80 - 40) + 'vw'); s.style.setProperty('--dy', -(20 + Math.random() * 50) + 'vh'); s.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 1300);
+  }
+}
+
+// ---- 画面の切り替え・読み込み ----
+function showTab(t) {
+  ['today', 'find', 'me'].forEach(k => { $('#v-' + k).hidden = k !== t; });
+  $$('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  ls.set('cm_tab', t); window.scrollTo(0, 0);
+  if (t === 'me') loadMe();
+}
+let loading = false, loadedAt = 0;
+async function load() {
+  if (loading) return; loading = true; $$('[data-reload]').forEach(b => b.classList.add('spin'));
+  const j = await api('me');
+  loading = false; $$('[data-reload]').forEach(b => b.classList.remove('spin'));
+  if (!j.ok) {
+    if (!D) { $('#cards').innerHTML = '<div class="empty"><b>読み込めませんでした</b>' + esc(errMsg(j)) + '</div>'; $('#hTitle').textContent = '—'; }
+    else toast(errMsg(j));
+    if (j.error === 'key') ls.del('cm_key');
+    return;
+  }
+  D = j; loadedAt = Date.now(); render(); saveCache(); firstRun();
+}
+// 前回の中身を端末に置いて、開いた瞬間に出す（サーバーの返事は数秒かかるため。届いたら差し替える）
+function todayJst() { const p = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); const g = t => (p.find(x => x.type === t) || {}).value; return g('year') + '/' + g('month') + '/' + g('day'); }
+function saveCache() { if (D && !DEMO) ls.set('cm_cache', JSON.stringify({ k: KEY.slice(0, 6), d: D })); }
+function loadCache() {
+  try { const c = JSON.parse(ls.get('cm_cache', '') || 'null'); if (c && c.k === KEY.slice(0, 6) && c.d && c.d.today === todayJst()) { D = c.d; render(); } } catch (e) {}
+}
+function firstRun() {
+  if (ls.get('cm_agree', '')) return;
+  showOver('🍵', 'Cheers mate DMへようこそ', '<p>' + esc(D.name) + 'さん専用のページです。</p><ul><li>このURLは<b>ほかの人に渡さないで</b>ください</li><li>お店の情報は外に出さないでください</li><li>届くお店は専用スプシ「見込み顧客リスト」と同じです</li><li>送信は自分で押します（ページは文章のコピーと、Instagram・メール・サイトを開くところまで）</li><li>送ったら必ず「送信済み」を押してください（1時間以内に Customer List に自動で記入されます）</li><li>15通ごとにひと休み</li></ul><p>ホーム画面に追加すると、アプリのように開けます（iPhoneは共有ボタン→「ホーム画面に追加」）。</p>', 'わかりました', () => ls.set('cm_agree', '1'));
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // 閉じる前に、取り消し待ちの操作はすぐ送る
+    pend.forEach((p, id) => { clearTimeout(p.timer); pend.delete(id); p.run(); });
+    return;
+  }
+  if (lastOpened) {   // Instagram から戻ってきた
+    const el = $('.card[data-id="' + lastOpened + '"]');
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('送れたら「送信済み」を押してね'); }
+    lastOpened = '';
+  }
+  if (Date.now() - loadedAt > 5 * 60 * 1000 && !pend.size) load();
+});
+
+$$('[data-tab]').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+$$('[data-reload]').forEach(b => b.onclick = () => load());
+$('#scrim').onclick = () => { closeSheet(); renderCards(); };
+bindCards(); bindFind();
+showTab(['today', 'find', 'me'].includes(ls.get('cm_tab', 'today')) ? ls.get('cm_tab', 'today') : 'today');
+if (!KEY && !DEMO) {
+  $('#hTitle').textContent = '専用URLで開いてください';
+  $('#cards').innerHTML = '<div class="empty"><b>専用URLで開いてください</b>運営から届いた「#k=…」付きのURLで開くと使えます。</div>';
+  $('#meBox').innerHTML = '';
+} else if (!API && !DEMO) {
+  $('#hTitle').textContent = '準備中です';
+  $('#cards').innerHTML = '<div class="empty"><b>準備中です</b>もうすぐ使えるようになります。</div>';
+} else { if (!DEMO) loadCache(); load(); }
+
+// ---- 見本（?demo=1）：架空のデータ。どこにも記録しない ----
+function demoApi(action, body) {
+  if (action === 'check') return Promise.resolve({ ok: true, kind: 'new', user: String(body.q || 'cafe_sample').replace(/^.*instagram\.com\//, '').replace(/[/?].*$/, '').replace(/^@/, ''), list: '#' });
+  if (action !== 'me') return Promise.resolve({ ok: true, kind: 'ok', row: 1 });
+  const T = n => 'Dear ' + n + ' Team,\n\nI\'m reaching out from Japan. We supply authentic Japanese matcha to cafes, and wholesalers around the world.\n\nQuick question:\nAre you 100% satisfied with your current Matcha?\n\n(見本の文章です)';
+  const days = Array.from({ length: 14 }, (_, i) => ({ d: '11/' + String(i + 4).padStart(2, '0'), n: [6, 12, 0, 15, 20, 9, 18, 20, 0, 14, 20, 16, 11, 8][i] }));
+  return Promise.resolve({ ok: true, name: '見本', today: '2026/11/17', perDay: 20, goal: 500,
+    stats: { total: 412, month: 169, today: 8, reply: 27, replyRate: 6.6, streak: 4, days, byMsg: { T09: { n: 300, reply: 21 }, T10: { n: 112, reply: 6 } } },
+    cards: [
+      { id: 'd1', disp: 'Greystones Cafe', user: 'greystonescafe', method: 'Instagram', country: 'Canada', kind: 'カフェ', site: '', mail: '', text: T('Greystones Cafe'), tno: 'T09', left: 2 },
+      { id: 'd2', disp: 'Kokoon Tea', user: 'kokoon_tea', method: 'メール', country: 'Romania', kind: '卸業者', site: 'https://example.com/', mail: 'hello@example.com', text: 'Subject: The matcha source your competitors don\'t know\n\n' + T('Kokoon Tea'), tno: 'T09', left: 1 },
+      { id: 'd3', disp: 'Matcha Haus Atelier', user: '', method: 'お問合せフォーム', country: 'Canada', kind: '卸業者', site: 'https://example.com/', mail: '', text: T('Matcha Haus Atelier'), tno: 'T09', left: 0 },
+      { id: 'd4', disp: 'MORI Matcha Cafe Atelier', user: 'mori.cph', method: 'Instagram', country: 'Denmark', kind: 'カフェ', site: '', mail: '', text: T('MORI Matcha Cafe Atelier'), tno: 'T10', left: 2 }],
+    reasons: ['抹茶・カフェと関係ない', 'お店がない・閉店', '連絡先が見つからない', 'インスタしかない', '前に自分で送った', '送れない国', 'その他（メモに書く）'], sheet: '#' });
+}
+</script>
+</body>
+</html>
