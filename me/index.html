@@ -198,6 +198,37 @@ h1 span { display: inline-block; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .ctb-tile .emo, .ctb-fav .bub { animation: none; } }
 
+/* 今月の報酬 */
+.pay { display: grid; gap: 16px; }
+.pay-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; }
+.pay-total .k { font-size: 13.5px; font-weight: 900; color: var(--muted); }
+.pay-total .v { font: 700 56px/1 var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.pay-total .v small { font-size: 30px; margin-right: 2px; }
+.pay-when { display: grid; gap: 2px; justify-items: end; text-align: right; }
+.pay-when .k { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.pay-when .v { font: 700 20px var(--font-num); color: var(--head); }
+.pay-when .v span { font: 700 13px var(--font-jp); color: var(--muted); margin-left: 3px; }
+@media (max-width: 600px) { .pay-when { justify-items: start; text-align: left; } .pay-total .v { font-size: 48px; } }
+.pay-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--line); gap: 2px; }
+.pay-bar i { display: block; min-width: 4px; }
+.pay-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.pay-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 12px; padding: 11px 0; border-top: 1px solid var(--line); }
+.pay-row:first-child { border-top: 0; padding-top: 2px; }
+.pay-row .sw { width: 12px; height: 12px; border-radius: 4px; }
+.pay-row .t { font-weight: 900; color: var(--head); font-size: 15px; }
+.pay-row .t small { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); word-break: auto-phrase; }
+.pay-row .t small b { font-family: var(--font-num); color: var(--ink); font-size: 13.5px; }
+.pay-row .y { font: 700 22px var(--font-num); color: var(--head); font-variant-numeric: tabular-nums; text-align: right; }
+.pay-row.zero .y { color: var(--muted); }
+.pay-hint { grid-column: 2 / -1; justify-self: start; font-size: 12px; font-weight: 900; color: var(--gold-ink); background: var(--yellow-soft); border-radius: 999px; padding: 2px 10px; word-break: auto-phrase; }
+.pay-sub { display: grid; gap: 8px; }
+.pay-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 10px 14px; border-radius: 12px; background: var(--sky-soft); font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.pay-note.wait { background: var(--yellow-soft); }
+.pay-note b { font: 700 16px var(--font-num); color: var(--head); }
+.pay-note span { color: var(--muted); font-size: 12.5px; }
+.pay-foot { font-size: 11.5px; color: var(--muted); word-break: auto-phrase; }
+.pay-load { color: var(--muted); font-weight: 700; font-size: 14px; }
+
 /* 目標までの進み具合 */
 .goal { display: grid; gap: 10px; }
 .goal-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
@@ -309,6 +340,15 @@ td.z .c { color: var(--muted); font-weight: 500; }
     <p class="kv-legend"><span><b>黄色の％</b>＝ひとつ前のステージから進んだ割合</span></p>
   </section>
 
+  <section class="sec" aria-labelledby="payH">
+    <div class="sec-h">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M6 4l6 8 6-8M12 12v8M7 13h10M7 17h10"/></svg></span>
+      <h2 id="payH">今月の報酬</h2>
+      <span class="scope" id="payScope"></span>
+    </div>
+    <div class="card pay" id="pay"><div class="pay-load">報酬を計算しています…</div></div>
+  </section>
+
   <section class="sec" aria-labelledby="nowH">
     <div class="sec-h">
       <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
@@ -380,6 +420,8 @@ td.z .c { color: var(--muted); font-weight: 500; }
   var SALT = 'tabicari-me:';     // make_links.py と同じ
   var GOAL = 500;                // 1か月の送信目標
   var COMM_URL = 'community.json';   // Discordでの貢献（~/cm-discord-archive/tabi_community.py が毎朝作る）
+  // 報酬：通知ログスプシの Apps Script（報酬API.gs）のウェブアプリURL（…/exec）。空のあいだは送信の報酬だけをこのページで計算する
+  var PAY_API = 'https://script.google.com/macros/s/AKfycbzZ5_zC7A8p43NG5unSaeKAP3OzpvHF6Lz_dLY-ZNETLdPOS1ZJjqhAeIc_oQ5KkWZL/exec';
   var SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID;
   function csvUrl(gid) { return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&headers=1&gid=' + gid; }
 
@@ -511,7 +553,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
   }
 
   // ===== 状態 =====
-  var S = { rows: [], me: '', meKey: '', tok: '', comm: null, period: 'all', demo: false };
+  var S = { rows: [], me: '', meKey: '', tok: '', comm: null, pay: null, period: 'all', demo: false };
   try { var sp = localStorage.getItem('tc-me-period'); if (sp) S.period = sp; } catch (e) {}
 
   function $(id) { return document.getElementById(id); }
@@ -745,12 +787,134 @@ td.z .c { color: var(--muted); font-weight: 500; }
     }).join('');
   }
 
+  // ===== 今月の報酬 =====
+  // 正式な計算は Apps Script（報酬API.gs）＝運営の「支払明細」タブと同じ。届かないときは送信の報酬だけをここで見積もる
+  var PAY_RULES = { rates: [{ min: 0, yen: 2000 }, { min: 5, yen: 2100 }, { min: 10, yen: 2200 }, { min: 15, yen: 2300 }, { min: 20, yen: 2400 }, { min: 25, yen: 2500 }],
+    sendMin: 500, sendBase: 5000, sendStep: 1000, firstYen: 10, dealYen: 15000 };
+  var PAY_MERGE = '2026-11', PAY_FROM = '2026-10-01';   // 10月に始めた人は11月にまとめる（10/1〜11/30の送信×10円）
+  var PAY_COLORS = { send: 'var(--sky)', apo: 'var(--yellow)', deal: 'var(--ok)', adj: 'var(--team)' };
+  function ym(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+  function parseYmd(s) { var m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function yen(n) { return '¥' + fmt(Math.round(n)); }
+  function wd(d) { return '日月火水木金土'.charAt(d.getDay()); }
+  function lastBizDay(y, m) {   // その月の最終営業日（土日・年末年始を除く。正式な日付は Apps Script 側で銀行休業日も見る）
+    var d = new Date(y, m + 1, 0);
+    while (d.getDay() === 0 || d.getDay() === 6 || (d.getMonth() === 11 && d.getDate() === 31) || (d.getMonth() === 0 && d.getDate() <= 3)) d.setDate(d.getDate() - 1);
+    return d;
+  }
+  function sendYenOf(n, first, R) { return first ? n * R.firstYen : n < R.sendMin ? 0 : R.sendBase + Math.floor((n - R.sendMin) / 100) * R.sendStep; }
+  function rateOf(n, R) { var y = 0, b = -1; R.rates.forEach(function (r) { if (n >= r.min && r.min > b) { b = r.min; y = r.yen; } }); return y; }
+  function nextRate(n, R) { var nx = null; R.rates.forEach(function (r) { if (r.min > n && (!nx || r.min < nx.min)) nx = r; }); return nx; }
+  // Apps Script が使えないとき：顧客リストから今月の送信報酬だけを見積もる
+  function payLocal() {
+    var t = new Date(), m = new Date(t.getFullYear(), t.getMonth(), 1), next = new Date(t.getFullYear(), t.getMonth() + 1, 1);
+    var dates = S.rows.filter(function (r) { return mine(r) && r.sent && r.date; }).map(function (r) { return r.date; }).sort();
+    var first = dates[0] || '', fm = '';
+    if (first) fm = first >= PAY_FROM && first < PAY_MERGE + '-01' ? PAY_MERGE : first.slice(0, 7);
+    var isFirst = fm === ym(m), merged = isFirst && ym(m) === PAY_MERGE;
+    var from = merged ? PAY_FROM : ymd(m), to = ymd(next);
+    var n = dates.filter(function (d) { return d >= from && d < to; }).length;
+    var sy = sendYenOf(n, isFirst, PAY_RULES);
+    return { ok: true, local: true, months: [{ month: ym(m), sends: n, first: isFirst, merged: merged, from: from, sendYen: sy,
+      apo: null, apoUnit: 0, apoYen: 0, deals: null, dealYen: 0, adjust: 0, total: sy, payDate: ymd(lastBizDay(m.getFullYear(), m.getMonth() + 1)) }], pending: [], rules: PAY_RULES };
+  }
+  function demoPay() {
+    var t = new Date(), m = ym(t), pm = ym(new Date(t.getFullYear(), t.getMonth() - 1, 1));
+    var fix = new Date(t.getTime() + 20 * 86400000);
+    return { ok: true, months: [
+      { month: pm, sends: 540, first: false, sendYen: 5000, apo: 2, apoUnit: 2000, apoYen: 4000, deals: 0, dealYen: 0, adjust: 0, total: 9000, payDate: ymd(lastBizDay(t.getFullYear(), t.getMonth())) },
+      { month: m, sends: 312, first: false, sendYen: 0, apo: 4, apoUnit: 2000, apoYen: 8000, deals: 1, dealYen: 15000, adjust: 0, total: 23000, payDate: ymd(lastBizDay(t.getFullYear(), t.getMonth() + 1)) }],
+      pending: [{ fix: ymd(fix), pay: ymd(lastBizDay(fix.getFullYear(), fix.getMonth() + 1)), yen: 15000 }], rules: PAY_RULES };
+  }
+  function loadPay(tok) {
+    if (!PAY_API || !tok) return Promise.resolve(null);
+    var ctl = window.AbortController ? new AbortController() : null, tm = ctl && setTimeout(function () { ctl.abort(); }, 20000);
+    return fetch(PAY_API + '?pay=' + encodeURIComponent(tok) + '&_=' + Date.now(), { cache: 'no-store', redirect: 'follow', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (j) { clearTimeout(tm); return j; });
+  }
+  function renderPay() {
+    var box = $('pay');
+    if (S.pay === 'loading') { box.innerHTML = '<div class="pay-load">報酬を計算しています…</div>'; $('payScope').textContent = ''; return; }
+    var P = S.pay && S.pay.ok ? S.pay : null;
+    if (S.pay && S.pay.error === 'not_found') {
+      $('payScope').textContent = '';
+      box.innerHTML = '<div class="pay-load">報酬の名簿にまだ入っていないため、ここには出ません。運営にお知らせください。</div>';
+      return;
+    }
+    if (!P) P = payLocal();
+    var R = P.rules || PAY_RULES, mo = P.months[P.months.length - 1], prev = P.months.length > 1 ? P.months[P.months.length - 2] : null;
+    var mm = +mo.month.slice(5), pd = parseYmd(mo.payDate), now = new Date();
+    $('payScope').textContent = mm + '月分・' + (now.getMonth() + 1) + '/' + now.getDate() + ' 時点';
+
+    // ① 送信
+    var sendLine, sendHint = '';
+    if (mo.first) sendLine = '<b>' + fmt(mo.sends) + '</b>通 × ' + R.firstYen + '円' + (mo.merged ? '（初月：10月の分もいっしょに）' : '（初月）');
+    else if (mo.sends >= R.sendMin) {
+      sendLine = '<b>' + fmt(mo.sends) + '</b>通（' + fmt(R.sendMin) + '通で' + yen(R.sendBase) + '＋100通ごと' + yen(R.sendStep) + '）';
+      sendHint = 'あと' + fmt(100 - (mo.sends - R.sendMin) % 100) + '通で +' + yen(R.sendStep);
+    } else {
+      sendLine = '<b>' + fmt(mo.sends) + '</b>通（' + fmt(R.sendMin) + '通から ' + yen(R.sendBase) + '）';
+      sendHint = 'あと' + fmt(R.sendMin - mo.sends) + '通で ' + yen(R.sendBase) + '！';
+    }
+    // ② アポ
+    var apoLine, apoHint = '';
+    if (mo.apo == null) apoLine = '準備中（月末の明細でお知らせします）';
+    else {
+      apoLine = '<b>' + fmt(mo.apo) + '</b>件 × ' + yen(mo.apoUnit || rateOf(mo.apo, R));
+      var nx = nextRate(mo.apo, R);
+      if (nx) apoHint = 'あと' + (nx.min - mo.apo) + '件で 1件' + yen(nx.yen) + 'に（今月の全件）';
+    }
+    // ③ 成約
+    var dealLine = mo.deals == null ? '準備中（月末の明細でお知らせします）'
+      : '<b>' + fmt(mo.deals) + '</b>件（成約から30日たって確定した分）';
+
+    var rows = [
+      ['send', '① DM送信', sendLine, mo.sendYen, sendHint],
+      ['apo', '② アポ', apoLine, mo.apoYen, apoHint],
+      ['deal', '③ 成約', dealLine, mo.dealYen, '']
+    ];
+    if (mo.adjust) rows.push(['adj', '調整', '運営が手で入れた分', mo.adjust, '']);
+    var parts = rows.filter(function (r) { return r[3] > 0; });
+    var bar = mo.total > 0 ? '<div class="pay-bar" role="img" aria-label="内訳の割合">' + parts.map(function (r) {
+      return '<i style="flex:' + r[3] + ';background:' + PAY_COLORS[r[0]] + '"></i>';
+    }).join('') + '</div>' : '';
+
+    var subs = [];
+    (P.pending || []).forEach(function (x) {
+      var f = parseYmd(x.fix), p = parseYmd(x.pay);
+      subs.push('<div class="pay-note wait">⏳ 確定待ちの成約 <b>' + yen(x.yen) + '</b><span>' + (f ? md(f) + 'に確定' : '') + (p ? ' → ' + md(p) + '（' + wd(p) + '）にお支払い' : '') + '</span></div>');
+    });
+    if (prev && prev.total > 0) {
+      var pp = parseYmd(prev.payDate);
+      subs.push('<div class="pay-note">💰 ' + (+prev.month.slice(5)) + '月分 <b>' + yen(prev.total) + '</b><span>' + (pp ? md(pp) + '（' + wd(pp) + '）にお支払い予定' : '') + '</span></div>');
+    }
+
+    box.innerHTML =
+      '<div class="pay-top"><div class="pay-total"><div class="k">' + mm + '月分の報酬（いまの時点）</div><div class="v"><small>¥</small><span class="cu" data-to="' + Math.round(mo.total) + '" style="font:inherit;color:inherit">0</span></div></div>' +
+      (pd ? '<div class="pay-when"><div class="k">お支払い予定日</div><div class="v">' + md(pd) + '<span>（' + wd(pd) + '）</span></div></div>' : '') + '</div>' +
+      bar +
+      '<ul class="pay-list">' + rows.map(function (r) {
+        return '<li class="pay-row' + (r[3] > 0 ? '' : ' zero') + '"><span class="sw" style="background:' + PAY_COLORS[r[0]] + '"></span>' +
+          '<span class="t">' + r[1] + '<small>' + r[2] + '</small></span><span class="y">' + yen(r[3]) + '</span>' +
+          (r[4] ? '<span class="pay-hint">' + esc(r[4]) + '</span>' : '') + '</li>';
+      }).join('') + '</ul>' +
+      (subs.length ? '<div class="pay-sub">' + subs.join('') + '</div>' : '') +
+      '<div class="pay-foot">' + (P.local
+        ? 'いまは送信の報酬だけをこのページで計算しています（アポ・成約は月末の明細でお知らせします）。'
+        : '運営の報酬明細と同じ計算です。') +
+        '月末で締めて、正式な金額は明細書でお知らせします。①②は翌月末、③は成約から30日たって確定した月の翌月末のお支払いです。</div>';
+    Array.prototype.forEach.call(box.querySelectorAll('.cu'), countUp);
+  }
+
   function render() {
     Array.prototype.forEach.call($('segPeriod').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.period)); });
     var my = S.rows.filter(mine);
     var mySent = my.filter(function (r) { return r.sent && inPeriod(r); });
     var allSent = S.rows.filter(function (r) { return r.sent && inPeriod(r); });
     renderKV(count(mySent));
+    renderPay();
     renderNow(my);
     renderCtb();
     renderChart(my);
@@ -790,7 +954,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
   function load(byUser) {   // byUser＝ボタンから（押したときだけ「最新になりました！」を出す）
     var want = wantedToken();
     if (want === 'demo') {
-      S.demo = true; S.rows = demoRows(); S.me = 'みほん'; S.meKey = normKey('みほん'); S.tok = 'demo'; S.comm = demoComm();
+      S.demo = true; S.rows = demoRows(); S.me = 'みほん'; S.meKey = normKey('みほん'); S.tok = 'demo'; S.comm = demoComm(); S.pay = demoPay();
       setChip('demo', 'サンプル表示中');
       notice('<span><b>サンプルの数字で表示しています。</b>本人のURLで開くと、その人の数字になります。</span>');
       show(true); return;
@@ -802,10 +966,14 @@ td.z .c { color: var(--muted); font-weight: 500; }
       show(false); return;
     }
     setChip('', '読み込み中…'); setBtn('loading');
+    var payDone = false;
+    if (PAY_API) S.pay = 'loading';
+    loadPay(want).then(function (j) { payDone = true; S.pay = j; if (S.meKey) renderPay(); });
     var comm = fetch(COMM_URL + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     Promise.all([getText(csvUrl(LIST_GID)), getText(csvUrl(LINE_GID)).catch(function () { return ''; }), comm]).then(function (res) {
       S.rows = toRows(res[0]);
       S.comm = res[2]; S.tok = want;
+      if (PAY_API && !payDone) S.pay = 'loading';
       var names = {}, order = [];
       lineNames(res[1]).concat(S.rows.map(function (r) { return r.who; })).forEach(function (n) {
         var k = normKey(n); if (k && !names[k]) { names[k] = n; order.push(k); }   // LINE案内の表記を優先
