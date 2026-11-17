@@ -421,7 +421,7 @@ td.z .c { color: var(--muted); font-weight: 500; }
   var GOAL = 500;                // 1か月の送信目標
   var COMM_URL = 'community.json';   // Discordでの貢献（~/cm-discord-archive/tabi_community.py が毎朝作る）
   // 報酬：通知ログスプシの Apps Script（報酬API.gs）のウェブアプリURL（…/exec）。空のあいだは送信の報酬だけをこのページで計算する
-  var PAY_API = '';
+  var PAY_API = 'https://script.google.com/macros/s/AKfycbzZ5_zC7A8p43NG5unSaeKAP3OzpvHF6Lz_dLY-ZNETLdPOS1ZJjqhAeIc_oQ5KkWZL/exec';
   var SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit#gid=' + LIST_GID;
   function csvUrl(gid) { return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&headers=1&gid=' + gid; }
 
