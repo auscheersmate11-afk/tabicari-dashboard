@@ -298,6 +298,14 @@ table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
 .pcell.main.behind { background: var(--warn-soft); border-color: var(--warn); }
 .pcell.main.ahead { background: var(--ok-soft); border-color: var(--ok); }
 .pcell.main .k, .pcell.main .d { color: var(--ink); }
+.rule { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 4px 0 14px; display: grid; gap: 4px; }
+.rule.ahead { background: var(--ok-soft); border-color: var(--ok); } .rule.behind { background: var(--warn-soft); border-color: var(--warn); }
+.rule .rk { font-size: 12px; font-weight: 900; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 8px; } .rule .rk span { color: var(--ink); }
+.rule .rv { font-size: 13px; font-weight: 700; color: var(--muted); } .rule .rv b { font: 700 30px var(--num); margin-right: 2px; }
+.rule.ahead .rv b { color: var(--ok); } .rule.behind .rv b { color: var(--warn); }
+.rule .rv em { font-style: normal; margin-left: 8px; font-size: 12px; }
+.rule .gbar { background: var(--surface); margin: 2px 0; }
+.rule .rn { font-size: 12.5px; font-weight: 700; color: var(--ink); } .rule .rn b { font-family: var(--num); font-size: 14px; }
 .gbar { position: relative; height: 12px; border-radius: 99px; background: var(--soft); margin: 2px 0 6px; }
 .gbar .fill { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--ok); width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
 .gbar.behind .fill { background: var(--warn); }
@@ -607,7 +615,7 @@ function renderHero() {
   const open = D.cards.filter(c => !hidden(c.id)).length;
   $('#hero').classList.toggle('done', !open && sent > 0);
   $('#hTitle').innerHTML = !open ? (sent ? '今日の分ぜんぶ完了！おつかれさまでした🎉' : '今は送る相手がいません') : 'のこり<span class="num"> ' + left + ' </span>件';
-  $('#hMeta').innerHTML = '<span>配布の残り<b>' + open + '</b>件</span><span>今月<b>' + s.month + '</b>/ ' + (D.goal || GOAL_MONTH) + '通</span><span>連続<b>' + s.streak + '</b>日</span>';
+  $('#hMeta').innerHTML = '<span>配布の残り<b>' + open + '</b>件</span><span>今月<b>' + s.month + '</b>/ ' + (((typeof H !== 'undefined' && H) ? (groupRule() || {}).month : 0) || D.goal || GOAL_MONTH) + '通</span><span>連続<b>' + s.streak + '</b>日</span>';
 }
 
 function cardHtml(c) {
@@ -804,9 +812,60 @@ function ringSvg(r, pct, cls) { const c = 2 * Math.PI * r; return '<svg viewBox=
 const cu = (n, cls) => '<span class="cu' + (cls ? ' ' + cls : '') + '" data-to="' + (+n || 0) + '">' + fmtN(n) + '</span>';
 const pctS = (a, b) => b ? (a / b * 100 >= 10 ? Math.round(a / b * 100) : (a / b * 100).toFixed(1)) + '%' : '—';
 
+// 同期・シャッフルのグループで決めたDM件数のルール（H.gp[].dm）。いちばん多いルールに合わせる
+//   1日N件 → 月の目標 N×その月の日数 ／ 週N件 → N÷7×日数。1日1件（同期の21日チャレンジ）は「続ける」ルールなので月の目標は500のまま
+function groupRule() {
+  if (!H || !H.gp) return null;
+  let best = null;
+  H.gp.forEach(g => {
+    const r = g.dm; if (!r || !r.n || !/挑戦中|参加中/.test(g.phase || '')) return;
+    const rate = r.per === 'week' ? r.n / 7 : r.n;
+    if (!best || rate > best.rate) best = { ...r, rate, group: g.name, kind: g.kind };
+  });
+  if (!best) return null;
+  const td = new Date(todayJst().replace(/\//g, '-') + 'T00:00:00'), dim = new Date(td.getFullYear(), td.getMonth() + 1, 0).getDate();
+  best.month = best.rate >= 2 ? Math.round(best.rate * dim) : 0;
+  return best;
+}
+// H.days から日付ごとの送信数（今日の分はページの数を優先）
+function sentOn(ds, N) {
+  if (ds === todayJst().replace(/\//g, '-')) return N.today;
+  const ym = ds.slice(0, 7), d = String(+ds.slice(8));
+  return H && H.days && H.days[ym] && H.days[ym][d] ? H.days[ym][d][0] || 0 : 0;
+}
+function ruleCard(GR, N) {
+  if (!GR) return '';
+  const T = todayJst().replace(/\//g, '-'), dd = s2 => new Date(s2 + 'T00:00:00'), iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const mdS = s2 => +s2.slice(5, 7) + '/' + +s2.slice(8);
+  let k, now, need, unit = '通', note, st;
+  if (GR.per === 'week') {
+    let f = GR.wf ? dd(GR.wf) : dd(T), t = new Date(f); t.setDate(f.getDate() + 6);
+    while (iso(t) < T) { f.setDate(f.getDate() + 7); t.setDate(t.getDate() + 7); }
+    const el = Math.round((dd(T) - f) / 86400000) + 1;
+    now = 0; for (let x = new Date(f); iso(x) <= T; x.setDate(x.getDate() + 1)) now += sentOn(iso(x), N);
+    need = Math.round(GR.n * el / 7); const lag = now - need;
+    k = '今週（' + mdS(iso(f)) + '〜' + mdS(iso(t)) + '）のルール 週' + GR.n + '件';
+    st = lag >= 0 ? 'ahead' : 'behind';
+    note = now >= GR.n ? '今週の分は達成！🎉' : lag >= 0 ? '今日までの目安 ' + need + '件より <b>' + lag + '</b>件 先行' : '今日までの目安 ' + need + '件まで あと <b>' + (-lag) + '</b>件';
+    return '<div class="rule ' + st + '"><div class="rk">' + esc(GR.group) + '<span>' + esc(GR.label) + '</span></div><div class="rv"><b>' + now + '</b> / ' + GR.n + '件<em>' + k.replace(/のルール.*/, '') + '</em></div><div class="gbar ' + st + '"><span class="fill" data-w="' + Math.min(100, now / GR.n * 100).toFixed(1) + '"></span><span class="mark" style="left:' + Math.min(100, need / GR.n * 100).toFixed(1) + '%"></span></div><div class="rn">' + note + '</div></div>';
+  }
+  if (GR.n >= 2) {
+    now = N.today; st = now >= GR.n ? 'ahead' : 'behind';
+    note = now >= GR.n ? '今日の分は達成！🎉' : '今日あと <b>' + (GR.n - now) + '</b>件 でクリア';
+    return '<div class="rule ' + st + '"><div class="rk">' + esc(GR.group) + '<span>' + esc(GR.label) + '</span></div><div class="rv"><b>' + now + '</b> / ' + GR.n + '件<em>今日</em></div><div class="gbar ' + st + '"><span class="fill" data-w="' + Math.min(100, now / GR.n * 100).toFixed(1) + '"></span></div><div class="rn">' + note + '</div></div>';
+  }
+  // 1日1件：今月、送れた日
+  let ok = 0; const day = N.day, ym = T.slice(0, 7);
+  for (let d = 1; d <= day; d++) if (sentOn(ym + '-' + String(d).padStart(2, '0'), N) > 0) ok++;
+  const miss = day - ok; st = N.today > 0 ? 'ahead' : 'behind';
+  note = (N.today > 0 ? '今日はクリア！' : '今日あと <b>1</b>件 送ればクリア') + (miss ? '（今月 送れなかった日 ' + miss + '日）' : '（今月は毎日続いています🔥）');
+  return '<div class="rule ' + st + '"><div class="rk">' + esc(GR.group) + '<span>' + esc(GR.label) + '</span></div><div class="rv"><b>' + ok + '</b> / ' + day + '日<em>今月 送れた日</em></div><div class="gbar ' + st + '"><span class="fill" data-w="' + (ok / Math.max(1, day) * 100).toFixed(1) + '"></span></div><div class="rn">' + note + '</div></div>';
+}
+
 function renderMe() {
   const box = $('#meBox'); if (!D) return;
-  const N = meNums(), L = N.L, goal = D.goal || GOAL_MONTH, nm = String(D.name || '').replace(/\s/g, '');
+  const N = meNums(), L = N.L, nm = String(D.name || '').replace(/\s/g, '');
+  const GR = groupRule(), goal = GR && GR.month ? GR.month : (D.goal || GOAL_MONTH);
   const lvI = levelOf(N.all.s), lv = LEVELS[lvI], nx = LEVELS[lvI + 1];
   const lvPct = nx ? (N.all.s - lv[0]) / (nx[0] - lv[0]) : 1;
   const leaves = ['🍃', '🍵', '✨', '🍃', '🌿'].map((e, i) => '<span class="leaf" style="left:' + (12 + i * 19) + '%;animation-delay:' + (i * 1.3) + 's">' + e + '</span>').join('');
@@ -842,7 +901,7 @@ function renderMe() {
     '</div>' +
     '<div class="gbar ' + st + '" role="img" aria-label="目標' + goal + '通のうち' + N.mon.s + '通"><span class="fill" data-w="' + Math.min(100, N.mon.s / goal * 100).toFixed(1) + '"></span><span class="mark" style="left:' + Math.min(100, expect / goal * 100).toFixed(1) + '%"></span></div>' +
     '<div class="gsub"><span><i></i>今日までの目標 ' + expect + '通</span><span>' + Math.floor(N.mon.s / goal * 100) + '%</span></div>';
-  h += '<section class="me-sec"><h2><span class="ic">📅</span>いまの状況</h2><p class="sub">' + (+N.now.slice(5)) + '月の目標 ' + goal + '通（' + N.day + '日目 / ' + dim + '日）</p>' + pgrid +
+  h += '<section class="me-sec"><h2><span class="ic">📅</span>いまの状況</h2><p class="sub">' + (+N.now.slice(5)) + '月の目標 ' + goal + '通（' + N.day + '日目 / ' + dim + '日）' + (GR && GR.month ? '<br>' + esc(GR.group) + 'のルール「' + esc(GR.label) + '」に合わせた目標です' : '') + '</p>' + pgrid + ruleCard(GR, N) +
     '<div class="now-grid"><div class="ring">' + ringSvg(53, N.mon.s / goal) + '<div class="pc"><b>' + cu(N.mon.s) + '</b><small>/ ' + goal + '通</small></div></div>' +
     '<div class="now-list"><div class="now-row">今日<b>' + cu(N.today) + '<span>通</span></b></div><div class="now-row">連続で送った日<b>' + cu(L.streak || 0) + '<span>日</span></b></div>' +
     '<div class="now-row">今月 送った<b>' + cu(N.mon.s) + '<span>通</span></b></div></div></div>' +
@@ -1079,7 +1138,7 @@ function demoHist() {
       '2026-09': { s: 230, r: 12, f: 2, p: 2, h: 2, o: 1 }, '2026-10': { s: 240, r: 13, f: 2, p: 1, h: 1, o: 0 }, '2026-11': { s: 183, r: 8, f: 1, p: 1, h: 1, o: 0 } },
     days: { '2026-11': d11 }, nodate: 0, pend: 1,
     g: [{ name: '11月シャッフルクラス_a', m: { '2026-11': g(150, { dm: 183, st: 64, c: 21, rp: 9 }, 120) } }, { name: '同期グループ_e', m: { '2026-10': g(90, { dm: 240, st: 80, c: 30, rp: 12 }, 60) } }],
-    gp: [{ name: '11月シャッフルクラス_a', kind: 'シャッフル', head: '17日目 / 30日（11/30まで）', prog: 53, next: '11/30までに、サンプル決済あと1件（残り14日）',
+    gp: [{ name: '11月シャッフルクラス_a', kind: 'シャッフル', phase: '参加中', dm: { per: 'week', n: 70, label: '1週間のうちに70件アプローチ', wf: '2026-11-16', wt: '2026-11-22' }, head: '17日目 / 30日（11/30まで）', prog: 53, next: '11/30までに、サンプル決済あと1件（残り14日）',
       items: [{ k: '1人サンプル決済2件', now: 1, n: 2, u: '件', bar: 50, act: '11/30までに、サンプル決済あと1件（残り14日）', st: 'go' }, { k: '1日10件、新規に送る', rate: 82, now: 14, n: 17, u: '日', bar: 82, act: 'きょうも10件以上送る', st: 'ok' }],
       cmp: { groups: 5, metrics: [{ k: '直近7日の送信', u: '件', me: 92, avg: 48.5 }, { k: 'ルール達成率', u: '%', me: 82, avg: 64 }] } }],
     dc: { c: 128, rp: 46, s: 512, g: 389, cw: 6, rpw: 4, sw: 31, gw: 22, cm: 21, rpm: 9, sm: 104, gm: 70, act: 15, hp: 12, hpa: 41, top: ['❤️', '👏', '🍵'],
