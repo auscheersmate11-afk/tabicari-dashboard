@@ -366,8 +366,7 @@ function shortName(s) { s = String(s || '').replace(/[\u{1F300}-\u{1FAFF}☀-➿
 function letterOf(c) { const v = ls.get('tg_msg_' + c.id, '') || ls.get('tg_defmsg', DEF_MSG); return D && D.tpl[v] ? v : DEF_MSG; }
 function buildText(letter, name) { return (D.tpl[letter] || D.tpl.A).split('〇〇').join(name); }
 function previewHtml(letter, name) { return esc(D.tpl[letter] || D.tpl.A).split('〇〇').join('<mark>' + esc(name) + '</mark>'); }
-// スマホは ig.me（Instagram アプリのDM画面）。パソコンのブラウザでは ig.me が止まることがあるので、プロフィールを開く（右上の「メッセージ」から送る）
-function dmUrl(u) { return /iPhone|iPad|iPod|Android/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) ? 'https://ig.me/m/' + encodeURIComponent(u) : 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
+function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
 function profUrl(u) { return 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
 
 // コピー：まず同期の方法（iPhone の Safari でも確実）→ 念のため Clipboard API も
