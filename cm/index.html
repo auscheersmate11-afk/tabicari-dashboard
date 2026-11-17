@@ -382,15 +382,32 @@ const errMsg = j => ERR[j && j.error] || ERR.server;
 const HOWS = ['Instagram', 'メール', 'お問合せフォーム'];
 function howOf(c) { const h = ls.get('cm_how_' + c.id, '') || c.method; return HOWS.includes(h) ? h : 'Instagram'; }
 function splitMail(t) { const m = String(t || '').match(/^\s*Subject:\s*(.+)\n+/i); return m ? { subject: m[1].trim(), body: t.slice(m[0].length) } : { subject: '', body: String(t || '') }; }
-function textFor(c, how) { return how === 'メール' ? String(c.text || '') : splitMail(c.text).body; }   // メール以外は件名の行を外す
+// インスタは T10（D.ig：サーバーが名前を入れて送ってくる）。店名だけここで入れる。メール以外は件名の行を外す
+function igText(c) { return D && D.ig ? D.ig.replace(/\{SHOP\}/g, c.disp || c.user || '') : ''; }
+function tnoFor(c, how) { return how === 'Instagram' && igText(c) ? D.igNo : c.tno; }
+function textFor(c, how) { if (how === 'Instagram' && igText(c)) return igText(c); return how === 'メール' ? String(c.text || '') : splitMail(c.text).body; }
 function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
 function profUrl(u) { return 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
-function mailUrl(c) { const m = splitMail(c.text); return 'mailto:' + c.mail.split(/[\s,;／/]+/)[0] + '?subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body); }
+// メールの件名：文章の1行目「Subject:」→ 無ければ「送る文章」タブの件名（インスタで配られた会社をメールで送るとき）→ 同じ文章番号のほかのカード
+function mailParts(c) {
+  const m = splitMail(c.text); let subject = m.subject || c.subj || '';
+  if (!subject && D) { const o = D.cards.find(x => x.tno === c.tno && splitMail(x.text).subject); if (o) subject = splitMail(o.text).subject; }
+  return { to: c.mail.split(/[\s,;／/]+/)[0], subject, body: m.body };
+}
+// メールは Gmail で開く：iPhone は Gmail アプリ、Android は Gmail アプリ（無ければブラウザの Gmail）、パソコンはブラウザの Gmail
+const UA = navigator.userAgent, IOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1), ANDROID = /Android/.test(UA);
+function gmailWeb(p) { return 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(p.to) + '&su=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body); }
+function mailUrl(c) {
+  const p = mailParts(c), q = 'subject=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body);
+  if (IOS) return 'googlegmail:///co?to=' + encodeURIComponent(p.to) + '&' + q;
+  if (ANDROID) return 'intent://' + p.to + '?' + q + '#Intent;scheme=mailto;package=com.google.android.gm;S.browser_fallback_url=' + encodeURIComponent(gmailWeb(p)) + ';end';
+  return gmailWeb(p);
+}
 // いちばん大きいボタン：送り方ごとに行き先を変える
 function goOf(c) {
   const how = howOf(c);
   if (how === 'Instagram' && c.user) return { href: dmUrl(c.user), label: 'コピーしてInstagramを開く', icon: 'ig' };
-  if (how === 'メール' && c.mail) return { href: mailUrl(c), label: 'メールを開く（件名・本文入り）', icon: 'mail' };
+  if (how === 'メール' && c.mail) return { href: mailUrl(c), label: 'Gmailを開く（件名・本文入り）', icon: 'mail' };
   if (c.site) return { href: c.site, label: how === 'お問合せフォーム' ? 'コピーしてサイトを開く（フォームへ）' : 'コピーしてサイトを開く', icon: 'web' };
   if (c.user) return { href: profUrl(c.user), label: 'コピーしてInstagramを開く', icon: 'ig' };
   return { href: '', label: '文章をコピー', icon: 'copy' };
@@ -447,7 +464,7 @@ function cardHtml(c) {
   const chips = [c.country, c.kind].filter(Boolean).map(p => '<span class="chip">' + esc(p) + '</span>').join('') + (hot ? '<span class="chip hot">今日が送信期限</span>' : '');
   const links = [c.user ? '<a href="' + profUrl(c.user) + '" target="_blank" rel="noopener">@' + esc(c.user) + '</a>' : '', c.site ? '<a href="' + esc(c.site) + '" target="_blank" rel="noopener">サイト</a>' : '', c.mail ? '<span>' + esc(c.mail) + '</span>' : ''].filter(Boolean).join(' ・ ');
   const acts = '<div class="seg-pick how" role="group" aria-label="送り方">' + HOWS.map(h => '<button type="button" data-act="how" data-h="' + h + '" aria-pressed="' + (h === how) + '">' + (h === 'お問合せフォーム' ? 'フォーム' : h) + '</button>').join('') + '</div>' +
-    '<div class="msgline"><span>文章 <b>' + esc(c.tno || '') + '</b>' + (how === 'メール' && splitMail(c.text).subject ? '（件名つき）' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
+    '<div class="msgline"><span>文章 <b>' + esc(tnoFor(c, how) || '') + '</b>' + (how === 'メール' && mailParts(c).subject ? '（件名つき）' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
     '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
     '<div class="note y" data-after hidden>' + (how === 'メール' && c.mail ? '件名と本文が入ったメールが開きます。開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
     '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
@@ -473,7 +490,16 @@ function bindCards() {
     const b = e.target.closest('[data-act]'); if (!b) return;
     const el = b.closest('.card'), c = D.cards.find(x => x.id === el.dataset.id); if (!c) return;
     const act = b.dataset.act;
-    if (act === 'go') { if (b.getAttribute('href') === '#') e.preventDefault(); onGo(c, el); return; }   // リンクはそのまま開く（コピーは先に）
+    if (act === 'go') {
+      const h = b.getAttribute('href') || '#';
+      if (h === '#') e.preventDefault();
+      else if (!/^https?:/.test(h)) {   // Gmail アプリ（iPhone・Android）は同じタブで開く。iPhone で Gmail アプリが無いときはブラウザの Gmail へ
+        e.preventDefault(); onGo(c, el); location.href = h;
+        if (IOS) { const t = setTimeout(() => { if (!document.hidden) location.href = gmailWeb(mailParts(c)); }, 1800); document.addEventListener('visibilitychange', () => clearTimeout(t), { once: true }); }
+        return;
+      }
+      onGo(c, el); return;
+    }   // リンクはそのまま開く（コピーは先に）
     e.preventDefault();
     if (act === 'sent') onSent(c, el);
     else if (act === 'skip') openSkip(c, el);
@@ -503,7 +529,7 @@ function updateBadge() { const n = D.cards.filter(c => !hidden(c.id)).length; $$
 function onSent(c, el) {
   const method = howOf(c);
   later(c, el, '送信済みにしました', async () => {
-    const j = await api('sent', { id: c.id, method });
+    const j = await api('sent', { id: c.id, method, tno: tnoFor(c, method) });
     if (j.ok) {
       D.cards = D.cards.filter(x => x.id !== c.id);
       D.stats.today++; D.stats.month++; D.stats.total++;
@@ -532,7 +558,7 @@ function openSheet(html) { const s = $('#sheet'); s.innerHTML = '<div class="gra
 function closeSheet() { $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on'); }
 
 function openTpl(c, el) {
-  const how = howOf(c), m = splitMail(c.text);
+  const how = howOf(c), m = how === 'メール' ? mailParts(c) : { subject: '', body: textFor(c, how) };
   const s = openSheet('<h3>' + esc(c.disp || '@' + c.user) + ' への1通目</h3>' +
     (how === 'メール' && m.subject ? '<div class="lbl">件名</div><div class="preview" style="max-height:none">' + esc(m.subject) + '</div><div class="lbl">本文</div>' : '') +
     '<div class="preview">' + esc(how === 'メール' ? m.body : m.body) + '</div>' +
