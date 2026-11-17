@@ -34,7 +34,7 @@ var CM = {
   GOAL: 500,                      // 月の目標（画面の「今月」）
   APP_BASE: 'https://auscheersmate11-afk.github.io/tabicari-dashboard/cm/#k=',
   TZ: 'Asia/Tokyo',
-  CACHE_MIN: 15                   // 数字（台帳・Customer List）を覚えておく分数
+  CACHE_MIN: 25                   // 数字（台帳・Customer List）を覚えておく分数（cmWarm が10分ごとに作り直す）
 };
 
 function doGet() { return cmOut_({ ok: false, error: 'post' }); }
@@ -158,15 +158,29 @@ function cmSet_(P, req, kind) {
 }
 
 // 自分の数字：配布台帳（送信完了日・文章の番号・Customer List のID）＋ Customer List の返信
+// 台帳と Customer List は大きいので、全員分をまとめて1回で計算してキャッシュに置く（cmWarm が10分ごとに作り直す）
+function cmStatKey_(name) { return 'cmst:' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, cmNorm_(name))).slice(0, 16); }
 function cmStats_(name) {
-  var cache = CacheService.getScriptCache(), ck = 'cmst:' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, cmNorm_(name))).slice(0, 16);
-  var hit = cache.get(ck); if (hit) return JSON.parse(hit);
-  var me = cmNorm_(name), today = cmToday_(), month = today.slice(0, 7);
+  var hit = CacheService.getScriptCache().get(cmStatKey_(name));
+  if (hit) return JSON.parse(hit);
+  var all = cmStatsAll_();
+  return all[cmNorm_(name)] || cmStatOne_([], {}, cmToday_());
+}
+function cmStatsAll_() {
+  var today = cmToday_();
   var lg = SpreadsheetApp.openById(CM.MASTER_ID).getSheetByName(CM.LEDGER_TAB);
   var lv = lg.getLastRow() > 1 ? lg.getRange(2, 1, lg.getLastRow() - 1, 15).getValues() : [];
-  var mine = lv.filter(function (r) { return cmNorm_(r[2]) === me && String(r[11]).trim() === '送信完了'; });
-  var reply = cmReplies_();
-  var byDay = {}, byMsg = {}, rep = 0;
+  var by = {};
+  lv.forEach(function (r) { if (String(r[11]).trim() !== '送信完了') return; var k = cmNorm_(r[2]); (by[k] || (by[k] = [])).push(r); });
+  var dest = SpreadsheetApp.openById(CM.MASTER_ID).getSheetByName(CM.DEST_TAB).getRange('A2:A').getValues();
+  dest.forEach(function (r) { var k = cmNorm_(r[0]); if (k && !by[k]) by[k] = []; });
+  var reply = cmReplies_(), out = {}, put = {};
+  Object.keys(by).forEach(function (k) { out[k] = cmStatOne_(by[k], reply, today); put[cmStatKey_(k)] = JSON.stringify(out[k]); });
+  try { CacheService.getScriptCache().putAll(put, CM.CACHE_MIN * 60); } catch (e) { console.error(e); }
+  return out;
+}
+function cmStatOne_(mine, reply, today) {
+  var month = today.slice(0, 7), byDay = {}, byMsg = {}, rep = 0;
   mine.forEach(function (r) {
     var d = cmDate_(r[12]) || cmDate_(r[1]); if (d) byDay[d] = (byDay[d] || 0) + 1;
     var t = String(r[10] || '').trim() || '—', got = !!reply[String(r[14] || '').trim()];
@@ -177,10 +191,15 @@ function cmStats_(name) {
   var streak = 0, d0 = byDay[today] ? today : cmAddDays_(today, -1);
   while (byDay[d0]) { streak++; d0 = cmAddDays_(d0, -1); }
   var monthN = 0; Object.keys(byDay).forEach(function (d) { if (d.slice(0, 7) === month) monthN += byDay[d]; });
-  var st = { total: mine.length, month: monthN, today: byDay[today] || 0, todayLedger: byDay[today] || 0, reply: rep,
+  return { total: mine.length, month: monthN, today: byDay[today] || 0, todayLedger: byDay[today] || 0, reply: rep,
     replyRate: mine.length ? Math.round(rep / mine.length * 1000) / 10 : 0, streak: streak, days: days, byMsg: byMsg };
-  try { cache.put(ck, JSON.stringify(st), CM.CACHE_MIN * 60); } catch (e) {}
-  return st;
+}
+// 10分ごと（cmSetupTrigger で作る）：全員分の数字を先に作っておく（ページを開いたときに待たせない）
+function cmWarm() { cmStatsAll_(); }
+function cmSetupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'cmWarm') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('cmWarm').timeBased().everyMinutes(10).create();
+  cmWarm();
 }
 
 // Customer List：返信（K列）が入っている管理ID
