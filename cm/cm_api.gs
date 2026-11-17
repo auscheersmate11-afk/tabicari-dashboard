@@ -30,7 +30,9 @@ var CM = {
   DEST_TAB: '配布先',
   LEDGER_TAB: '配布台帳',
   MY_TAB: '見込み顧客リスト',
-  URL_TAB: '個人ページURL',      // cmIssueKeys が (元データ) に作る：名前・個人ページURL
+  URL_TAB: '個人ページURL',
+  TPL_TAB: '送る文章',            // A番号・D件名（メールの件名が文章に無いときに使う）・E本文
+  IG_TPL: 'T10',                  // インスタで送るときの文章（2026-11-18 菊地さん指定。{SHOP}＝店名・{NAME}＝配布先の英語の名前）      // cmIssueKeys が (元データ) に作る：名前・個人ページURL
   GOAL: 500,                      // 月の目標（画面の「今月」）
   APP_BASE: 'https://auscheersmate11-afk.github.io/tabicari-dashboard/cm/#k=',
   TZ: 'Asia/Tokyo',
@@ -108,9 +110,26 @@ function cmMy_(P) {
   return { sh: sh, C: C, v: v, reasons: reasons };
 }
 
+// 「送る文章」タブ：番号→件名・本文。6時間覚えておく
+function cmTpls_() {
+  var c = CacheService.getScriptCache(), k = 'cm_tpl2', v = c.get(k);
+  if (v) return JSON.parse(v);
+  var o = { subj: {}, body: {} };
+  try {
+    var sh = SpreadsheetApp.openById(CM.MASTER_ID).getSheetByName(CM.TPL_TAB);
+    sh.getRange(1, 1, sh.getLastRow(), 5).getValues().forEach(function (r) {
+      var n = String(r[0]).trim(); if (!/^T\d+/.test(n)) return;
+      if (r[3]) o.subj[n] = String(r[3]);
+      if (n === CM.IG_TPL && r[4]) o.body[n] = String(r[4]);
+    });
+    c.put(k, JSON.stringify(o), 21600);
+  } catch (e) {}
+  return o;
+}
+
 function cmMe_(P) {
   var M = cmMy_(P), C = M.C, today = cmToday_();
-  var cards = [];
+  var cards = [], T = cmTpls_(), subj = T.subj;
   M.v.forEach(function (r) {
     if (String(r[C.st]).trim() !== '未送信' || !r[C.id]) return;
     var due = cmDate_(r[C.due]);
@@ -118,6 +137,7 @@ function cmMe_(P) {
     cards.push({ id: String(r[C.id]), disp: String(r[C.shop] || ''), user: ig, method: String(r[C.how] || 'Instagram'),
       country: String(r[C.country] || ''), kind: String(r[C.kind] || ''), site: /^https?:/.test(String(r[C.url])) && !/instagram\.com/i.test(String(r[C.url])) ? String(r[C.url]) : '',
       mail: String(r[C.mail] || '').trim(), phone: C.phone >= 0 ? String(r[C.phone] || '') : '', text: String(r[C.text] || ''), tno: String(r[C.tno] || ''),
+      subj: String(subj[String(r[C.tno] || '').trim()] || '').replace(/\{SHOP\}/g, String(r[C.shop] || '')),
       left: due ? cmDiff_(due, today) : 0 });
   });
   cards.sort(function (a, b) { return a.left - b.left; });
@@ -125,7 +145,8 @@ function cmMe_(P) {
   var doneToday = M.v.filter(function (r) { return String(r[C.st]).trim() === '送信完了' && cmDate_(r[C.date]) <= today && String(r[C.cl] || '') === ''; }).length;
   // 今日の数：台帳の「送信完了日＝今日」＋まだ台帳に入っていない送信完了（毎時の記入待ち）
   st.today = Math.max(st.today, st.todayLedger + doneToday);
-  return { ok: true, name: P.name, en: P.en, today: today, perDay: P.perDay, goal: CM.GOAL, stats: st, cards: cards,
+  var ig = T.body[CM.IG_TPL] && P.en ? T.body[CM.IG_TPL].replace(/\{NAME\}/g, P.en.trim()) : '';   // 英語の名前が無い人は今までどおり専用スプシの文章
+  return { ok: true, name: P.name, en: P.en, ig: ig, igNo: ig ? CM.IG_TPL : '', today: today, perDay: P.perDay, goal: CM.GOAL, stats: st, cards: cards,
     reasons: M.reasons.length ? M.reasons : ['抹茶・カフェと関係ない', 'お店がない・閉店', '連絡先が見つからない', 'インスタしかない', '前に自分で送った', '送れない国', 'その他（メモに書く）'],
     sheet: 'https://docs.google.com/spreadsheets/d/' + P.sheetId + '/edit' };
 }
@@ -141,6 +162,14 @@ function cmSet_(P, req, kind) {
       if (kind === 'sent') {
         var how = ['Instagram', 'メール', 'お問合せフォーム'].indexOf(req.method) >= 0 ? req.method : '';
         if (how && C.how >= 0) M.sh.getRange(row, C.how + 1).setValue(how);
+        // インスタは T10 で送るので、専用スプシの「1通目の文章」「文章の番号」も T10 に直す（台帳・返信率が正しい番号で数えられるように）
+        if (how === 'Instagram' && req.tno === CM.IG_TPL && C.tno >= 0 && String(M.v[i][C.tno]).trim() !== CM.IG_TPL) {
+          var T = cmTpls_(), body = T.body[CM.IG_TPL];
+          if (body && P.en) {
+            if (C.text >= 0) M.sh.getRange(row, C.text + 1).setValue(body.replace(/\{NAME\}/g, P.en.trim()).replace(/\{SHOP\}/g, String(M.v[i][C.shop] || '')));
+            M.sh.getRange(row, C.tno + 1).setValue(CM.IG_TPL);
+          }
+        }
         M.sh.getRange(row, C.st + 1).setValue('送信完了');
       } else {
         var why = String(req.reason || '').slice(0, 60);
