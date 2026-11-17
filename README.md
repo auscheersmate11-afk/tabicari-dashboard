@@ -54,9 +54,9 @@ claude.ai にあった「旅キャリ DMダッシュボード」の GitHub 版�
 - 1日40通まで・15通ごとにひと休み。ランク（A/B/C）は出さない
 - `?demo=1` で架空のデータの見本（どこにも記録しない）
 
-## Cheers mate DM（cm/）
+## Matcha Go!（cm/）
 
-抹茶（Cheers mate）チームの個人ページ。旅キャリGo（go/）と同じ作り・同じ色。`https://auscheersmate11-afk.github.io/tabicari-dashboard/cm/#k=<合言葉>`
+抹茶（Cheers mate）チームの個人ページ「Matcha Go!」。各自の専用スプシ「見込み顧客リスト」の1行目に本人のリンクを入れている。旅キャリGo（go/）と同じ作り・同じ色。`https://auscheersmate11-afk.github.io/tabicari-dashboard/cm/#k=<合言葉>`
 
 - 毎朝の配布・Customer List への記入・回収は今までの仕組みのまま。ページは本人の専用スプシ（◯◯さん専用_抹茶スプレッドシート一覧）の「見込み顧客リスト」で「未送信」の行をカードで出す
 - 「送信済み」→ そのシートのステータスを「送信完了」・送った方法を書く／「あえて送らない」→「あえて送らない」・送らない理由（その他はメモにも）

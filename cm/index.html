@@ -7,14 +7,14 @@
 <meta name="referrer" content="no-referrer">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Cheers mate">
+<meta name="apple-mobile-web-app-title" content="Matcha Go!">
 <meta name="theme-color" content="#031147">
-<title>Cheers mate DM</title>
+<title>Matcha Go!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@600;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
 <style>
-/* Cheers mate DM：抹茶チームのメンバーが、毎朝届くお店（専用スプシ「見込み顧客リスト」）に1通目を送っていく画面。
+/* Matcha Go!（Cheers mate の抹茶チーム）：抹茶チームのメンバーが、毎朝届くお店（専用スプシ「見込み顧客リスト」）に1通目を送っていく画面。
    旅キャリGo（go/）と同じ作り・同じ色。データの出し入れは Apps Script「Cheers mate DM」の cm_api.gs（Webアプリ）。合言葉は URL の #k=。
    ボタンは専用スプシの「ステータス」を 送信完了 / あえて送らない にするだけ。Customer List への記入・回収は今までの毎時の仕組みがやる。
    端末に覚える値は cm_ で始める（旅キャリGoと同じサイトなので混ざらないように）。
@@ -271,7 +271,7 @@ table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
 <div class="testbar" id="testbar" hidden>テスト中：記録は Customer List の写しへ</div>
 <div class="app">
   <aside class="side">
-    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M7 2v3M11 2v3"/></svg>Cheers mate<b>DM</b></div>
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M7 2v3M11 2v3"/></svg>Matcha<b>Go!</b></div>
     <button class="nav-btn" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>今日<span class="badge" data-badge hidden></span></button>
     <button class="nav-btn" data-tab="find" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>さがす</button>
     <button class="nav-btn" data-tab="me" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>自分</button>
@@ -280,7 +280,7 @@ table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
   </aside>
   <div>
     <header class="top">
-      <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M7 2v3M11 2v3"/></svg>Cheers mate<b>DM</b></div>
+      <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#fdc805" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M7 2v3M11 2v3"/></svg>Matcha<b>Go!</b></div>
       <div class="who" data-who></div>
       <button class="icon-btn" data-reload aria-label="最新にする"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></button>
     </header>
@@ -645,7 +645,7 @@ function loadCache() {
 }
 function firstRun() {
   if (ls.get('cm_agree', '')) return;
-  showOver('🍵', 'Cheers mate DMへようこそ', '<p>' + esc(D.name) + 'さん専用のページです。</p><ul><li>このURLは<b>ほかの人に渡さないで</b>ください</li><li>お店の情報は外に出さないでください</li><li>届くお店は専用スプシ「見込み顧客リスト」と同じです</li><li>送信は自分で押します（ページは文章のコピーと、Instagram・メール・サイトを開くところまで）</li><li>送ったら必ず「送信済み」を押してください（1時間以内に Customer List に自動で記入されます）</li><li>15通ごとにひと休み</li></ul><p>ホーム画面に追加すると、アプリのように開けます（iPhoneは共有ボタン→「ホーム画面に追加」）。</p>', 'わかりました', () => ls.set('cm_agree', '1'));
+  showOver('🍵', 'Matcha Go!へようこそ', '<p>' + esc(D.name) + 'さん専用のページです。</p><ul><li>このURLは<b>ほかの人に渡さないで</b>ください</li><li>お店の情報は外に出さないでください</li><li>届くお店は専用スプシ「見込み顧客リスト」と同じです</li><li>送信は自分で押します（ページは文章のコピーと、Instagram・メール・サイトを開くところまで）</li><li>送ったら必ず「送信済み」を押してください（1時間以内に Customer List に自動で記入されます）</li><li>15通ごとにひと休み</li></ul><p>ホーム画面に追加すると、アプリのように開けます（iPhoneは共有ボタン→「ホーム画面に追加」）。</p>', 'わかりました', () => ls.set('cm_agree', '1'));
 }
 
 document.addEventListener('visibilitychange', () => {
