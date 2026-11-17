@@ -813,7 +813,7 @@ const cu = (n, cls) => '<span class="cu' + (cls ? ' ' + cls : '') + '" data-to="
 const pctS = (a, b) => b ? (a / b * 100 >= 10 ? Math.round(a / b * 100) : (a / b * 100).toFixed(1)) + '%' : '—';
 
 // 同期・シャッフルのグループで決めたDM件数のルール（H.gp[].dm）。いちばん多いルールに合わせる
-//   1日N件 → 月の目標 N×その月の日数 ／ 週N件 → N÷7×日数。1日1件（同期の21日チャレンジ）は「続ける」ルールなので月の目標は500のまま
+//   1日N件 → 月の目標 N×その月の日数 ／ 週N件 → N÷7×日数。1日1件（同期の21日チャレンジ）は「続ける」ルールなので月の目標は300通（菊地さん 11/18）
 function groupRule() {
   if (!H || !H.gp) return null;
   let best = null;
@@ -824,7 +824,7 @@ function groupRule() {
   });
   if (!best) return null;
   const td = new Date(todayJst().replace(/\//g, '-') + 'T00:00:00'), dim = new Date(td.getFullYear(), td.getMonth() + 1, 0).getDate();
-  best.month = best.rate >= 2 ? Math.round(best.rate * dim) : 0;
+  best.month = best.rate >= 2 ? Math.round(best.rate * dim) : 300;   // 1日1件（同期の「続ける」ルール）は月300通
   return best;
 }
 // H.days から日付ごとの送信数（今日の分はページの数を優先）
