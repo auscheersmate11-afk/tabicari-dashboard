@@ -386,7 +386,8 @@ function splitMail(t) { const m = String(t || '').match(/^\s*Subject:\s*(.+)\n+/
 function igText(c) { return D && D.ig ? D.ig.replace(/\{SHOP\}/g, c.disp || c.user || '') : ''; }
 function tnoFor(c, how) { return how === 'Instagram' && igText(c) ? D.igNo : c.tno; }
 function textFor(c, how) { if (how === 'Instagram' && igText(c)) return igText(c); return how === 'メール' ? String(c.text || '') : splitMail(c.text).body; }
-function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
+// スマホは ig.me（Instagram アプリのDM画面）。パソコンのブラウザでは ig.me が止まることがあるので、プロフィールを開く（右上の「メッセージ」から送る）
+function dmUrl(u) { return /iPhone|iPad|iPod|Android/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) ? 'https://ig.me/m/' + encodeURIComponent(u) : 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
 function profUrl(u) { return 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
 // メールの件名：文章の1行目「Subject:」→ 無ければ「送る文章」タブの件名（インスタで配られた会社をメールで送るとき）→ 同じ文章番号のほかのカード
 function mailParts(c) {
