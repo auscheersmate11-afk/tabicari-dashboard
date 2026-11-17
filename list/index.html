@@ -323,7 +323,7 @@ h2, p { margin:0; }
   function ok(v) { v = String(v || ''); return /[◯○〇✓✔☑]/.test(v) && !/[×✕✖]/.test(v); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[x]; }); }
   function fmt(n) { return Math.round(n).toLocaleString(); }
-  function pct(a, b) { if (!b) return '—'; var p = a / b * 100; return (p >= 10 || p === 0 ? Math.round(p) : p.toFixed(1)) + '%'; }
+  function pct(a, b) { if (!b) return '—'; var p = a / b * 100; return (p >= 10 || p === 0 ? Math.round(p) : p < 0.1 ? p.toFixed(2) : p.toFixed(1)) + '%'; }
   function md(s) { var p = s.split('-'); return +p[1] + '/' + +p[2]; }
   function daysTxt(d) { return d === Infinity ? '減らない' : d < 1 ? '1日未満' : fmt(Math.floor(d)) + '日'; }
 
