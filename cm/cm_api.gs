@@ -159,7 +159,8 @@ function cmSet_(P, req, kind) {
 
 // 自分の数字：配布台帳（送信完了日・文章の番号・Customer List のID）＋ Customer List の返信
 // 台帳と Customer List は大きいので、全員分をまとめて1回で計算してキャッシュに置く（cmWarm が10分ごとに作り直す）
-function cmStatKey_(name) { return 'cmst:' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, cmNorm_(name))).slice(0, 16); }
+// 文字コードを UTF-8 と指定しないと日本語の名前が同じ値になり、ほかの人の数字と入れ替わる（2026-11-18 修正）
+function cmStatKey_(name) { return 'cmst:' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, cmNorm_(name), Utilities.Charset.UTF_8)).slice(0, 16); }
 function cmStats_(name) {
   var hit = CacheService.getScriptCache().get(cmStatKey_(name));
   if (hit) return JSON.parse(hit);
