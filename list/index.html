@@ -294,7 +294,7 @@ h2, p { margin:0; }
 
   // ---------- 読み込み ----------
   function url(id, sheet, q) { return 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:csv&headers=1&sheet=' + encodeURIComponent(sheet) + (q ? '&tq=' + encodeURIComponent(q) : '') + '&_=' + Date.now(); }
-  function txt(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (s) { if (/^\s*</.test(s)) throw new Error('not_csv'); return s; }); }
+  function txt(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (s) { if (/^\s*[<{]/.test(s)) throw new Error('not_csv'); return s; }); }   // { … } は gviz のエラー（列が無いなど）
   function parseCsv(t) {
     var rows = [], row = [], f = '', q = false, c;
     for (var i = 0; i < t.length; i++) {
@@ -432,7 +432,7 @@ h2, p { margin:0; }
     $('kBC').innerHTML = fmt(L.B + L.C) + '<small>B ' + fmt(L.B) + '・C ' + fmt(L.C) + '</small>';
     var t = S.addToday;
     $('kToday').innerHTML = fmt(t.A + t.B + t.C) + '<small>A ' + fmt(t.A) + (t.B + t.C ? '・B/C ' + fmt(t.B + t.C) : '') + '</small>';
-    $('kDist').innerHTML = fmt(useAll) + '<small>件 / 日</small>';
+    var dt = S.distToday; $('kDist').innerHTML = fmt(useAll) + '<small>件 / 日' + (dt ? '・今日 ' + fmt(dt.A + dt.B + dt.C) : '') + '</small>';
   }
 
   function spark(series, g) {
