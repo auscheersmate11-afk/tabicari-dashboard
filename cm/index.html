@@ -152,6 +152,18 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
 .msgline { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); }
 .msgline button { border: 0; background: none; color: var(--sky); text-decoration: underline; text-underline-offset: 3px; font-size: 12.5px; padding: 6px 0; cursor: pointer; white-space: nowrap; }
 .msgline b { color: var(--ink); }
+.fban { margin: 16px 0 6px; background: var(--yellow-soft); border: 3px solid var(--yellow); border-radius: 20px; padding: 18px 20px; display: grid; gap: 12px; }
+.fban-h { display: flex; gap: 12px; align-items: flex-start; }
+.fban-h .e { font-size: 34px; line-height: 1; }
+.fban-h b { display: block; font-size: 19px; font-weight: 900; color: var(--ink); line-height: 1.4; }
+.fban-h small { display: block; font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 4px; line-height: 1.6; }
+.fban-f { display: flex; gap: 10px; flex-wrap: wrap; }
+.fban-f input { flex: 1 1 260px; min-width: 0; font-size: 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: #101a38; }
+.fban-f .btn { flex: 0 0 auto; width: auto; padding: 0 26px; min-height: 48px; }
+@media (max-width: 560px) { .fban-f .btn { flex: 1 1 100%; } }
+.fban-err { margin: 0; color: var(--warn); font-weight: 700; font-size: 13px; min-height: 0; } .fban-err:empty { display: none; }
+.fromline { grid-column: 1 / -1; text-align: center; font-size: 12.5px; color: var(--muted); padding: 8px 0 4px; }
+.fromline b { color: var(--ink); } .fromline button { border: 0; background: none; color: var(--sky); text-decoration: underline; font-size: 12.5px; cursor: pointer; }
 .note { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
 .note.ok { background: var(--ok-soft); color: var(--ok); }
 .note.warn { background: var(--warn-soft); color: var(--warn); }
@@ -456,6 +468,7 @@ details.old { margin-top: 10px; } details.old summary { cursor: pointer; font-si
           </div>
           <div class="meta" id="hMeta"></div>
         </div>
+        <div id="fromBan"></div>
         <div class="sec-h"><h2>DMを送る</h2><span class="hint">配られたお店・期限の近い順</span></div>
         <div class="cards" id="cards"><div class="skel"></div><div class="skel"></div></div>
         <div id="doneBox"></div>
@@ -628,7 +641,6 @@ function cardHtml(c) {
   const acts = '<div class="seg-pick how" role="group" aria-label="送り方">' + HOWS.map(h => '<button type="button" data-act="how" data-h="' + h + '" aria-pressed="' + (h === how) + '">' + (h === 'お問合せフォーム' ? 'フォーム' : h) + '</button>').join('') + '</div>' +
     '<div class="msgline"><span>文章 <b>' + esc(tnoFor(c, how) || '') + '</b>' + (how === 'メール' && mailParts(c).subject ? '（件名つき）' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
     '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
-    (how === 'メール' && c.mail ? '<div class="msgline from"><span>' + (MOBILE() ? '差出人は、Gmailアプリの作成画面の「From」で選べます' : mailFrom() ? '送るアドレス <b>' + esc(mailFrom()) + '</b>' : '送るアドレスが未設定（ブラウザで最初にログインしたGmailで開きます）') + '</span>' + (MOBILE() ? '' : '<button data-act="from">' + (mailFrom() ? '変える' : '設定する') + '</button>') + '</div>' : '') +
     '<div class="note y" data-after hidden>' + (how === 'メール' && c.mail ? '件名と本文が入ったメールが開きます。開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
     '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
   return '<article class="card' + (ls.get('cm_open_' + c.id, '') ? ' opened' : '') + '" data-id="' + esc(c.id) + '">' +
@@ -639,13 +651,29 @@ function cardHtml(c) {
     '<div class="acts">' + acts + '</div></article>';
 }
 
+// 送るアドレスの案内：パソコンでまだ登録していない人にだけ、上に大きく出す。登録したら出さない（変更はカード一覧のいちばん下の小さなリンクから）
+function renderFromBan() {
+  const b = $('#fromBan'); if (!b) return;
+  if (MOBILE() || mailFrom() || DEMO && params.has('nofromban')) { b.innerHTML = ''; return; }
+  b.innerHTML = '<section class="fban" aria-label="送るアドレスの登録"><div class="fban-h"><span class="e">✉️</span><div><b>メールを送る前に、送るアドレスを登録してください</b><small>OGJのGmailアドレスを1回入れるだけ。「Gmailを開く」が毎回そのアドレスで開きます。この端末だけに保存され、ほかの人には見えません。</small></div></div>' +
+    '<form class="fban-f" id="fbForm"><input id="fbIn" type="email" inputmode="email" autocomplete="email" placeholder="OGJのGmailアドレス" required><button class="btn go" type="submit">登録する</button></form><p class="fban-err" id="fbErr"></p></section>';
+  $('#fbForm').onsubmit = e => {
+    e.preventDefault(); const v = $('#fbIn').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { $('#fbErr').textContent = 'メールアドレスの形で入れてください'; return; }
+    try { localStorage.setItem('cm_mailfrom', v); } catch (er) {}
+    renderCards(); toast('送るアドレスを登録しました。Gmailがこのアドレスで開きます');
+  };
+}
 function renderCards() {
+  renderFromBan();
   const list = D.cards.filter(c => !hidden(c.id));
   const box = $('#cards');
   if (!list.length) {
     box.innerHTML = '<div class="empty"><b>' + (D.cards.length ? '今日の分はぜんぶ終わり！' : 'いま送る人はいません') + '</b>' +
       (D.stats.today ? '今日は ' + D.stats.today + '通 送りました。' : '') + '明日の朝、次のお店が届きます。</div>';
   } else box.innerHTML = list.map(cardHtml).join('');
+  if (!MOBILE() && mailFrom()) box.insertAdjacentHTML('beforeend', '<div class="fromline">✉ 送るアドレス <b>' + esc(mailFrom()) + '</b> <button type="button" id="fromChg">変える</button></div>');
+  const fc = $('#fromChg'); if (fc) fc.onclick = openFrom;
 }
 
 function bindCards() {
