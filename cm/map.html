@@ -570,7 +570,7 @@ function profUrl(u) { return 'https://www.instagram.com/' + encodeURIComponent(u
 function mailParts(c) {
   const m = splitMail(c.text); let subject = m.subject || c.subj || '';
   if (!subject && D) { const o = D.cards.find(x => x.tno === c.tno && splitMail(x.text).subject); if (o) subject = splitMail(o.text).subject; }
-  return { to: c.mail.split(/[\s,;／/]+/)[0], subject, body: m.body };
+  return { to: (c.mail || '').split(/[\s,;／/]+/)[0], subject, body: m.body };
 }
 // メールは Gmail で開く：iPhone は Gmail アプリ、Android は Gmail アプリ（無ければブラウザの Gmail）、パソコンはブラウザの Gmail
 const UA = navigator.userAgent, IOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1), ANDROID = /Android/.test(UA);
@@ -580,8 +580,8 @@ const MOBILE = () => IOS || ANDROID;
 function gmailWeb(p) { const f = mailFrom(); return 'https://mail.google.com/mail/?' + (f ? 'authuser=' + encodeURIComponent(f) + '&' : '') + 'view=cm&fs=1&to=' + encodeURIComponent(p.to) + '&su=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body); }
 function mailUrl(c) {
   const p = mailParts(c), q = 'subject=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body);
-  if (IOS) return 'googlegmail:///co?to=' + encodeURIComponent(p.to) + '&' + q;
-  if (ANDROID) return 'intent://' + p.to + '?' + q + '#Intent;scheme=mailto;package=com.google.android.gm;S.browser_fallback_url=' + encodeURIComponent(gmailWeb(p)) + ';end';
+  if (IOS) return 'googlegmail:///co?' + (p.to ? 'to=' + encodeURIComponent(p.to) + '&' : '') + q;
+  if (ANDROID) return 'intent://' + (p.to || '') + '?' + q + '#Intent;scheme=mailto;package=com.google.android.gm;S.browser_fallback_url=' + encodeURIComponent(gmailWeb(p)) + ';end';
   return gmailWeb(p);
 }
 // いちばん大きいボタン：送り方ごとに行き先を変える
@@ -589,6 +589,7 @@ function goOf(c) {
   const how = howOf(c);
   if (how === 'Instagram' && c.user) return { href: dmUrl(c.user), label: 'コピーしてInstagramを開く', icon: 'ig' };
   if (how === 'メール' && c.mail) return { href: mailUrl(c), label: 'Gmailを開く（件名・本文入り）', icon: 'mail' };
+  if (how === 'メール') return { href: mailUrl(c), label: 'Gmailを開く（宛先は自分で入れてね）', icon: 'mail' };   // リストにメールアドレスが無いお店も、件名・本文入りのGmailを開く
   if (c.site) return { href: c.site, label: how === 'お問合せフォーム' ? 'コピーしてサイトを開く（フォームへ）' : 'コピーしてサイトを開く', icon: 'web' };
   if (c.user) return { href: profUrl(c.user), label: 'コピーしてInstagramを開く', icon: 'ig' };
   return { href: '', label: '文章をコピー', icon: 'copy' };
@@ -647,7 +648,7 @@ function cardHtml(c) {
   const acts = '<div class="seg-pick how" role="group" aria-label="送り方">' + HOWS.map(h => '<button type="button" data-act="how" data-h="' + h + '" aria-pressed="' + (h === how) + '">' + (h === 'お問合せフォーム' ? 'フォーム' : h) + '</button>').join('') + '</div>' +
     '<div class="msgline"><span>文章 <b>' + esc(tnoFor(c, how) || '') + '</b>' + (how === 'メール' && mailParts(c).subject ? '（件名つき）' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
     '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
-    '<div class="note y" data-after hidden>' + (how === 'メール' && c.mail ? '件名と本文が入ったメールが開きます。開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
+    '<div class="note y" data-after hidden>' + (how === 'メール' ? '件名と本文が入ったメールが開きます。' + (c.mail ? '' : '宛先（お店のメールアドレス）は自分で入れてね。') + '開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
     '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
   return '<article class="card' + (ls.get('cm_open_' + c.id, '') ? ' opened' : '') + '" data-id="' + esc(c.id) + '">' +
     '<div class="tk"><div class="main"><div class="av" style="background:' + avColor(c.disp || c.user) + '">' + esc(initial(c)) + '</div><div style="min-width:0">' +
