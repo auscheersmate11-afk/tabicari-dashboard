@@ -577,11 +577,11 @@ const UA = navigator.userAgent, IOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh
 // 送るアドレス（パソコンのGmailで開くアカウント）：本人が最初に1回入れる。この端末だけに保存（cm_mailfrom）。Gmail の authuser で、そのアカウントの作成画面を開く
 const mailFrom = () => ls.get('cm_mailfrom', '');
 const MOBILE = () => IOS || ANDROID;
-function gmailWeb(p) { const f = mailFrom(); return 'https://mail.google.com/mail/?' + (f ? 'authuser=' + encodeURIComponent(f) + '&' : '') + 'view=cm&fs=1&to=' + encodeURIComponent(p.to) + '&su=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body); }
+function gmailWeb(p) { const f = mailFrom(); return 'https://mail.google.com/mail/' + (f ? 'u/' + f.replace(/[^\w.@+-]/g, '') + '/?authuser=' + encodeURIComponent(f) + '&' : '?') + 'view=cm&fs=1&to=' + encodeURIComponent(p.to) + '&su=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body); }
 function mailUrl(c) {
   const p = mailParts(c), q = 'subject=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body);
   if (IOS) return 'googlegmail:///co?' + (p.to ? 'to=' + encodeURIComponent(p.to) + '&' : '') + q;
-  if (ANDROID) return 'intent://' + (p.to || '') + '?' + q + '#Intent;scheme=mailto;package=com.google.android.gm;S.browser_fallback_url=' + encodeURIComponent(gmailWeb(p)) + ';end';
+  if (ANDROID) return 'intent:' + encodeURIComponent(p.to || '').replace(/%40/g, '@') + '?' + q + '#Intent;scheme=mailto;package=com.google.android.gm;S.browser_fallback_url=' + encodeURIComponent(gmailWeb(p)) + ';end';
   return gmailWeb(p);
 }
 // いちばん大きいボタン：送り方ごとに行き先を変える
