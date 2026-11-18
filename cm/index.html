@@ -555,7 +555,10 @@ function mailParts(c) {
 }
 // メールは Gmail で開く：iPhone は Gmail アプリ、Android は Gmail アプリ（無ければブラウザの Gmail）、パソコンはブラウザの Gmail
 const UA = navigator.userAgent, IOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1), ANDROID = /Android/.test(UA);
-function gmailWeb(p) { return 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(p.to) + '&su=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body); }
+// 送るアドレス（パソコンのGmailで開くアカウント）：本人が最初に1回入れる。この端末だけに保存（cm_mailfrom）。Gmail の authuser で、そのアカウントの作成画面を開く
+const mailFrom = () => ls.get('cm_mailfrom', '');
+const MOBILE = () => IOS || ANDROID;
+function gmailWeb(p) { const f = mailFrom(); return 'https://mail.google.com/mail/?' + (f ? 'authuser=' + encodeURIComponent(f) + '&' : '') + 'view=cm&fs=1&to=' + encodeURIComponent(p.to) + '&su=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body); }
 function mailUrl(c) {
   const p = mailParts(c), q = 'subject=' + encodeURIComponent(p.subject) + '&body=' + encodeURIComponent(p.body);
   if (IOS) return 'googlegmail:///co?to=' + encodeURIComponent(p.to) + '&' + q;
@@ -625,6 +628,7 @@ function cardHtml(c) {
   const acts = '<div class="seg-pick how" role="group" aria-label="送り方">' + HOWS.map(h => '<button type="button" data-act="how" data-h="' + h + '" aria-pressed="' + (h === how) + '">' + (h === 'お問合せフォーム' ? 'フォーム' : h) + '</button>').join('') + '</div>' +
     '<div class="msgline"><span>文章 <b>' + esc(tnoFor(c, how) || '') + '</b>' + (how === 'メール' && mailParts(c).subject ? '（件名つき）' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
     '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
+    (how === 'メール' && c.mail ? '<div class="msgline from"><span>' + (MOBILE() ? '差出人は、Gmailアプリの作成画面の「From」で選べます' : mailFrom() ? '送るアドレス <b>' + esc(mailFrom()) + '</b>' : '送るアドレスが未設定（ブラウザで最初にログインしたGmailで開きます）') + '</span>' + (MOBILE() ? '' : '<button data-act="from">' + (mailFrom() ? '変える' : '設定する') + '</button>') + '</div>' : '') +
     '<div class="note y" data-after hidden>' + (how === 'メール' && c.mail ? '件名と本文が入ったメールが開きます。開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
     '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
   return '<article class="card' + (ls.get('cm_open_' + c.id, '') ? ' opened' : '') + '" data-id="' + esc(c.id) + '">' +
@@ -663,10 +667,24 @@ function bindCards() {
     if (act === 'sent') onSent(c, el);
     else if (act === 'skip') openSkip(c, el);
     else if (act === 'tpl') openTpl(c, el);
+    else if (act === 'from') openFrom();
     else if (act === 'how') { ls.set('cm_how_' + c.id, b.dataset.h); el.outerHTML = cardHtml(c); }
   });
 }
 
+function openFrom() {
+  showOver('✉️', '送るアドレス', '<p>Gmailを開いたときに使うアドレスです（OGJのGmailアドレスなど）。<b>この端末だけに保存</b>され、ほかの人には見えません。</p>' +
+    '<input id="fromIn" type="email" inputmode="email" autocomplete="email" placeholder="例）name@gmail.com" value="' + esc(mailFrom()) + '" style="width:100%;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin:6px 0 4px">' +
+    '<p id="fromErr" style="color:var(--warn);font-weight:700;min-height:1.4em"></p><p style="font-size:12.5px;color:var(--muted)">空にして保存すると、設定を消します。このブラウザでそのアドレスにログインしていないと、Gmailのログイン画面が出ます。</p>', '保存する');
+  const ok = $('#overOk'), inp = $('#fromIn'); inp.focus();
+  ok.onclick = () => {
+    const v = inp.value.trim();
+    if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { $('#fromErr').textContent = 'メールアドレスの形で入れてください'; return; }
+    try { v ? localStorage.setItem('cm_mailfrom', v) : localStorage.removeItem('cm_mailfrom'); } catch (e) {}
+    $('#over').hidden = true; renderCards(); toast(v ? '送るアドレスを保存しました' : '送るアドレスを消しました');
+  };
+  inp.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
+}
 function onGo(c, el) {
   const how = howOf(c), ok = copyText(textFor(c, how));
   ls.set('cm_open_' + c.id, String(Date.now())); lastOpened = c.id;
