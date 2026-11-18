@@ -133,7 +133,7 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
 .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .chip { font-size: 11.5px; line-height: 1; padding: 5px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
 /* お店の地図（カードの中で開く。Googleマップには飛ばない） */
-.mapt { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; margin-top: 8px; border: 0; border-radius: 10px; background: var(--sky-soft, #e6f0fb); color: var(--navy, #031147); font: inherit; font-size: 12.5px; font-weight: 900; padding: 8px 10px; cursor: pointer; text-align: left; }
+.mapt { white-space: nowrap; display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; margin-top: 8px; border: 0; border-radius: 10px; background: var(--sky-soft, #e6f0fb); color: var(--navy, #031147); font: inherit; font-size: 12.5px; font-weight: 900; padding: 8px 10px; cursor: pointer; text-align: left; }
 .mapt span { color: var(--sky, #2f86d6); font-size: 11.5px; white-space: nowrap; }
 .mapbox { margin-top: 6px; border-radius: 10px; overflow: hidden; background: var(--soft, #f4f7fc); }
 .mapbox iframe { display: block; width: 100%; height: 200px; border: 0; }
@@ -169,7 +169,7 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
 @media (max-width: 560px) { .fban-f .btn { flex: 1 1 100%; } }
 .fban-err { margin: 0; color: var(--warn); font-weight: 700; font-size: 13px; min-height: 0; } .fban-err:empty { display: none; }
 .fromline { grid-column: 1 / -1; text-align: center; font-size: 12.5px; color: var(--muted); padding: 8px 0 4px; }
-.fromline b { color: var(--ink); } .fromline button { border: 0; background: none; color: var(--sky); text-decoration: underline; font-size: 12.5px; cursor: pointer; }
+.fromline span { display: inline-block; margin: 0 8px; } .fromline b { color: var(--ink); } .fromline button { border: 0; background: none; color: var(--sky); text-decoration: underline; font-size: 12.5px; cursor: pointer; }
 .note { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
 .note.ok { background: var(--ok-soft); color: var(--ok); }
 .note.warn { background: var(--warn-soft); color: var(--warn); }
@@ -563,14 +563,17 @@ function splitMail(t) { const m = String(t || '').match(/^\s*Subject:\s*(.+)\n+/
 // インスタは T10（D.ig：サーバーが名前を入れて送ってくる）。店名だけここで入れる。メール以外は件名の行を外す
 function igText(c) { return D && D.ig ? D.ig.replace(/\{SHOP\}/g, c.disp || c.user || '') : ''; }
 function tnoFor(c, how) { return how === 'Instagram' && igText(c) ? D.igNo : c.tno; }
-function textFor(c, how) { if (how === 'Instagram' && igText(c)) return igText(c); return how === 'メール' ? String(c.text || '') : splitMail(c.text).body; }
+// メールの署名：本人がMatcha Go!で1回書いておくと、メール本文の最後に毎回付く（この端末だけに保存 cm_sig）
+const mailSig = () => ls.get('cm_sig', '');
+const withSig = t => { const g = mailSig().trim(); return g ? String(t || '').replace(/\s+$/, '') + '\n\n' + g : String(t || ''); };
+function textFor(c, how) { if (how === 'Instagram' && igText(c)) return igText(c); return how === 'メール' ? withSig(c.text) : splitMail(c.text).body; }
 function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
 function profUrl(u) { return 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; }
 // メールの件名：文章の1行目「Subject:」→ 無ければ「送る文章」タブの件名（インスタで配られた会社をメールで送るとき）→ 同じ文章番号のほかのカード
 function mailParts(c) {
   const m = splitMail(c.text); let subject = m.subject || c.subj || '';
   if (!subject && D) { const o = D.cards.find(x => x.tno === c.tno && splitMail(x.text).subject); if (o) subject = splitMail(o.text).subject; }
-  return { to: (c.mail || '').split(/[\s,;／/]+/)[0], subject, body: m.body };
+  return { to: (c.mail || '').split(/[\s,;／/]+/)[0], subject, body: withSig(m.body) };
 }
 // メールは Gmail で開く：iPhone は Gmail アプリ、Android は Gmail アプリ（無ければブラウザの Gmail）、パソコンはブラウザの Gmail
 const UA = navigator.userAgent, IOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1), ANDROID = /Android/.test(UA);
@@ -646,7 +649,7 @@ function cardHtml(c) {
   const chips = [c.country, c.kind].filter(Boolean).map(p => '<span class="chip">' + esc(p) + '</span>').join('') + (hot ? '<span class="chip hot">今日が送信期限</span>' : '');
   const links = [c.user ? '<a href="' + profUrl(c.user) + '" target="_blank" rel="noopener">@' + esc(c.user) + '</a>' : '', c.site ? '<a href="' + esc(c.site) + '" target="_blank" rel="noopener">サイト</a>' : '', c.mail ? '<span>' + esc(c.mail) + '</span>' : ''].filter(Boolean).join(' ・ ');
   const acts = '<div class="seg-pick how" role="group" aria-label="送り方">' + HOWS.map(h => '<button type="button" data-act="how" data-h="' + h + '" aria-pressed="' + (h === how) + '">' + (h === 'お問合せフォーム' ? 'フォーム' : h) + '</button>').join('') + '</div>' +
-    '<div class="msgline"><span>文章 <b>' + esc(tnoFor(c, how) || '') + '</b>' + (how === 'メール' && mailParts(c).subject ? '（件名つき）' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
+    '<div class="msgline"><span>文章 <b>' + esc(tnoFor(c, how) || '') + '</b>' + (how === 'メール' ? (mailParts(c).subject ? '（件名つき）' : '') + (mailSig().trim() ? '（署名つき）' : '') : '') + (how === 'メール' && !mailSig().trim() ? ' <button data-act="sig" style="font-size:12px">＋署名を登録</button>' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
     '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
     '<div class="note y" data-after hidden>' + (how === 'メール' ? '件名と本文が入ったメールが開きます。' + (c.mail ? '' : '宛先（お店のメールアドレス）は自分で入れてね。') + '開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
     '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
@@ -654,7 +657,7 @@ function cardHtml(c) {
     '<div class="tk"><div class="main"><div class="av" style="background:' + avColor(c.disp || c.user) + '">' + esc(initial(c)) + '</div><div style="min-width:0">' +
     '<div class="nm">' + esc(c.disp || c.user) + '</div><div class="hd">' + links + '</div>' +
     '<div class="chips">' + chips + '</div>' +
-    '<button type="button" class="mapt" data-act="map" aria-expanded="false">📍 どのあたりのお店？<span>ひらく ▼</span></button><div class="mapbox" hidden></div></div></div>' +
+    '<button type="button" class="mapt" data-act="map" aria-expanded="false">📍 どのあたりのお店？<span>▼</span></button><div class="mapbox" hidden></div></div></div>' +
     '<div class="stub' + (hot ? ' hot' : '') + '"><small>DEADLINE</small><b>' + (c.left <= 0 ? '今日' : c.left) + '</b><span>' + (c.left <= 0 ? 'まで' : '日後まで') + '</span></div></div>' +
     '<div class="acts">' + acts + '</div></article>';
 }
@@ -680,15 +683,17 @@ function renderCards() {
     box.innerHTML = '<div class="empty"><b>' + (D.cards.length ? '今日の分はぜんぶ終わり！' : 'いま送る人はいません') + '</b>' +
       (D.stats.today ? '今日は ' + D.stats.today + '通 送りました。' : '') + '明日の朝、次のお店が届きます。</div>';
   } else box.innerHTML = list.map(cardHtml).join('');
-  if (!MOBILE() && mailFrom()) box.insertAdjacentHTML('beforeend', '<div class="fromline">✉ 送るアドレス <b>' + esc(mailFrom()) + '</b> <button type="button" id="fromChg">変える</button></div>');
+  if (list.length) box.insertAdjacentHTML('beforeend', '<div class="fromline">' + (!MOBILE() && mailFrom() ? '<span>✉ 送るアドレス <b>' + esc(mailFrom()) + '</b> <button type="button" id="fromChg">変える</button></span>' : '') +
+    '<span>✍️ メールの署名 <b>' + (mailSig().trim() ? '登録ずみ' : 'なし') + '</b> <button type="button" id="sigChg">' + (mailSig().trim() ? '変える' : '登録する') + '</button></span></div>');
   const fc = $('#fromChg'); if (fc) fc.onclick = openFrom;
+  const sc = $('#sigChg'); if (sc) sc.onclick = openSig;
 }
 
 // お店の地図：お店の名前＋国で検索した地図をカードの中に出す（はじめて開いたときだけ読み込む）
 function toggleMap(c, b) {
   const box = b.nextElementSibling, open = box.hidden;
   box.hidden = !open; b.setAttribute('aria-expanded', open);
-  b.querySelector('span').textContent = open ? 'とじる ▲' : 'ひらく ▼';
+  b.querySelector('span').textContent = open ? '▲' : '▼';
   if (open && !box.firstChild) {
     const q = [c.disp || c.user, c.country].filter(Boolean).join(' ');
     box.innerHTML = '<iframe loading="lazy" title="お店の地図" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&z=11&output=embed"></iframe><small>お店の名前と国で探した地図です。だいたいの場所の目安にしてください</small>';
@@ -714,6 +719,7 @@ function bindCards() {
     else if (act === 'skip') openSkip(c, el);
     else if (act === 'tpl') openTpl(c, el);
     else if (act === 'from') openFrom();
+    else if (act === 'sig') openSig();
     else if (act === 'map') toggleMap(c, b);
     else if (act === 'how') { ls.set('cm_how_' + c.id, b.dataset.h); el.outerHTML = cardHtml(c); }
   });
@@ -731,6 +737,17 @@ function openFrom() {
     $('#over').hidden = true; renderCards(); toast(v ? '送るアドレスを保存しました' : '送るアドレスを消しました');
   };
   inp.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
+}
+function openSig() {
+  showOver('✍️', 'メールの署名', '<p>「メール」で送るとき、本文の最後に毎回付きます。<b>この端末だけに保存</b>され、ほかの人には見えません。</p>' +
+    '<textarea id="sigIn" rows="6" placeholder="例）\nYumi Tanaka\nOutgrow Japan / Cheers mate\nyumi.ogj@gmail.com" style="width:100%;font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin:6px 0 4px;resize:vertical">' + esc(mailSig()) + '</textarea>' +
+    '<p style="font-size:12.5px;color:var(--muted)">空にして保存すると、署名を消します。インスタのDMには付きません。</p>', '保存する');
+  const ok = $('#overOk'), inp = $('#sigIn'); inp.focus();
+  ok.onclick = () => {
+    const v = inp.value.replace(/\s+$/, '');
+    try { v.trim() ? localStorage.setItem('cm_sig', v) : localStorage.removeItem('cm_sig'); } catch (e) {}
+    $('#over').hidden = true; renderCards(); toast(v.trim() ? '署名を保存しました。メールの最後に付きます' : '署名を消しました');
+  };
 }
 function onGo(c, el) {
   const how = howOf(c), ok = copyText(textFor(c, how));
