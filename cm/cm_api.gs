@@ -103,7 +103,7 @@ function cmMy_(P) {
   var col = function (re) { for (var i = 0; i < head.length; i++) if (re.test(head[i])) return i; return -1; };
   var C = { date: col(/^配布日/), due: col(/^送信期限/), st: col(/^ステータス/), how: col(/^送った方法/), shop: col(/^会社名/), country: col(/^国$/), kind: col(/^種類/),
             url: col(/^URL/), ig: col(/^Instagram/), mail: col(/^メール/), text: col(/^1通目の文章/), tno: col(/^文章の番号/), cl: col(/^Customer List/), memo: col(/^メモ/),
-            id: col(/^配布ID/), phone: col(/^電話/), why: col(/^送らない理由/) };
+            id: col(/^配布ID/), list: col(/^リスト$/), mid: col(/^管理ID/), phone: col(/^電話/), why: col(/^送らない理由/) };
   var v = last >= 3 ? sh.getRange(3, 1, last - 2, lastC).getValues() : [];
   var reasons = [];
   try { var dv = C.why >= 0 ? sh.getRange(3, C.why + 1).getDataValidation() : null; if (dv) reasons = dv.getCriteriaValues()[0].map(String); } catch (e) {}
@@ -127,6 +127,13 @@ function cmTpls_() {
   return o;
 }
 
+// 新規リスト／再アプローチリストのどちらから配られたか（「リスト」列、無ければ管理IDの頭 N=新規・I/R=再アプローチ）
+function cmList_(r, C) {
+  var v = C.list >= 0 ? String(r[C.list] || '').trim() : '';
+  if (/新規/.test(v)) return '新規'; if (/再/.test(v)) return '再アプローチ';
+  var m = C.mid >= 0 ? String(r[C.mid] || '').trim().charAt(0).toUpperCase() : '';
+  return m === 'N' ? '新規' : (m === 'I' || m === 'R') ? '再アプローチ' : '';
+}
 function cmMe_(P) {
   var M = cmMy_(P), C = M.C, today = cmToday_();
   var cards = [], T = cmTpls_(), subj = T.subj;
@@ -138,7 +145,7 @@ function cmMe_(P) {
       country: String(r[C.country] || ''), kind: String(r[C.kind] || ''), site: /^https?:/.test(String(r[C.url])) && !/instagram\.com/i.test(String(r[C.url])) ? String(r[C.url]) : '',
       mail: String(r[C.mail] || '').trim(), phone: C.phone >= 0 ? String(r[C.phone] || '') : '', text: String(r[C.text] || ''), tno: String(r[C.tno] || ''),
       subj: String(subj[String(r[C.tno] || '').trim()] || '').replace(/\{SHOP\}/g, String(r[C.shop] || '')),
-      left: due ? cmDiff_(due, today) : 0 });
+      list: cmList_(r, C), left: due ? cmDiff_(due, today) : 0 });
   });
   cards.sort(function (a, b) { return a.left - b.left; });
   var st = cmStats_(P.name);

@@ -129,6 +129,10 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
 .tk .main { padding: 14px 10px 10px 14px; display: grid; grid-template-columns: 44px 1fr; gap: 10px; min-width: 0; }
 .av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px; }
 .nm { font-weight: 900; font-size: 16px; line-height: 1.35; word-break: break-word; }
+/* 新規／再アプローチ：名前の横に小さく（目立たせない） */
+.lst { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; font-size: 10.5px; font-weight: 700; color: var(--muted); vertical-align: 2px; white-space: nowrap; }
+.lst::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
+.lst.re::before { background: #d9a400; }
 .hd { font: 600 12px/1.5 var(--num); color: var(--muted); word-break: break-all; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .chip { font-size: 11.5px; line-height: 1; padding: 5px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
@@ -655,7 +659,7 @@ function cardHtml(c) {
     '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
   return '<article class="card' + (ls.get('cm_open_' + c.id, '') ? ' opened' : '') + '" data-id="' + esc(c.id) + '">' +
     '<div class="tk"><div class="main"><div class="av" style="background:' + avColor(c.disp || c.user) + '">' + esc(initial(c)) + '</div><div style="min-width:0">' +
-    '<div class="nm">' + esc(c.disp || c.user) + '</div><div class="hd">' + links + '</div>' +
+    '<div class="nm">' + esc(c.disp || c.user) + (c.list ? '<span class="lst' + (c.list === '新規' ? '' : ' re') + '" title="' + esc(c.list) + 'リストのお店">' + esc(c.list) + '</span>' : '') + '</div><div class="hd">' + links + '</div>' +
     '<div class="chips">' + chips + '</div>' +
     '<button type="button" class="mapt" data-act="map" aria-expanded="false">📍 どのあたりのお店？<span>▼</span></button><div class="mapbox" hidden></div></div></div>' +
     '<div class="stub' + (hot ? ' hot' : '') + '"><small>DEADLINE</small><b>' + (c.left <= 0 ? '今日' : c.left) + '</b><span>' + (c.left <= 0 ? 'まで' : '日後まで') + '</span></div></div>' +
@@ -1205,10 +1209,10 @@ function demoApi(action, body) {
   return Promise.resolve({ ok: true, name: '見本', ig: IG, igNo: 'T10', today: '2026/11/17', perDay: 20, goal: 500,
     stats: { total: 412, month: 169, today: 8, reply: 27, replyRate: 6.6, streak: 4, days, byMsg: { T09: { n: 300, reply: 21 }, T10: { n: 112, reply: 6 } } },
     cards: [
-      { id: 'd1', disp: 'Greystones Cafe', user: 'greystonescafe', method: 'Instagram', country: 'Canada', kind: 'カフェ', site: '', mail: '', text: T('Greystones Cafe'), tno: 'T09', left: 2 },
-      { id: 'd2', disp: 'Kokoon Tea', user: 'kokoon_tea', method: 'メール', country: 'Romania', kind: '卸業者', site: 'https://example.com/', mail: 'hello@example.com', text: 'Subject: The matcha source your competitors don\'t know\n\n' + T('Kokoon Tea'), tno: 'T09', left: 1 },
-      { id: 'd3', disp: 'Matcha Haus Atelier', user: '', method: 'お問合せフォーム', country: 'Canada', kind: '卸業者', site: 'https://example.com/', mail: '', text: T('Matcha Haus Atelier'), tno: 'T09', left: 0 },
-      { id: 'd4', disp: 'MORI Matcha Cafe Atelier', user: 'mori.cph', method: 'Instagram', country: 'Denmark', kind: 'カフェ', site: '', mail: '', text: T('MORI Matcha Cafe Atelier'), tno: 'T10', left: 2 }],
+      { id: 'd1', list: '新規', disp: 'Greystones Cafe', user: 'greystonescafe', method: 'Instagram', country: 'Canada', kind: 'カフェ', site: '', mail: '', text: T('Greystones Cafe'), tno: 'T09', left: 2 },
+      { id: 'd2', list: '再アプローチ', disp: 'Kokoon Tea', user: 'kokoon_tea', method: 'メール', country: 'Romania', kind: '卸業者', site: 'https://example.com/', mail: 'hello@example.com', text: 'Subject: The matcha source your competitors don\'t know\n\n' + T('Kokoon Tea'), tno: 'T09', left: 1 },
+      { id: 'd3', list: '新規', disp: 'Matcha Haus Atelier', user: '', method: 'お問合せフォーム', country: 'Canada', kind: '卸業者', site: 'https://example.com/', mail: '', text: T('Matcha Haus Atelier'), tno: 'T09', left: 0 },
+      { id: 'd4', list: '再アプローチ', disp: 'MORI Matcha Cafe Atelier', user: 'mori.cph', method: 'Instagram', country: 'Denmark', kind: 'カフェ', site: '', mail: '', text: T('MORI Matcha Cafe Atelier'), tno: 'T10', left: 2 }],
     reasons: ['抹茶・カフェと関係ない', 'お店がない・閉店', '連絡先が見つからない', 'インスタしかない', '前に自分で送った', '送れない国', 'その他（メモに書く）'], mp: 'demo', sheet: '#' });
 }
 // 見本の「これまで」（架空の人・架空の数字）
