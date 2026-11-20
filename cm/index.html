@@ -172,6 +172,8 @@ main { padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1
 .fban-f .btn { flex: 0 0 auto; width: auto; padding: 0 26px; min-height: 48px; }
 @media (max-width: 560px) { .fban-f .btn { flex: 1 1 100%; } }
 .fban-err { margin: 0; color: var(--warn); font-weight: 700; font-size: 13px; min-height: 0; } .fban-err:empty { display: none; }
+.fromrow { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--muted); background: #fff8d6; border: 1px solid #f3d96b; border-radius: 10px; padding: 7px 10px; margin: 8px 0 -2px; }
+.fromrow b { color: var(--ink); word-break: break-all; } .fromrow .warn { color: #b42318; font-weight: 700; } .fromrow button { border: 0; background: none; color: var(--sky); text-decoration: underline; font-size: 12.5px; cursor: pointer; }
 .fromline { grid-column: 1 / -1; text-align: center; font-size: 12.5px; color: var(--muted); padding: 8px 0 4px; }
 .fromline span { display: inline-block; margin: 0 8px; } .fromline b { color: var(--ink); } .fromline button { border: 0; background: none; color: var(--sky); text-decoration: underline; font-size: 12.5px; cursor: pointer; }
 .note { border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
@@ -690,8 +692,8 @@ function cardHtml(c) {
   const links = [c.user ? '<a href="' + profUrl(c.user) + '" target="_blank" rel="noopener">@' + esc(c.user) + '</a>' : '', c.site ? '<a href="' + esc(c.site) + '" target="_blank" rel="noopener">サイト</a>' : '', c.mail ? '<span>' + esc(c.mail) + '</span>' : ''].filter(Boolean).join(' ・ ');
   const acts = '<div class="seg-pick how" role="group" aria-label="送り方">' + HOWS.map(h => '<button type="button" data-act="how" data-h="' + h + '" aria-pressed="' + (h === how) + '">' + (h === 'お問合せフォーム' ? 'フォーム' : h) + '</button>').join('') + '</div>' +
     '<div class="msgline"><span>文章 <b>' + esc(tnoFor(c, how) || '') + '</b>' + (how === 'メール' ? (mailParts(c).subject ? '（件名つき）' : '') + (mailSig().trim() ? '（署名つき）' : '') : '') + (how === 'メール' && !mailSig().trim() ? ' <button data-act="sig" style="font-size:12px">＋署名を登録</button>' : '') + '</span><button data-act="tpl">文章を見る</button></div>' +
-    '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
-    '<div class="note y" data-after hidden>' + (how === 'メール' ? '件名と本文が入ったメールが開きます。' + (c.mail ? '' : '宛先（お店のメールアドレス）は自分で入れてね。') + '開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
+    (how === 'メール' && !MOBILE() ? '<div class="fromrow">' + (mailFrom() ? '<span>送信元（From）<b>' + esc(mailFrom()) + '</b></span><button type="button" data-act="fromhelp">Gmailの画面で違うときは</button>' : '<span class="warn">送信元（From）が未登録です</span><button type="button" data-act="fromreg">登録する</button>') + '</div>' : '') + '<a class="btn go" data-act="go"' + (g.href ? ' href="' + esc(g.href) + '" target="_blank" rel="noopener"' : ' href="#"') + '>' + ICONS[g.icon] + esc(g.label) + '</a>' +
+    '<div class="note y" data-after hidden>' + (how === 'メール' ? '件名と本文が入ったメールが開きます。' + (c.mail ? '' : '宛先（お店のメールアドレス）は自分で入れてね。') + '開かないときは本文がコピーしてあるので、メールに貼り付けて送ってね。' + (MOBILE() ? '' : '<br><b>送る前に、作成画面の「From（差出人）」が上の送信元と同じか確認してね。</b>') : 'コピーしました。' + (how === 'Instagram' ? 'Instagramで<b>長押し→ペースト</b>' : 'フォームやメールに<b>貼り付け</b>') + 'して送信') + ' → 送ったら、ここに戻って「送信済み」を押してね。</div>' +
     '<div class="row2"><button class="btn yes" data-act="sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>送信済み</button><button class="btn no" data-act="skip">あえて送らない</button></div>';
   return '<article class="card' + (ls.get('cm_open_' + c.id, '') ? ' opened' : '') + '" data-id="' + esc(c.id) + '">' +
     '<div class="tk"><div class="main"><div class="av" style="background:' + avColor(c.disp || c.user) + '">' + esc(initial(c)) + '</div><div style="min-width:0">' +
@@ -760,6 +762,8 @@ function bindCards() {
     else if (act === 'tpl') openTpl(c, el);
     else if (act === 'from') openFrom();
     else if (act === 'sig') openSig();
+    else if (act === 'fromreg') openFrom();
+    else if (act === 'fromhelp') openFromHelp();
     else if (act === 'map') toggleMap(c, b);
     else if (act === 'how') { ls.set('cm_how_' + c.id, b.dataset.h); el.outerHTML = cardHtml(c); }
   });
@@ -777,6 +781,15 @@ function openFrom() {
     $('#over').hidden = true; renderCards(); toast(v ? '送るアドレスを保存しました' : '送るアドレスを消しました');
   };
   inp.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
+}
+function openFromHelp() {
+  const f = esc(mailFrom());
+  showOver('✉️', 'Gmailの「From（差出人）」が違うとき', '<p>Gmailの作成画面の左上の <b>From</b> が、送信元 <b>' + f + '</b> と同じか確認してください。</p>' +
+    '<p><b>① From が別のアドレスのとき</b><br>From をクリックして ' + f + ' を選べばOKです。</p>' +
+    '<p><b>② 選べないとき</b><br>このブラウザに、そのアドレスのGoogleアカウントがログインしていません。Chromeの右上の丸いアイコン →「追加」で<b>OGJ用のプロフィール</b>を作り、そのウィンドウでMatcha Go!を開いてください（次回からそこで開くだけ）。</p>' +
+    '<p><b>③ 個人のGmailに、OGJアドレスを差出人として足す方法もあります</b><br>Gmail右上の歯車 → すべての設定 → アカウントとインポート →「名前：メールアドレスを追加」→ ' + f + ' を追加。</p>' +
+    '<p style="font-size:12.5px;color:var(--muted)">Matcha Go!からGmailの From を自動で切り替えることはできないため、送る前に From を確認するのがいちばん確実です。</p>', 'とじる');
+  $('#overOk').onclick = () => { $('#over').hidden = true; };
 }
 function openSig() {
   showOver('✍️', 'メールの署名', '<p>「メール」で送るとき、本文の最後に毎回付きます。<b>この端末だけに保存</b>され、ほかの人には見えません。</p>' +
