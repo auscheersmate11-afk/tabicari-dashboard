@@ -48,9 +48,10 @@ function doPost(e) {
   if (!name) { Utilities.sleep(800); return cmOut_({ ok: false, error: 'key' }); }   // 合言葉の総当たりを遅くする
   try {
     if (req.action === 'check') return cmOut_(cmCheck_(name, req));
+    if (req.action === 'pref') return cmOut_(cmPrefSet_(name, req));
     var P = cmPerson_(name);
     if (!P) return cmOut_({ ok: false, error: 'who' });
-    if (req.action === 'me') return cmOut_(cmMe_(P));
+    if (req.action === 'me') { var me = cmMe_(P); if (me && me.ok) me.pref = cmPrefGet_(name); return cmOut_(me); }
     if (req.action === 'sent') return cmOut_(cmSet_(P, req, 'sent'));
     if (req.action === 'skip') return cmOut_(cmSet_(P, req, 'skip'));
     return cmOut_({ ok: false, error: 'action' });
@@ -60,6 +61,20 @@ function doPost(e) {
   }
 }
 
+// 送るアドレス・メール署名：端末をまたいで同じにするため、本人ごとにスクリプトプロパティ PREF_<名前> に保存（2026-11-21）
+function cmPrefKey_(name) { return 'PREF_' + cmNorm_(name); }
+function cmPrefGet_(name) {
+  var raw = PropertiesService.getScriptProperties().getProperty(cmPrefKey_(name));
+  if (!raw) return { set: false, from: '', sig: '' };
+  try { var o = JSON.parse(raw); return { set: true, from: String(o.from || ''), sig: String(o.sig || '') }; } catch (e) { return { set: false, from: '', sig: '' }; }
+}
+function cmPrefSet_(name, req) {
+  var from = String(req.from || '').trim().slice(0, 120);
+  if (from && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(from)) return { ok: false, error: 'from' };
+  var sig = String(req.sig || '').slice(0, 1500);
+  PropertiesService.getScriptProperties().setProperty(cmPrefKey_(name), JSON.stringify({ from: from, sig: sig }));
+  return { ok: true };
+}
 function cmOut_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 function cmKeys_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('CM_KEYS') || '{}'); } catch (e) { return {}; } }
 function cmWho_(key) { key = String(key || ''); if (key.length < 16) return ''; return cmKeys_()[key] || ''; }
