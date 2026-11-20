@@ -327,6 +327,18 @@ table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
 .rule.ahead .rv b { color: var(--ok); } .rule.behind .rv b { color: var(--warn); }
 .rule .rv em { font-style: normal; margin-left: 8px; font-size: 12px; }
 .rule .gbar { background: var(--surface); margin: 2px 0; }
+/* 21日間チャレンジ（同期グループの人は、月の件数目標の代わりにこれを出す） */
+.ch21 { border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 4px 0 14px; background: var(--soft); display: grid; gap: 8px; }
+.ch21.on { background: var(--ok-soft); border-color: var(--ok); }
+.ch21 .ck { font-size: 12px; font-weight: 900; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 8px; } .ch21 .ck span { color: var(--ink); }
+.ch21 .cv { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; font-weight: 800; }
+.ch21 .cv b { font: 700 36px var(--num); color: var(--ink); } .ch21.on .cv b { color: var(--ok); } .ch21 .cv small { font-size: 13px; color: var(--muted); }
+.ch21 .cl { font-size: 15px; font-weight: 900; } .ch21 .cl b { font: 700 22px var(--num); color: var(--ok); margin: 0 2px; }
+.ch21 .dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.ch21 .dots i { aspect-ratio: 1; border-radius: 50%; background: var(--surface); border: 1.5px dashed var(--line); display: grid; place-items: center; font: 700 10px var(--num); font-style: normal; color: var(--muted); }
+.ch21 .dots i.d { background: var(--yellow); border: 0; color: var(--ink); } .ch21 .dots i.p { border-style: solid; background: var(--surface); }
+.ch21 .dots i.t { outline: 2px solid var(--ok); outline-offset: 1px; }
+.ch21 .cn { font-size: 12.5px; font-weight: 700; color: var(--ink); line-height: 1.6; } .ch21 .cn b { font-family: var(--num); }
 .rule .rn { font-size: 12.5px; font-weight: 700; color: var(--ink); } .rule .rn b { font-family: var(--num); font-size: 14px; }
 .gbar { position: relative; height: 12px; border-radius: 99px; background: var(--soft); margin: 2px 0 6px; }
 .gbar .fill { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--ok); width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
@@ -645,7 +657,9 @@ function renderHero() {
   const open = D.cards.filter(c => !hidden(c.id)).length;
   $('#hero').classList.toggle('done', !open && sent > 0);
   $('#hTitle').innerHTML = !open ? (sent ? '今日の分ぜんぶ完了！おつかれさまでした🎉' : '今は送る相手がいません') : 'のこり<span class="num"> ' + left + ' </span>件';
-  $('#hMeta').innerHTML = '<span>配布の残り<b>' + open + '</b>件</span><span>今月<b>' + s.month + '</b>/ ' + (((typeof H !== 'undefined' && H) ? (groupRule() || {}).month : 0) || D.goal || GOAL_MONTH) + '通</span><span>連続<b>' + s.streak + '</b>日</span>';
+  const CH = (typeof H !== 'undefined' && H) ? syncCh() : null;
+  $('#hMeta').innerHTML = '<span>配布の残り<b>' + open + '</b>件</span>' + (CH ? '<span>' + (CH.done ? '21日間チャレンジ<b>達成</b>' : CH.started ? '21日間チャレンジ<b>' + Math.min(21, CH.day || 1) + '</b>日目' : '21日間チャレンジ あと<b>21</b>日') + '</span><span>今月<b>' + s.month + '</b>通</span>'
+    : '<span>今月<b>' + s.month + '</b>/ ' + (((typeof H !== 'undefined' && H) ? (groupRule() || {}).month : 0) || D.goal || GOAL_MONTH) + '通</span>') + '<span>連続<b>' + s.streak + '</b>日</span>';
 }
 
 function cardHtml(c) {
@@ -913,6 +927,31 @@ function groupRule() {
   best.month = best.rate >= 2 ? Math.round(best.rate * dim) : 300;   // 1日1件（同期の「続ける」ルール）は月300通
   return best;
 }
+// 同期グループの21日間チャレンジ（H.gp[].ch）。グループで「今日◯件送りました」と報告した日が1日目（菊地さん 11/20）
+//   報告がまだの人は「まだ始まっていない」＝あと21日。同期グループに入っていない人は null（いままでどおり月の目標）
+function syncCh() {
+  if (!H || !H.gp) return null;
+  const g = H.gp.find(x => x.kind === '同期' && x.ch && !x.ch.done) || H.gp.find(x => x.kind === '同期' && x.ch);
+  return g ? { ...g.ch, group: g.name } : null;
+}
+function chCard(CH, N) {
+  const day = CH.started ? Math.min(21, CH.day || 1) : 0, cal = CH.cal || [], T = todayJst().replace(/\//g, '-');
+  const okDays = cal.filter(c => c[1]).length + (CH.started && N.today > 0 && !cal.some(c => c[0] === T && c[1]) && day <= 21 ? 1 : 0);
+  let dots = '';
+  for (let i = 1; i <= 21; i++) {
+    const c = cal[i - 1], isT = CH.started && i === day, did = c ? c[1] || (isT && N.today > 0) : (isT && N.today > 0);
+    dots += '<i class="' + (i <= day ? (did ? 'd' : 'p') : '') + (isT ? ' t' : '') + '" title="' + i + '日目">' + (did ? '✓' : i) + '</i>';
+  }
+  if (CH.done) return '<div class="ch21 on"><div class="ck">' + esc(CH.group) + '<span>21日間チャレンジ</span></div><div class="cv"><b>達成！</b><small>21日間 おつかれさまでした🎉</small></div><div class="dots">' + dots + '</div></div>';
+  if (!CH.started) return '<div class="ch21"><div class="ck">' + esc(CH.group) + '<span>21日間チャレンジ</span></div>' +
+    '<div class="cl">達成まで あと<b>21</b>日</div><div class="dots">' + dots + '</div>' +
+    '<div class="cn">まだスタート前です。同期グループに「今日◯件送りました」と報告した日が <b>1</b>日目 になります🍵</div></div>';
+  const left = Math.max(0, 21 - day);
+  return '<div class="ch21 on"><div class="ck">' + esc(CH.group) + '<span>21日間チャレンジ</span></div>' +
+    '<div class="cv"><b>' + day + '日目</b><small>/ 21日</small></div>' +
+    '<div class="cl">' + (left ? '達成まで あと<b>' + left + '</b>日' : '今日が最終日！') + '</div><div class="dots">' + dots + '</div>' +
+    '<div class="cn">' + (CH.from ? (+CH.from.slice(5, 7)) + '/' + (+CH.from.slice(8)) + ' にスタート。' : '') + '送れた日 <b>' + okDays + '</b>日' + (N.today > 0 ? '・今日もクリア！' : '・今日も1件送って、グループに報告しよう') + '</div></div>';
+}
 // H.days から日付ごとの送信数（今日の分はページの数を優先）
 function sentOn(ds, N) {
   if (ds === todayJst().replace(/\//g, '-')) return N.today;
@@ -950,6 +989,7 @@ function ruleCard(GR, N) {
 
 function renderMe() {
   const box = $('#meBox'); if (!D) return;
+  if (H) try { renderHero(); } catch (e) { console.warn(e); }   // 見出しの「21日間チャレンジ」も H が届いてから
   const N = meNums(), L = N.L, nm = String(D.name || '').replace(/\s/g, '');
   const GR = groupRule(), goal = GR && GR.month ? GR.month : (D.goal || GOAL_MONTH);
   const lvI = levelOf(N.all.s), lv = LEVELS[lvI], nx = LEVELS[lvI + 1];
@@ -987,7 +1027,13 @@ function renderMe() {
     '</div>' +
     '<div class="gbar ' + st + '" role="img" aria-label="目標' + goal + '通のうち' + N.mon.s + '通"><span class="fill" data-w="' + Math.min(100, N.mon.s / goal * 100).toFixed(1) + '"></span><span class="mark" style="left:' + Math.min(100, expect / goal * 100).toFixed(1) + '%"></span></div>' +
     '<div class="gsub"><span><i></i>今日までの目標 ' + expect + '通</span><span>' + Math.floor(N.mon.s / goal * 100) + '%</span></div>';
-  h += '<section class="me-sec"><h2><span class="ic">📅</span>いまの状況</h2><p class="sub">' + (+N.now.slice(5)) + '月の目標 ' + goal + '通（' + N.day + '日目 / ' + dim + '日）' + (GR && GR.month ? '<br>' + esc(GR.group) + 'のルール「' + esc(GR.label) + '」に合わせた目標です' : '') + '</p>' + pgrid + ruleCard(GR, N) +
+  const CH = syncCh();
+  if (CH) h += '<section class="me-sec"><h2><span class="ic">📅</span>いまの状況</h2><p class="sub">同期グループの「21日間チャレンジ」。件数より、毎日続けることを大事にしています</p>' + chCard(CH, N) +
+    '<div class="now-list"><div class="now-row">今日<b>' + cu(N.today) + '<span>通</span></b></div><div class="now-row">連続で送った日<b>' + cu(L.streak || 0) + '<span>日</span></b></div>' +
+    '<div class="now-row">今月 送った<b>' + cu(N.mon.s) + '<span>通</span></b></div></div>' +
+    (H ? '<div class="chips"><span class="chip">今月の返信<b>' + N.mon.r + '</b>件</span><span class="chip' + (N.mon.p ? ' hot' : '') + '">サンプル決済<b>' + N.mon.p + '</b>件</span><span class="chip' + (N.mon.o ? ' hot' : '') + '">成約<b>' + N.mon.o + '</b>件</span>' + (H.pend ? '<span class="chip hot">決済待ち<b>' + H.pend + '</b>件</span>' : '') + '</div>' : '') +
+    '</section>';
+  else h += '<section class="me-sec"><h2><span class="ic">📅</span>いまの状況</h2><p class="sub">' + (+N.now.slice(5)) + '月の目標 ' + goal + '通（' + N.day + '日目 / ' + dim + '日）' + (GR && GR.month ? '<br>' + esc(GR.group) + 'のルール「' + esc(GR.label) + '」に合わせた目標です' : '') + '</p>' + pgrid + ruleCard(GR, N) +
     '<div class="now-grid"><div class="ring">' + ringSvg(53, N.mon.s / goal) + '<div class="pc"><b>' + cu(N.mon.s) + '</b><small>/ ' + goal + '通</small></div></div>' +
     '<div class="now-list"><div class="now-row">今日<b>' + cu(N.today) + '<span>通</span></b></div><div class="now-row">連続で送った日<b>' + cu(L.streak || 0) + '<span>日</span></b></div>' +
     '<div class="now-row">今月 送った<b>' + cu(N.mon.s) + '<span>通</span></b></div></div></div>' +
