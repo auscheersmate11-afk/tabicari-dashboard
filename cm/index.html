@@ -605,6 +605,17 @@ function igText(c) { return D && D.ig ? D.ig.replace(/\{SHOP\}/g, c.disp || c.us
 function tnoFor(c, how) { return how === 'Instagram' && igText(c) ? D.igNo : c.tno; }
 // メールの署名：本人がMatcha Go!で1回書いておくと、メール本文の最後に毎回付く（この端末だけに保存 cm_sig）
 const mailSig = () => ls.get('cm_sig', '');
+// 送るアドレス・署名は本人ごとにサーバーにも保存して、どの端末でも同じにする（サーバーに保存がまだ無いときだけ、この端末の分を預ける）
+function savePref() { if (DEMO || !KEY) return; api('pref', { from: mailFrom(), sig: mailSig() }); }
+function applyPref(pr) {
+  if (!pr || typeof pr !== 'object') return;   // 古いサーバーのときは何もしない
+  if (pr.set) {
+    try {
+      pr.from ? localStorage.setItem('cm_mailfrom', pr.from) : localStorage.removeItem('cm_mailfrom');
+      pr.sig ? localStorage.setItem('cm_sig', pr.sig) : localStorage.removeItem('cm_sig');
+    } catch (e) {}
+  } else if (mailFrom() || mailSig().trim()) savePref();
+}
 const withSig = t => { const g = mailSig().trim(); return g ? String(t || '').replace(/\s+$/, '') + '\n\n' + g : String(t || ''); };
 function textFor(c, how) { if (how === 'Instagram' && igText(c)) return igText(c); return how === 'メール' ? withSig(c.text) : splitMail(c.text).body; }
 function dmUrl(u) { return 'https://ig.me/m/' + encodeURIComponent(u); }
@@ -713,7 +724,7 @@ function renderFromBan() {
   $('#fbForm').onsubmit = e => {
     e.preventDefault(); const v = $('#fbIn').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { $('#fbErr').textContent = 'メールアドレスの形で入れてください'; return; }
-    try { localStorage.setItem('cm_mailfrom', v); } catch (er) {}
+    try { localStorage.setItem('cm_mailfrom', v); } catch (er) {} savePref();
     renderCards(); toast('送るアドレスを登録しました。Gmailがこのアドレスで開きます');
   };
 }
@@ -778,7 +789,7 @@ function openFrom() {
     const v = inp.value.trim();
     if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { $('#fromErr').textContent = 'メールアドレスの形で入れてください'; return; }
     try { v ? localStorage.setItem('cm_mailfrom', v) : localStorage.removeItem('cm_mailfrom'); } catch (e) {}
-    $('#over').hidden = true; renderCards(); toast(v ? '送るアドレスを保存しました' : '送るアドレスを消しました');
+    savePref(); $('#over').hidden = true; renderCards(); renderFromBan(); toast(v ? '送るアドレスを保存しました' : '送るアドレスを消しました');
   };
   inp.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
 }
@@ -799,7 +810,7 @@ function openSig() {
   ok.onclick = () => {
     const v = inp.value.replace(/\s+$/, '');
     try { v.trim() ? localStorage.setItem('cm_sig', v) : localStorage.removeItem('cm_sig'); } catch (e) {}
-    $('#over').hidden = true; renderCards(); toast(v.trim() ? '署名を保存しました。メールの最後に付きます' : '署名を消しました');
+    savePref(); $('#over').hidden = true; renderCards(); toast(v.trim() ? '署名を保存しました。メールの最後に付きます' : '署名を消しました');
   };
 }
 function onGo(c, el) {
@@ -1244,7 +1255,7 @@ async function load() {
     if (j.error === 'key') ls.del('cm_key');
     return;
   }
-  D = j; loadedAt = Date.now(); render(); saveCache(); firstRun();
+  D = j; loadedAt = Date.now(); applyPref(j.pref); render(); saveCache(); firstRun();
 }
 // 前回の中身を端末に置いて、開いた瞬間に出す（サーバーの返事は数秒かかるため。届いたら差し替える）
 function todayJst() { const p = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); const g = t => (p.find(x => x.type === t) || {}).value; return g('year') + '/' + g('month') + '/' + g('day'); }
