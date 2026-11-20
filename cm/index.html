@@ -327,18 +327,40 @@ table.msg th { font-size: 12px; color: var(--muted); font-weight: 700; }
 .rule.ahead .rv b { color: var(--ok); } .rule.behind .rv b { color: var(--warn); }
 .rule .rv em { font-style: normal; margin-left: 8px; font-size: 12px; }
 .rule .gbar { background: var(--surface); margin: 2px 0; }
-/* 21日間チャレンジ（同期グループの人は、月の件数目標の代わりにこれを出す） */
-.ch21 { border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 4px 0 14px; background: var(--soft); display: grid; gap: 8px; }
-.ch21.on { background: var(--ok-soft); border-color: var(--ok); }
-.ch21 .ck { font-size: 12px; font-weight: 900; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 8px; } .ch21 .ck span { color: var(--ink); }
-.ch21 .cv { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; font-weight: 800; }
-.ch21 .cv b { font: 700 36px var(--num); color: var(--ink); } .ch21.on .cv b { color: var(--ok); } .ch21 .cv small { font-size: 13px; color: var(--muted); }
-.ch21 .cl { font-size: 15px; font-weight: 900; } .ch21 .cl b { font: 700 22px var(--num); color: var(--ok); margin: 0 2px; }
-.ch21 .dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-.ch21 .dots i { aspect-ratio: 1; border-radius: 50%; background: var(--surface); border: 1.5px dashed var(--line); display: grid; place-items: center; font: 700 10px var(--num); font-style: normal; color: var(--muted); }
-.ch21 .dots i.d { background: var(--yellow); border: 0; color: var(--ink); } .ch21 .dots i.p { border-style: solid; background: var(--surface); }
-.ch21 .dots i.t { outline: 2px solid var(--ok); outline-offset: 1px; }
-.ch21 .cn { font-size: 12.5px; font-weight: 700; color: var(--ink); line-height: 1.6; } .ch21 .cn b { font-family: var(--num); }
+/* 21日間チャレンジ（同期グループの人は、月の件数目標の代わりにこれを出す）：紺のヒーロー＋立体スタンプ */
+.ch21 { position: relative; overflow: hidden; border-radius: 24px; padding: 18px 16px 16px; margin: 4px 0 14px; color: #fff; background: linear-gradient(140deg, #031147 0%, #0b2163 55%, #173c8e 100%); box-shadow: 0 10px 24px rgba(3,17,71,.28), inset 0 1px 0 rgba(255,255,255,.18); }
+.ch21::before { content: ""; position: absolute; inset: -40% -20% auto auto; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(253,200,5,.26), transparent 65%); animation: glow 6s ease-in-out infinite; pointer-events: none; }
+.ch21::after { content: ""; position: absolute; left: -30%; top: 0; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.10), transparent); transform: skewX(-18deg); animation: shine 5.5s ease-in-out 1s infinite; pointer-events: none; }
+.ch21 > * { position: relative; z-index: 1; }
+.ch21 .ck { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; font-weight: 800; color: #b9c6e6; }
+.ch21 .ck span { background: rgba(253,200,5,.16); color: #ffe27a; border-radius: 99px; padding: 3px 10px; font-weight: 900; }
+.ch21 .chtop { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+.ch21 .big { position: relative; width: 104px; height: 104px; flex: none; }
+.ch21 .big svg { width: 100%; height: 100%; transform: rotate(-90deg); filter: drop-shadow(0 3px 6px rgba(0,0,0,.35)); }
+.ch21 .big circle { fill: none; stroke-width: 9; }
+.ch21 .big .bg { stroke: rgba(255,255,255,.14); }
+.ch21 .big .fg { stroke: url(#chg); stroke-linecap: round; transition: stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1); }
+.ch21 .big .c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1; }
+.ch21 .big .c b { font: 800 38px/1 var(--num); text-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.ch21 .big .c small { font: 700 11px/1.5 var(--num); color: #b9c6e6; }
+.ch21 .msg { min-width: 0; }
+.ch21 .msg .t { display: block; font-size: 19px; font-weight: 900; line-height: 1.3; }
+.ch21 .msg .t b { font: 800 30px var(--num); color: #fdc805; margin: 0 2px; text-shadow: 0 2px 0 rgba(0,0,0,.3); }
+.ch21 .msg .s { display: block; margin-top: 3px; font-size: 12.5px; font-weight: 700; color: #dfe7fb; line-height: 1.5; }
+.ch21 .stamps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; margin-top: 16px; perspective: 600px; }
+.ch21 .stamps i { position: relative; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font: 800 11px var(--num); font-style: normal; color: rgba(255,255,255,.5);
+  background: rgba(255,255,255,.07); box-shadow: inset 0 3px 6px rgba(0,0,0,.35), inset 0 -1px 0 rgba(255,255,255,.1); }
+.ch21 .stamps i.d { color: #3a2c00; font-size: 17px; background: radial-gradient(circle at 32% 26%, #fff3a8 0%, #fdc805 48%, #d29a00 100%);
+  box-shadow: 0 4px 0 #9a6f00, 0 7px 10px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.7); transform: rotate(var(--rot, -6deg)); animation: stamp .5s cubic-bezier(.2,1.6,.4,1) both; animation-delay: calc(var(--i) * 45ms); }
+.ch21 .stamps i.d::after { content: ""; position: absolute; inset: 15%; border-radius: 50%; border: 1.5px dashed rgba(58,44,0,.35); }
+.ch21 .stamps i.m { background: radial-gradient(circle at 32% 26%, #d9f6e1 0%, #5fcf80 50%, #2f9a52 100%); color: #06301a; box-shadow: 0 4px 0 #1d6b38, 0 7px 10px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.7); }
+.ch21 .stamps i.p { color: #ffb3a1; background: rgba(243,154,132,.14); box-shadow: inset 0 3px 6px rgba(0,0,0,.35), inset 0 0 0 1.5px rgba(243,154,132,.45); font-size: 16px; }
+.ch21 .stamps i.t { color: #fdc805; background: rgba(253,200,5,.12); box-shadow: 0 0 0 2.5px #fdc805, 0 0 16px rgba(253,200,5,.6), inset 0 3px 6px rgba(0,0,0,.3); animation: nudge 1.8s ease-in-out infinite; font-size: 15px; }
+.ch21 .stamps i.g { color: #ffe27a; background: rgba(253,200,5,.10); box-shadow: inset 0 3px 6px rgba(0,0,0,.35), inset 0 0 0 1.5px rgba(253,200,5,.4); font-size: 16px; }
+.ch21 .cn { margin-top: 14px; font-size: 12.5px; font-weight: 700; color: #dfe7fb; line-height: 1.7; background: rgba(255,255,255,.08); border-radius: 12px; padding: 9px 12px; } .ch21 .cn b { font-family: var(--num); font-size: 15px; color: #fdc805; }
+.ch21.done .big .c b { color: #fdc805; }
+@keyframes stamp { 0% { transform: scale(2.2) rotate(-25deg); opacity: 0; } 100% { transform: scale(1) rotate(var(--rot, -6deg)); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ch21::before, .ch21::after, .ch21 .stamps i { animation: none !important; } }
 .rule .rn { font-size: 12.5px; font-weight: 700; color: var(--ink); } .rule .rn b { font-family: var(--num); font-size: 14px; }
 .gbar { position: relative; height: 12px; border-radius: 99px; background: var(--soft); margin: 2px 0 6px; }
 .gbar .fill { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--ok); width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
@@ -936,21 +958,26 @@ function syncCh() {
 }
 function chCard(CH, N) {
   const day = CH.started ? Math.min(21, CH.day || 1) : 0, cal = CH.cal || [], T = todayJst().replace(/\//g, '-');
-  const okDays = cal.filter(c => c[1]).length + (CH.started && N.today > 0 && !cal.some(c => c[0] === T && c[1]) && day <= 21 ? 1 : 0);
-  let dots = '';
+  const didOn = i => { const c = cal[i - 1]; return c ? !!c[1] || (i === day && N.today > 0) : (i === day && N.today > 0); };
+  let okDays = 0, stamps = '';
   for (let i = 1; i <= 21; i++) {
-    const c = cal[i - 1], isT = CH.started && i === day, did = c ? c[1] || (isT && N.today > 0) : (isT && N.today > 0);
-    dots += '<i class="' + (i <= day ? (did ? 'd' : 'p') : '') + (isT ? ' t' : '') + '" title="' + i + '日目">' + (did ? '✓' : i) + '</i>';
+    const did = CH.done ? true : CH.started && i <= day && didOn(i), isT = CH.started && !CH.done && i === day, ms = i === 7 || i === 14 || i === 21;
+    if (did) okDays++;
+    const rot = ((i * 37) % 9) - 4;
+    stamps += '<i class="' + (did ? 'd' : isT ? 't' : CH.started && i < day ? 'p' : ms ? 'g' : '') + (did && ms ? ' m' : '') + '" style="--i:' + i + ';--rot:' + rot + 'deg" title="' + i + '日目">' +
+      (did ? (ms ? '🏆' : '✓') : isT ? '🍵' : CH.started && i < day ? '·' : ms ? '⭐' : i) + '</i>';
   }
-  if (CH.done) return '<div class="ch21 on"><div class="ck">' + esc(CH.group) + '<span>21日間チャレンジ</span></div><div class="cv"><b>達成！</b><small>21日間 おつかれさまでした🎉</small></div><div class="dots">' + dots + '</div></div>';
-  if (!CH.started) return '<div class="ch21"><div class="ck">' + esc(CH.group) + '<span>21日間チャレンジ</span></div>' +
-    '<div class="cl">達成まで あと<b>21</b>日</div><div class="dots">' + dots + '</div>' +
-    '<div class="cn">まだスタート前です。同期グループに「今日◯件送りました」と報告した日が <b>1</b>日目 になります🍵</div></div>';
+  const R = 46, C = 2 * Math.PI * R, pct = CH.done ? 1 : day / 21;
+  const ring = '<div class="big"><svg viewBox="0 0 110 110"><defs><linearGradient id="chg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3a8"/><stop offset="1" stop-color="#fdc805"/></linearGradient></defs><circle class="bg" cx="55" cy="55" r="' + R + '"/><circle class="fg" cx="55" cy="55" r="' + R + '" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" data-off="' + (C * (1 - pct)).toFixed(1) + '"/></svg>';
+  const head = '<div class="ck">' + esc(CH.group) + '<span>21日間チャレンジ</span></div>';
+  if (CH.done) return '<div class="ch21 done">' + head + '<div class="chtop">' + ring + '<div class="c"><b>21</b><small>/ 21日</small></div></div>' + '<div class="msg"><span class="t">🎉 <b>達成！</b></span><span class="s">21日間、続けきりました。本当におつかれさまでした！</span></div></div><div class="stamps">' + stamps + '</div></div>';
+  if (!CH.started) return '<div class="ch21">' + head + '<div class="chtop">' + ring + '<div class="c"><b>21</b><small>あと</small></div></div><div class="msg"><span class="t">達成まで あと<b>21</b>日</span><span class="s">まだスタート前。さあ、1日目のスタンプをもらいにいこう🍵</span></div></div><div class="stamps">' + stamps + '</div>' +
+    '<div class="cn">同期グループに「今日◯件送りました」と報告した日が <b>1</b>日目 になります</div></div>';
   const left = Math.max(0, 21 - day);
-  return '<div class="ch21 on"><div class="ck">' + esc(CH.group) + '<span>21日間チャレンジ</span></div>' +
-    '<div class="cv"><b>' + day + '日目</b><small>/ 21日</small></div>' +
-    '<div class="cl">' + (left ? '達成まで あと<b>' + left + '</b>日' : '今日が最終日！') + '</div><div class="dots">' + dots + '</div>' +
-    '<div class="cn">' + (CH.from ? (+CH.from.slice(5, 7)) + '/' + (+CH.from.slice(8)) + ' にスタート。' : '') + '送れた日 <b>' + okDays + '</b>日' + (N.today > 0 ? '・今日もクリア！' : '・今日も1件送って、グループに報告しよう') + '</div></div>';
+  const cheer = day >= 21 ? '今日が最終日！ゴールまであと一歩🏆' : day >= 14 ? 'ラストスパート！もうすぐゴールです🔥' : day >= 7 ? '1週間突破！いい調子です🔥' : '最初の1週間を目指そう🍵';
+  return '<div class="ch21">' + head + '<div class="chtop">' + ring + '<div class="c"><b>' + day + '</b><small>日目 / 21</small></div></div><div class="msg"><span class="t">' + (left ? '達成まで あと<b>' + left + '</b>日' : '最終日！') + '</span><span class="s">' + cheer + '</span></div></div>' +
+    '<div class="stamps">' + stamps + '</div>' +
+    '<div class="cn">' + (CH.from ? (+CH.from.slice(5, 7)) + '/' + (+CH.from.slice(8)) + ' にスタート。' : '') + 'スタンプ <b>' + okDays + '</b>個' + (N.today > 0 ? '・今日もゲット！' : '・今日も1件送って、グループに報告しよう') + '</div></div>';
 }
 // H.days から日付ごとの送信数（今日の分はページの数を優先）
 function sentOn(ds, N) {
