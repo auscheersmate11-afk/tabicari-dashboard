@@ -297,21 +297,7 @@ function cmCheck_(name, req) {
 
 // ================= 最初に1回・人が増えたとき =================
 // cmIssueKeys：配布先の全員に合言葉を作り、(元データ) の「個人ページURL」タブに 名前・URL を書く（もう持っている人は同じURLのまま）
-function cmIssueKeys() {
-  var keys = cmKeys_(), byName = {};
-  Object.keys(keys).forEach(function (k) { byName[cmNorm_(keys[k])] = k; });
-  var ss = SpreadsheetApp.openById(CM.MASTER_ID), v = ss.getSheetByName(CM.DEST_TAB).getDataRange().getValues(), out = [['受講生', '個人ページURL（本人だけに渡す）']];
-  for (var i = 1; i < v.length; i++) {
-    var name = String(v[i][0] || '').trim(); if (!name || !cmSheetId_(v[i][3])) continue;
-    var k = byName[cmNorm_(name)];
-    if (!k) { k = Utilities.getUuid().replace(/-/g, '').slice(0, 24); keys[k] = name; byName[cmNorm_(name)] = k; }
-    out.push([name, CM.APP_BASE + k]);
-  }
-  PropertiesService.getScriptProperties().setProperty('CM_KEYS', JSON.stringify(keys));
-  var sh = ss.getSheetByName(CM.URL_TAB) || ss.insertSheet(CM.URL_TAB);
-  sh.clearContents(); sh.getRange(1, 1, out.length, 2).setValues(out); sh.setFrozenRows(1);
-  console.log(out.map(function (r) { return r.join('  '); }).join('\n'));
-}
+function cmIssueKeys() { cmAutoNew(); }   // 2026-11-21〜 今までの行（C列の鍵も）を消さずに、新しい人だけ下に足す
 
 // 動作確認（エディタで実行）：配布先の最初の人の画面データをログに出す（書きこみはしない）
 function cmTestMe() {
@@ -328,30 +314,109 @@ function cmLinkAll() {
   var urls = {};
   m.getSheetByName(CM.URL_TAB).getDataRange().getValues().slice(1).forEach(function (r) { if (r[0] && r[1]) urls[cmNorm_(r[0])] = String(r[1]); });
   var dest = m.getSheetByName(CM.DEST_TAB).getDataRange().getValues().slice(1);
-  var H = 'Matcha Go!はこちら', S = '（スマホで1件ずつ送れる、あなた専用のページ）\n';
-  var B = '毎朝、新しい会社が届きます。送ったら「ステータス」を「送信完了」に（Customer List へは1時間以内に自動で記入）。送らない会社は「あえて送らない」＋右端の「送らない理由」（その他はメモに一言）。3日たっても送らなかった会社は、ほかのメンバーに回ります。';
   var done = 0, skip = 0, ng = [];
   dest.forEach(function (r) {
-    var name = String(r[0]).trim(), su = String(r[3] || ''), id = (su.match(/\/d\/([\w-]+)/) || [])[1];
+    var name = String(r[0]).trim(), id = cmSheetId_(r[3]);
     if (!name || !id) return;
     var url = urls[cmNorm_(name)];
     if (!url) { ng.push(name + '(URLなし)'); return; }
-    try {
-      var sh = SpreadsheetApp.openById(id).getSheetByName(CM.MY_TAB);
-      if (!sh) { ng.push(name + '(タブなし)'); return; }
-      var c = sh.getRange(1, 1);
-      if (String(c.getValue()).indexOf(H) === 0) { skip++; return; }
-      var base = SpreadsheetApp.newTextStyle().setFontSize(11).setBold(false).setUnderline(false).setForegroundColor('#1F3864').build();
-      var rt = SpreadsheetApp.newRichTextValue().setText(H + S + B)
-        .setTextStyle(0, (H + S + B).length, base)
-        .setTextStyle(0, H.length, SpreadsheetApp.newTextStyle().setFontSize(20).setBold(true).setUnderline(true).setForegroundColor('#2E86D6').build())
-        .setLinkUrl(0, H.length, url)
-        .setTextStyle(H.length, H.length + S.length, SpreadsheetApp.newTextStyle().setFontSize(11).setBold(true).setForegroundColor('#1F3864').build())
-        .build();
-      c.setRichTextValue(rt);
-      sh.setRowHeight(1, 90);
-      done++;
-    } catch (e) { ng.push(name + '(' + e.message + ')'); }
+    var res = cmLinkOne_(id, url);
+    if (res === 'done') done++; else if (res === 'skip') skip++; else ng.push(name + '(' + res + ')');
   });
   Logger.log('入れた ' + done + '人・もう入っていた ' + skip + '人・できなかった ' + ng.length + '人 ' + ng.join(' / '));
+}
+
+// 1人分：A1 にリンクを入れる。戻り値 'done'（入れた）・'skip'（もう入っていた）・それ以外はできなかった理由
+function cmLinkOne_(sheetId, url) {
+  var H = 'Matcha Go!はこちら', S = '（スマホで1件ずつ送れる、あなた専用のページ）\n';
+  var B = '毎朝、新しい会社が届きます。送ったら「ステータス」を「送信完了」に（Customer List へは1時間以内に自動で記入）。送らない会社は「あえて送らない」＋右端の「送らない理由」（その他はメモに一言）。3日たっても送らなかった会社は、ほかのメンバーに回ります。';
+  try {
+    var sh = SpreadsheetApp.openById(sheetId).getSheetByName(CM.MY_TAB);
+    if (!sh) return 'タブなし';
+    var c = sh.getRange(1, 1);
+    if (String(c.getValue()).indexOf(H) === 0) return 'skip';
+    var base = SpreadsheetApp.newTextStyle().setFontSize(11).setBold(false).setUnderline(false).setForegroundColor('#1F3864').build();
+    var rt = SpreadsheetApp.newRichTextValue().setText(H + S + B)
+      .setTextStyle(0, (H + S + B).length, base)
+      .setTextStyle(0, H.length, SpreadsheetApp.newTextStyle().setFontSize(20).setBold(true).setUnderline(true).setForegroundColor('#2E86D6').build())
+      .setLinkUrl(0, H.length, url)
+      .setTextStyle(H.length, H.length + S.length, SpreadsheetApp.newTextStyle().setFontSize(11).setBold(true).setForegroundColor('#1F3864').build())
+      .build();
+    c.setRichTextValue(rt);
+    sh.setRowHeight(1, 90);
+    return 'done';
+  } catch (e) { return e.message; }
+}
+
+// ===== 新しい人に自動で作って配る（2026-11-21〜・1時間ごと。cmSetupAutoNew で動かす） =====
+// 1. 配布先に専用スプシ付きで載った人に合言葉を作り、「個人ページURL」タブの下に足す（今までの行・URLは変えない）
+// 2. C列（抹茶の個人ページ＝自分タブの数字）が空の人は、運営用スプシ「抹茶 個人の数字（運営用）」一覧の「本人用ページ」から写す（Macが毎朝作る）
+// 3. 専用スプシ「見込み顧客リスト」A1 に「Matcha Go!はこちら」リンクを入れる（入れ終わった人は CM_LINKED に覚えて次から開かない。
+//    タブがまだ無い＝配布がまだの人は、次の回にもう一度ためす）
+var CM_OPS_ID = '1awy4Crek8oZGcMELWCmR1_n33TEJsCyj39aFRhjRcGs';   // 抹茶 個人の数字（運営用）
+function cmAutoNew() {
+  var lock = LockService.getScriptLock(); if (!lock.tryLock(30000)) return;
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var keys = cmKeys_(), byName = {};
+    Object.keys(keys).forEach(function (k) { byName[cmNorm_(keys[k])] = k; });
+    var ss = SpreadsheetApp.openById(CM.MASTER_ID);
+    var dest = ss.getSheetByName(CM.DEST_TAB).getDataRange().getValues().slice(1);
+    var sh = ss.getSheetByName(CM.URL_TAB);
+    if (!sh) { sh = ss.insertSheet(CM.URL_TAB); sh.getRange(1, 1, 1, 3).setValues([['受講生', '個人ページURL（本人だけに渡す）', '抹茶の個人ページ（自分タブの数字・本人だけ）']]); sh.setFrozenRows(1); }
+    var last = sh.getLastRow(), rows = last > 1 ? sh.getRange(2, 1, last - 1, 3).getValues() : [];
+    var inTab = {}; rows.forEach(function (r, i) { if (r[0]) inTab[cmNorm_(r[0])] = i; });
+
+    // 1. 新しい人
+    var add = [], added = [];
+    dest.forEach(function (r) {
+      var name = String(r[0] || '').trim(), n = cmNorm_(name);
+      if (!name || !cmSheetId_(r[3]) || inTab[n] !== undefined) return;
+      var k = byName[n];
+      if (!k) { k = Utilities.getUuid().replace(/-/g, '').slice(0, 24); keys[k] = name; byName[n] = k; }
+      inTab[n] = rows.length + add.length; add.push([name, CM.APP_BASE + k, '']); added.push(name);
+    });
+    if (add.length) {
+      props.setProperty('CM_KEYS', JSON.stringify(keys));
+      sh.getRange(last + 1, 1, add.length, 3).setValues(add);
+      rows = rows.concat(add);
+    }
+
+    // 2. C列が空の人に、運営用スプシから本人用ページを写す
+    var filled = [];
+    if (rows.some(function (r) { return r[0] && !r[2]; })) {
+      var mp = {};
+      try {
+        var o = SpreadsheetApp.openById(CM_OPS_ID).getSheetByName('一覧'), ol = o.getLastRow();
+        if (ol >= 6) o.getRange(6, 1, ol - 5, 4).getValues().forEach(function (r) { if (r[0] && /[?&]p=/.test(String(r[3]))) mp[cmNorm_(r[0])] = String(r[3]); });
+      } catch (e) { console.warn('運営用スプシ：' + e.message); }
+      rows.forEach(function (r, i) {
+        if (!r[0] || r[2]) return; var u = mp[cmNorm_(r[0])]; if (!u) return;
+        sh.getRange(i + 2, 3).setValue(u); r[2] = u; filled.push(String(r[0]));
+      });
+      if (filled.length) CacheService.getScriptCache().remove('cm_mp1');
+    }
+
+    // 3. 専用スプシにリンクを入れる
+    var linked = {}; try { linked = JSON.parse(props.getProperty('CM_LINKED') || '{}'); } catch (e) {}
+    var url = {}; rows.forEach(function (r) { if (r[0] && r[1]) url[cmNorm_(r[0])] = String(r[1]); });
+    var done = [], wait = [];
+    dest.forEach(function (r) {
+      var name = String(r[0] || '').trim(), n = cmNorm_(name), id = cmSheetId_(r[3]);
+      if (!name || !id || !url[n] || linked[n] === id) return;
+      var res = cmLinkOne_(id, url[n]);
+      if (res === 'done' || res === 'skip') { linked[n] = id; if (res === 'done') done.push(name); }
+      else wait.push(name + '(' + res + ')');
+    });
+    props.setProperty('CM_LINKED', JSON.stringify(linked));
+    console.log('新しい人 ' + added.length + (added.length ? '：' + added.join('・') : '') +
+      '／自分タブの鍵を写した ' + filled.length + (filled.length ? '：' + filled.join('・') : '') +
+      '／リンクを入れた ' + done.length + (done.length ? '：' + done.join('・') : '') +
+      '／まだ入れられない ' + wait.length + (wait.length ? '：' + wait.join('・') : ''));
+  } finally { lock.releaseLock(); }
+}
+function cmSetupAutoNew() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'cmAutoNew') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('cmAutoNew').timeBased().everyHours(1).create();
+  cmAutoNew();
 }
