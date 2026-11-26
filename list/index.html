@@ -310,6 +310,18 @@ h2, p { margin:0; }
   </section>
 
   <section class="card s12">
+    <div class="hd"><div><span class="e">Cost ahead</span><h2>これからかかる費用と、1件あたり</h2></div></div>
+    <div class="rules">
+      <span class="rule"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i>毎日 <b>23:43</b> 新しい返信・面談者から　1回 <b>$3</b> まで</span>
+      <span class="rule"><i><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></i>日曜 <b>21:13</b> その週の合格者からまとめて　1回 <b>$32</b> まで</span>
+      <span class="rule cap"><i><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></i>上限 月 <b>$250</b>（約<b id="capYen">38,750</b>円）</span>
+    </div>
+    <div class="ahead" id="ahead"></div>
+    <div class="runout" id="runout"></div>
+    <p class="tipline"><b class="t">MEMO</b><span id="aheadNote"></span></p>
+  </section>
+
+  <section class="card s12">
     <div class="hd"><div><span class="e">Cost so far</span><h2>これまでのリスト作成にかかった費用</h2></div>
       <div class="r"><span>1ドル＝<span id="fxLbl">155</span>円で換算</span></div></div>
     <div class="cost-top">
@@ -320,18 +332,6 @@ h2, p { margin:0; }
     </div>
     <div class="tl" id="costTl"><div class="fail">読み込み中…</div></div>
     <p class="note" id="costNote"></p>
-  </section>
-
-  <section class="card s12">
-    <div class="hd"><div><span class="e">Cost ahead</span><h2>これからかかる費用と、1件あたり</h2></div></div>
-    <div class="rules">
-      <span class="rule"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i>毎日 <b>23:43</b> 新しい返信・面談者から　1回 <b>$3</b> まで</span>
-      <span class="rule"><i><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></i>日曜 <b>21:13</b> その週の合格者からまとめて　1回 <b>$32</b> まで</span>
-      <span class="rule cap"><i><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></i>上限 月 <b>$250</b>（約<b id="capYen">38,750</b>円）</span>
-    </div>
-    <div class="ahead" id="ahead"></div>
-    <div class="runout" id="runout"></div>
-    <p class="tipline"><b class="t">MEMO</b><span id="aheadNote"></span></p>
   </section>
 
   <section class="card s12">
