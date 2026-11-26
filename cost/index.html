@@ -71,6 +71,73 @@ h1, h2, h3, p { margin:0; }
 .lg b { font:800 17px var(--num); font-variant-numeric:tabular-nums; }
 .lg span.p { font:700 12px var(--num); color:var(--hmuted); text-align:right; }
 
+/* 純利益（キービジュアル） */
+.big .v .n.pos { color:var(--gold); }
+.big .v .n.neg { color:#ff9b8a; }
+.big .v small.neg { color:#ff9b8a; }
+.pl { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--hline); margin-top:6px; }
+@media (max-width:560px) { .pl { grid-template-columns:repeat(2,minmax(0,1fr)); } .pl div:nth-child(3) { border-left:0; padding-left:0; } .pl div:nth-child(n+3) { border-top:1px solid var(--hline); } }
+.pl div { padding:12px 12px 2px; display:grid; gap:1px; min-width:0; }
+.pl div + div { border-left:1px solid var(--hline); }
+.pl div:first-child { padding-left:0; }
+.pl span { font-size:11.5px; color:var(--hmuted); font-weight:500; white-space:nowrap; }
+.pl b { font:800 clamp(17px,2vw,22px)/1.15 var(--num); font-variant-numeric:tabular-nums; letter-spacing:-.01em; white-space:nowrap; }
+.pl .op { font:800 13px var(--num); color:var(--hmuted); }
+.kv-r h3 { font-size:13px; font-weight:700; color:var(--hmuted); display:flex; justify-content:space-between; align-items:baseline; }
+.kv-r h3 b { font:800 20px var(--num); color:#fff; }
+
+/* 売上 */
+.sales { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.6fr); gap:18px; align-items:start; }
+@media (max-width:900px) { .sales { grid-template-columns:minmax(0,1fr); } }
+.pay-box { background:var(--bg); border-radius:18px; padding:18px; display:grid; gap:12px; }
+.pay-box .ttl { font-size:13px; font-weight:700; color:var(--head); }
+.pay-box .big2 { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.pay-box .big2 b { font:800 34px/1 var(--num); color:var(--head); }
+.pay-box .big2 span { font-size:13px; color:var(--muted); font-weight:700; }
+.prog { height:12px; border-radius:999px; background:var(--track); overflow:hidden; }
+.prog i { display:block; height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,var(--gold),var(--gold-2)); transition:width 1s cubic-bezier(.2,.8,.3,1); }
+.pay-box .row { display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); }
+.pay-box .row b { font:800 14px var(--num); color:var(--ink); }
+.deal { display:grid; gap:4px; padding-top:10px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted); }
+.deal b { color:var(--ink); font-family:var(--num); }
+td.neg { color:#d9573f; } td.pos { color:#2f9d62; }
+
+/* シミュレーション */
+.sim { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:22px; align-items:start; }
+@media (max-width:900px) { .sim { grid-template-columns:minmax(0,1fr); } }
+.fs { display:grid; gap:14px; }
+.fg { border:1px solid var(--line); border-radius:16px; padding:14px; display:grid; gap:10px; }
+.fg legend { padding:0 6px; font-size:12px; font-weight:900; color:var(--head); display:flex; align-items:center; gap:6px; }
+.fg legend i { width:10px; height:10px; border-radius:3px; }
+.fr { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; font-size:13px; }
+.fr label { color:var(--ink); font-weight:500; }
+.fr label small { display:block; font-size:11px; color:var(--muted); }
+.fr .in { display:flex; align-items:center; gap:6px; }
+.fr input { width:7.2em; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:10px; padding:6px 9px; font:700 15px var(--num); text-align:right; }
+.fr input:focus { border-color:var(--sky); outline:none; box-shadow:0 0 0 3px color-mix(in srgb, var(--sky) 20%, transparent); }
+.fr .u { font-size:12px; color:var(--muted); min-width:2.6em; }
+.reset { justify-self:start; border:1px solid var(--line); background:var(--surface); color:var(--muted); border-radius:999px; padding:6px 14px; font:700 12px var(--jp); cursor:pointer; }
+.res { display:grid; gap:12px; position:sticky; top:12px; }
+.rk { border-radius:20px; padding:20px; color:#fff; background:linear-gradient(160deg,#21408F,#0F1D45); display:grid; gap:8px; }
+.rk span { font-size:12.5px; color:var(--hmuted); font-weight:700; }
+.rk .v { display:flex; align-items:baseline; gap:6px; }
+.rk .v b { font:800 clamp(34px,5vw,46px)/1 var(--num); letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+.rk .v b.pos { color:var(--gold); } .rk .v b.neg { color:#ff9b8a; }
+.rk .v small { font:700 13px var(--jp); color:var(--hmuted); }
+.oc2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.oc { border-radius:14px; padding:12px 14px; background:var(--bg); display:grid; gap:2px; min-width:0; }
+.oc span { font-size:11.5px; color:var(--muted); font-weight:700; }
+.oc b { font:800 22px/1.2 var(--num); color:var(--head); font-variant-numeric:tabular-nums; }
+.oc b small { font:500 11px var(--jp); color:var(--muted); margin-left:2px; }
+.oc em { font-style:normal; font-size:11.5px; color:var(--muted); }
+.mini3 { display:flex; gap:2px; height:10px; border-radius:999px; overflow:hidden; background:var(--track); }
+.mini3 i { display:block; height:100%; flex-basis:0; transition:flex-grow .5s ease; }
+.cum { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:6px; align-items:center; height:120px; position:relative; }
+.cum::before { content:""; position:absolute; left:0; right:0; top:50%; border-top:1px solid var(--line); }
+.cum div { position:relative; height:100%; }
+.cum i { position:absolute; left:15%; right:15%; border-radius:5px; transition:all .5s ease; }
+.cum span { position:absolute; left:0; right:0; bottom:-18px; text-align:center; font:700 10.5px var(--num); color:var(--muted); }
+
 /* カード */
 .card { background:var(--surface); border-radius:24px; padding:26px; box-shadow:var(--shadow); border:1px solid var(--line); min-width:0; display:grid; gap:16px; align-content:start; animation:up .6s cubic-bezier(.2,.8,.3,1) both; }
 @media (max-width:560px) { .card { padding:16px; } }
@@ -148,15 +215,22 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
     <svg class="kv-deco" viewBox="0 0 520 260" aria-hidden="true"><path d="M20 240 C 160 120, 300 250, 510 50"/><path class="dt" d="M0 200 C 160 80, 300 210, 520 10"/></svg>
     <div class="kv-l">
       <div class="brand"><span>旅キャリ</span><span class="go">OPS</span><span class="pill">COST</span><small id="stamp"></small></div>
-      <h1><span class="word">Cost.</span>運営の費用</h1>
+      <h1><span class="word">Cost.</span>費用と純利益</h1>
       <div class="sel"><select id="month" aria-label="見る月"></select></div>
       <div class="big">
-        <span class="lb" id="lb">合計</span>
-        <div class="v"><small>¥</small><span class="n" id="total">0</span></div>
+        <span class="lb" id="lb">純利益</span>
+        <div class="v"><small id="netY">¥</small><span class="n pos" id="net">0</span></div>
+        <div class="pl">
+          <div><span>売上</span><b id="hSale">¥0</b></div>
+          <div><span>利益（売上の70%）</span><b id="hProfit">¥0</b></div>
+          <div><span>費用</span><b id="hCost">¥0</b></div>
+          <div><span>入金済み</span><b id="hPaid">¥0</b></div>
+        </div>
         <div class="chips" id="chips"></div>
       </div>
     </div>
     <div class="kv-r split">
+      <h3><span id="costLb">費用の内訳</span><b>¥<span id="total">0</span></b></h3>
       <div class="bar3" id="bar3" role="img"></div>
       <div class="lg" id="lg"></div>
     </div>
@@ -179,8 +253,31 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
       <summary>フォロワー追加（ココナラ）の注文を見る</summary>
       <div class="tw"><table id="co"></table></div>
     </details>
-    <p class="note" id="note"></p>
   </section>
+
+  <section class="card">
+    <div class="hd">
+      <div><span class="e">Sales &amp; Profit</span><h2>売上と純利益</h2></div>
+      <div class="r"><span>純利益＝利益（売上の70%）−その月の費用</span></div>
+    </div>
+    <div class="sales">
+      <div class="pay-box" id="payBox"></div>
+      <div class="tw"><table id="st"></table></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd">
+      <div><span class="e">Simulation</span><h2>これからの費用シミュレーション</h2></div>
+      <div class="r"><span>数字を変えるとすぐ計算し直します（この端末に保存）</span></div>
+    </div>
+    <div class="sim">
+      <div class="fs" id="fs"></div>
+      <div class="res" id="res"></div>
+    </div>
+  </section>
+
+  <section class="card"><p class="note" id="note"></p></section>
 </main>
 
 <script>
@@ -210,12 +307,13 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
 
   function init(data) {
     D = data;
-    var get = function (m) { return B[m] || (B[m] = { list: 0, fol: 0, pay: 0, co: [], ap: [], p: null }); };
+    var get = function (m) { return B[m] || (B[m] = { list: 0, fol: 0, pay: 0, co: [], ap: [], p: null, sale: 0, paid: 0, deals: [] }); };
     D.coconala.forEach(function (o) { var b = get(o.date.slice(0, 7)); b.fol += o.yen; b.co.push(o); });
     D.apify.forEach(function (o) { var b = get(o.date.slice(0, 7)); o.yen = Math.round(o.usd * D.usdJpy); b.list += o.yen; b.ap.push(o); });
     Object.keys(D.payout).forEach(function (m) { var p = D.payout[m], b = get(m); b.pay += p.send + p.apo + p.won; b.p = p; });
+    (D.sales || []).forEach(function (o) { var b = get(o.date.slice(0, 7)); b.sale += o.yen; b.paid += o.paid; b.deals.push(o); });
     M = Object.keys(B).sort();
-    M.forEach(function (m) { var b = B[m]; b.total = b.list + b.fol + b.pay; });
+    M.forEach(function (m) { var b = B[m]; b.total = b.list + b.fol + b.pay; b.profit = Math.round(b.sale * D.profitRate); b.net = b.profit - b.total; });
 
     $('month').innerHTML = M.slice().reverse().map(function (m) { return '<option value="' + m + '">' + mL(m) + '</option>'; }).join('') + '<option value="all">これまでの合計</option>';
     var saved = null; try { saved = localStorage.getItem('tc-cost-month'); } catch (e) {}
@@ -225,7 +323,7 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
     $('stamp').textContent = D.updated.replace(/-/g, '/') + ' 時点';
     $('legend').innerHTML = CATS.map(function (c) { return '<span><i style="background:' + c.c + '"></i>' + c.label + '</span>'; }).join('');
     $('note').innerHTML = D.notes.map(esc).join('<br>');
-    drawChart(); drawMonthTable(); drawOrders(); render(true);
+    drawChart(); drawMonthTable(); drawOrders(); drawSalesTable(); render(true); initSim();
     requestAnimationFrame(function () { requestAnimationFrame(function () { $('chart').classList.add('go'); }); });
   }
 
@@ -237,8 +335,8 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
 
   function sum(m) {
     if (m !== ALL) return B[m];
-    var s = { list: 0, fol: 0, pay: 0, total: 0, co: [], ap: [], p: { send: 0, sendCount: 0, apo: 0, apoCount: 0, won: 0, wonCount: 0 } };
-    M.forEach(function (k) { var b = B[k]; ['list', 'fol', 'pay', 'total'].forEach(function (f) { s[f] += b[f]; }); s.co = s.co.concat(b.co); s.ap = s.ap.concat(b.ap);
+    var s = { list: 0, fol: 0, pay: 0, total: 0, sale: 0, paid: 0, profit: 0, net: 0, deals: [], co: [], ap: [], p: { send: 0, sendCount: 0, apo: 0, apoCount: 0, won: 0, wonCount: 0 } };
+    M.forEach(function (k) { var b = B[k]; ['list', 'fol', 'pay', 'total', 'sale', 'paid', 'profit', 'net'].forEach(function (f) { s[f] += b[f]; }); s.co = s.co.concat(b.co); s.ap = s.ap.concat(b.ap); s.deals = s.deals.concat(b.deals);
       if (b.p) ['send', 'sendCount', 'apo', 'apoCount', 'won', 'wonCount'].forEach(function (f) { s.p[f] += b.p[f] || 0; }); });
     return s;
   }
@@ -247,22 +345,29 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
   var anims = new WeakMap();
   function count(el, to, ms) {
     var from = Number(el.dataset.v || 0); el.dataset.v = to;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = yen(to); return; }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = yen(Math.abs(to)); return; }
     var t0 = performance.now(); ms = ms || 900;
     cancelAnimationFrame(anims.get(el));
     (function step(t) { var k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
-      el.textContent = yen(from + (to - from) * e); if (k < 1) anims.set(el, requestAnimationFrame(step)); })(t0);
+      el.textContent = yen(Math.abs(from + (to - from) * e)); if (k < 1) anims.set(el, requestAnimationFrame(step)); })(t0);
   }
 
   function render(first) {
     var s = sum(cur), all = cur === ALL, tot = s.total || 1;
-    $('lb').textContent = all ? 'これまでの合計（' + mS(M[0]) + '〜' + mS(M[M.length - 1]) + '）' : mL(cur) + 'にかかった費用';
+    $('lb').textContent = all ? 'これまでの純利益（' + mS(M[0]) + '〜' + mS(M[M.length - 1]) + '）' : mL(cur) + 'の純利益';
+    count($('net'), s.net, first ? 1300 : 750);
+    var neg = s.net < 0;
+    $('net').className = 'n ' + (neg ? 'neg' : 'pos'); $('netY').textContent = neg ? '−¥' : '¥'; $('netY').className = neg ? 'neg' : '';
+    $('hSale').textContent = '¥' + yen(s.sale); $('hProfit').textContent = '¥' + yen(s.profit);
+    $('hCost').textContent = '−¥' + yen(s.total); $('hPaid').textContent = '¥' + yen(s.paid);
+    $('costLb').textContent = all ? '費用の内訳（これまで）' : mS(cur) + 'の費用の内訳';
     count($('total'), s.total, first ? 1200 : 700);
+    drawSales(s, all);
     var ch = [];
-    if (all) ch.push('<span class="chip"><i></i>ひと月あたり <span class="n">¥' + yen(s.total / M.length) + '</span></span>');
+    if (all) ch.push('<span class="chip"><i></i>費用はひと月あたり <span class="n">¥' + yen(s.total / M.length) + '</span></span>');
     else {
       var i = M.indexOf(cur);
-      if (i > 0) { var d = s.total - B[M[i - 1]].total; ch.push('<span class="chip"><i></i>' + mS(M[i - 1]) + 'より <span class="n">' + (d >= 0 ? '+' : '−') + '¥' + yen(Math.abs(d)) + '</span></span>'); }
+      if (i > 0) { var d = s.total - B[M[i - 1]].total; ch.push('<span class="chip"><i></i>費用は' + mS(M[i - 1]) + 'より <span class="n">' + (d >= 0 ? '+' : '−') + '¥' + yen(Math.abs(d)) + '</span></span>'); }
       if (s.p && s.p.partial) ch.push('<span class="chip"><i style="background:#7ee2a8"></i>月の途中（月末まで増えます）</span>');
     }
     $('chips').innerHTML = ch.join('');
@@ -328,6 +433,96 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
       M.map(function (m) { var b = B[m]; return '<tr data-m="' + m + '"><td>' + mL(m) + (b.p && b.p.partial ? '（途中）' : '') + '</td>' + CATS.map(function (c) { return '<td>' + (b[c.id] ? '¥' + yen(b[c.id]) : '—') + '</td>'; }).join('') + '<td class="tt">¥' + yen(b.total) + '</td></tr>'; }).join('') +
       '</tbody><tfoot><tr class="sum"><td>合計</td>' + CATS.map(function (c) { return '<td>¥' + yen(s[c.id]) + '</td>'; }).join('') + '<td class="tt">¥' + yen(s.total) + '</td></tr></tfoot>';
   }
+  function sign(v) { return (v < 0 ? '−¥' : '¥') + yen(Math.abs(v)); }
+  function drawSales(s, all) {
+    var rest = s.sale - s.paid, pct = s.sale ? Math.round(s.paid / s.sale * 100) : 0;
+    var h = '<p class="ttl">' + (all ? 'これまでの入金状況' : mL(cur) + 'の契約の入金状況') + '</p>';
+    if (!s.sale) { $('payBox').innerHTML = h + '<p class="empty">この月の旅キャリ経由の契約はありません</p>'; return; }
+    h += '<div class="big2"><b>' + pct + '%</b><span>入金済み（' + s.deals.length + '件）</span></div><div class="prog"><i id="progI"></i></div>' +
+      '<div class="row"><span>入金済み <b>¥' + yen(s.paid) + '</b></span><span>残り <b>¥' + yen(rest) + '</b></span></div>' +
+      s.deals.map(function (o) { return '<div class="deal"><span>' + dL(o.date) + ' 契約　<b>¥' + yen(o.yen) + '</b>（入金 ¥' + yen(o.paid) + '）</span><span>' + esc(o.status) + '</span></div>'; }).join('');
+    $('payBox').innerHTML = h;
+    requestAnimationFrame(function () { requestAnimationFrame(function () { var el = $('progI'); if (el) el.style.width = pct + '%'; }); });
+    [].forEach.call(document.querySelectorAll('#st tbody tr'), function (el) { el.classList.toggle('on', el.dataset.m === cur); });
+  }
+  function drawSalesTable() {
+    var t = sum(ALL);
+    var row = function (lab, b, m) { return '<tr' + (m ? ' data-m="' + m + '"' : ' class="sum"') + '><td>' + lab + '</td><td>' + (b.sale ? '¥' + yen(b.sale) : '—') + '</td><td>' + (b.profit ? '¥' + yen(b.profit) : '—') +
+      '</td><td>' + (b.sale ? '¥' + yen(b.paid) : '—') + '</td><td>−¥' + yen(b.total) + '</td><td class="tt ' + (b.net < 0 ? 'neg' : 'pos') + '">' + sign(b.net) + '</td></tr>'; };
+    $('st').innerHTML = '<thead><tr><th>月</th><th>売上</th><th>利益</th><th>入金済み</th><th>費用</th><th>純利益</th></tr></thead><tbody>' +
+      M.map(function (m) { return row(mL(m), B[m], m); }).join('') + '</tbody><tfoot>' + row('合計', t) + '</tfoot>';
+  }
+
+  // これからのシミュレーション
+  var SIM_F = [
+    { g: 'list', t: 'リスト作成', c: 'var(--c-list)', f: [
+      { k: 'apifyUsd', l: 'Apifyの月の費用', s: '上限 $250', u: 'ドル', st: 10 },
+      { k: 'usdJpy', l: '為替', u: '円/ドル', st: 1 } ] },
+    { g: 'fol', t: 'フォロワー追加', c: 'var(--c-fol)', f: [
+      { k: 'follower', l: 'ココナラの月の費用', s: '10〜11月の平均は約¥38,000', u: '円', st: 1000 } ] },
+    { g: 'pay', t: 'アポインター報酬', c: 'var(--c-pay)', f: [
+      { k: 'people', l: '送る人数', u: '人', st: 1 },
+      { k: 'sendsPerPerson', l: '1人の月の送信数', s: '500通で¥5,000、以降100通ごと¥1,000', u: '通', st: 50 },
+      { k: 'apoRate', l: 'アポになる率', s: '送信に対して（11月は約0.23%）', u: '%', st: 0.05 },
+      { k: 'apoUnit', l: 'アポ1件の報酬', u: '円', st: 100 },
+      { k: 'closeRate', l: '成約率', s: 'アポに対して（11月は14件で1件）', u: '%', st: 1 },
+      { k: 'wonFee', l: '成約1件の報酬', u: '円', st: 1000 } ] },
+    { g: 'sale', t: '売上・期間', c: 'var(--gold)', f: [
+      { k: 'salePrice', l: '成約1件の売上', s: '税込の契約金', u: '円', st: 10000 },
+      { k: 'profitRate', l: '利益率', u: '%', st: 1 },
+      { k: 'months', l: '何か月分を見るか', u: 'か月', st: 1 } ] }
+  ];
+  var SV = {};
+  function initSim() {
+    var saved = {}; try { saved = JSON.parse(localStorage.getItem('tc-cost-sim') || '{}'); } catch (e) {}
+    Object.keys(D.sim).forEach(function (k) { SV[k] = typeof saved[k] === 'number' ? saved[k] : D.sim[k]; });
+    $('fs').innerHTML = SIM_F.map(function (g) {
+      return '<fieldset class="fg"><legend><i style="background:' + g.c + '"></i>' + g.t + '</legend>' + g.f.map(function (f) {
+        return '<div class="fr"><label for="sim-' + f.k + '">' + f.l + (f.s ? '<small>' + f.s + '</small>' : '') + '</label><span class="in"><input id="sim-' + f.k + '" data-k="' + f.k + '" type="number" inputmode="decimal" min="0" step="' + f.st + '" value="' + SV[f.k] + '"><span class="u">' + f.u + '</span></span></div>';
+      }).join('') + '</fieldset>';
+    }).join('') + '<button type="button" class="reset" id="simReset">はじめの数字に戻す</button>';
+    $('fs').addEventListener('input', function (e) {
+      var k = e.target.dataset && e.target.dataset.k; if (!k) return;
+      var v = parseFloat(e.target.value); SV[k] = isFinite(v) && v >= 0 ? v : 0;
+      try { localStorage.setItem('tc-cost-sim', JSON.stringify(SV)); } catch (er) {}
+      calcSim();
+    });
+    $('simReset').addEventListener('click', function () {
+      try { localStorage.removeItem('tc-cost-sim'); } catch (e) {}
+      Object.keys(D.sim).forEach(function (k) { SV[k] = D.sim[k]; var el = $('sim-' + k); if (el) el.value = D.sim[k]; });
+      calcSim();
+    });
+    calcSim();
+  }
+  function sendFee(n) { return n < 500 ? 0 : 5000 + Math.floor((n - 500) / 100) * 1000; }
+  function calcSim() {
+    var v = SV, mo = Math.max(1, Math.round(v.months));
+    var list = v.apifyUsd * v.usdJpy, fol = v.follower;
+    var sends = v.people * v.sendsPerPerson, apo = sends * v.apoRate / 100, won = apo * v.closeRate / 100;
+    var pSend = v.people * sendFee(v.sendsPerPerson), pApo = apo * v.apoUnit, pWon = won * v.wonFee, pay = pSend + pApo + pWon;
+    var cost = list + fol + pay, sale = won * v.salePrice, profit = sale * v.profitRate / 100, net = profit - cost;
+    var per = v.salePrice * v.profitRate / 100 - v.wonFee - v.apoUnit * (v.closeRate > 0 ? 100 / v.closeRate : 0);
+    var fixed = list + fol + pSend;
+    var be = per > 0 ? fixed / per : Infinity;
+    var cum = [], c = 0; for (var i = 0; i < mo; i++) { c += net; cum.push(c); }
+    var mx = Math.max.apply(null, cum.map(Math.abs)) || 1;
+    var cls = function (x) { return x < 0 ? 'neg' : 'pos'; };
+    $('res').innerHTML =
+      '<div class="rk"><span>ひと月の純利益の見込み</span><div class="v"><b class="' + cls(net) + '">' + sign(net) + '</b><small>/月</small></div>' +
+      '<span>' + mo + 'か月で <b style="font:800 18px var(--num);color:#fff">' + sign(net * mo) + '</b>（費用 ¥' + yen(cost * mo) + '）</span></div>' +
+      '<div class="oc2">' +
+        '<div class="oc"><span>ひと月の費用</span><b>¥' + yen(cost) + '</b><div class="mini3"><i style="flex-grow:' + list + ';background:var(--c-list)"></i><i style="flex-grow:' + fol + ';background:var(--c-fol)"></i><i style="flex-grow:' + pay + ';background:var(--c-pay)"></i></div>' +
+          '<em>リスト ¥' + yen(list) + '・フォロワー ¥' + yen(fol) + '・報酬 ¥' + yen(pay) + '</em></div>' +
+        '<div class="oc"><span>ひと月の売上・利益</span><b>¥' + yen(sale) + '</b><em>利益 ¥' + yen(profit) + '</em></div>' +
+        '<div class="oc"><span>送信 → アポ → 成約</span><b>' + yen(sends) + '<small>通</small></b><em>アポ ' + apo.toFixed(1) + '件・成約 ' + won.toFixed(2) + '件</em></div>' +
+        '<div class="oc"><span>黒字になる成約数</span><b>' + (isFinite(be) ? be.toFixed(1) + '<small>件/月</small>' : '—') + '</b><em>' + (isFinite(be) ? '1件で ¥' + yen(per) + ' 残る（成約・アポ報酬を引いた後）' : '1件ごとに赤字になる設定です') + '</em></div>' +
+      '</div>' +
+      '<div class="oc"><span>純利益の積み上げ（' + mo + 'か月）</span><div class="cum">' + cum.map(function (x, i) {
+        var hgt = Math.abs(x) / mx * 50;
+        return '<div title="' + (i + 1) + 'か月目 ' + sign(x) + '"><i style="' + (x >= 0 ? 'bottom:50%' : 'top:50%') + ';height:' + hgt + '%;background:' + (x >= 0 ? 'var(--gold)' : '#df5a48') + '"></i><span>' + (i + 1) + '</span></div>';
+      }).join('') + '</div><em style="margin-top:20px">報酬は件数×単価、送信報酬は全員が同じ数を送った場合で計算しています。</em></div>';
+  }
+
   function drawOrders() {
     var rows = '';
     M.forEach(function (m) { B[m].co.forEach(function (o) { rows += '<tr><td>' + dL(o.date) + '</td><td class="it">' + esc(o.item) + '</td><td>¥' + yen(o.yen) + '</td></tr>'; }); });
