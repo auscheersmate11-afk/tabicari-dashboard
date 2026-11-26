@@ -287,7 +287,7 @@ h2, p { margin:0; }
       <div class="brand"><span>旅キャリ</span><span class="go">OPS</span><span class="pill">LIST</span><small id="stamp">読み込み中…</small></div>
       <h1><span class="word">List.</span>リストの成果</h1>
       <div class="big">
-        <span class="lb" id="heroLb">いまの配るペースだと、Aリストがなくなるのは</span>
+        <span class="lb" id="heroLb">いまの配るペースと毎日の自動追加で、Aリストがなくなるのは</span>
         <span class="n y" id="heroDate">—</span><span class="of" id="heroDays"></span>
       </div>
       <div class="chips" id="heroChips"></div>
@@ -613,7 +613,7 @@ h2, p { margin:0; }
   function drawCost() {
     var pn = paidNow(), paid = pn.paid + pn.est;
     var used = 0; PHASES.forEach(function (p) { used += costOf(p.k).all; });
-    var left = Math.max(0, paid - used);
+    var left = pn.est ? 0 : Math.max(0, PREPAID.left - costOf('apify').est);
     $('cTot').textContent = yen(paid);
     $('cTotUsd').textContent = usd(paid);
     $('cTotSub').innerHTML = 'リストに使った分 <b>' + yen(used) + '</b>（' + usd(used) + '）／ 前払いの残り <b>' + yen(left) + '</b>（' + PREPAID.until.slice(5).replace('-', '/') + 'まで使える）';
@@ -626,13 +626,14 @@ h2, p { margin:0; }
 
     // 時期ごと
     var bestK = '', bestV = Infinity;
-    PHASES.forEach(function (p) { var x = S.ph[p.k], c = costOf(p.k).all; if (c > 0 && x.rep >= 3 && c / x.rep < bestV) { bestV = c / x.rep; bestK = p.k; } });
+    var cand = 0; PHASES.forEach(function (p) { var x = S.ph[p.k], c = costOf(p.k).all; if (c > 0 && x.rep >= 3) { cand++; if (c / x.rep < bestV) { bestV = c / x.rep; bestK = p.k; } } });
+    if (cand < 2) bestK = '';   // 比べる相手がいないときは印を付けない
     $('costTl').innerHTML = PHASES.map(function (p, i) {
       var x = S.ph[p.k], c = costOf(p.k), n = x.n || 1;
       var bar = ['A', 'B', 'C'].map(function (g, gi) { return x[g] ? '<i style="width:' + (x[g] / n * 100).toFixed(1) + '%;background:' + ['var(--gold)', 'var(--h3)', 'var(--faint)'][gi] + '"></i>' : ''; }).join('');
       var per = function (den) { return c.all > 0 && den ? yen(c.all / den) + '<small>' + usd(c.all / den, 3) + '</small>' : c.all > 0 ? '—' : '¥0'; };
       var rr = x.sent ? pct(x.rep, x.sent) : '—';
-      return '<div class="ph' + (c.all > 0 ? ' paid' : '') + (p.k === bestK ? ' best' : '') + '" style="animation-delay:' + i * .06 + 's">' +
+      return '<div class="ph' + (c.all > 0 ? ' paid' : '') + '" style="animation-delay:' + i * .06 + 's">' +
         '<div class="when"><i>' + (i + 1) + '</i>' + p.when + '</div>' +
         '<h3>' + p.name + '</h3><p class="how">' + p.how + '</p>' +
         '<div class="yen"><b>' + yen(c.all) + '</b><span>' + usd(c.all) + '</span>' + (p.est0 ? '<em>推定</em>' : c.est ? '<em>うち推定 ' + yen(c.est) + '</em>' : '') + '</div>' +
