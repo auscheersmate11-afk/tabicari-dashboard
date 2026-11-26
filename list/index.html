@@ -4,55 +4,58 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>旅キャリ リスト残量</title>
+<title>旅キャリ リスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Noto+Sans+JP:wght@900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap">
 <style>
-/* リスト残量・返信率（運営だけが見るページ。共有ページからはリンクしない）
+/* リスト（残量・費用・返信率。運営だけが見るページ。トーンはチアーズGO! つかいかたブックと同じ「紺の夜空×金」）
+   共有ページからはリンクしない）
    データ：旅キャリ 抽出リスト（リスト / リスト（B・C）/ 配布台帳）と共有顧客リスト「顧客リスト」を、開いたときにブラウザから直接読む。
    残りの数え方は配布GAS（旅キャリ配布 tdPool_）と同じ。 */
-:root { --bg:#f4f6fa; --surface:#fff; --ink:#0f1a36; --muted:#6b7793; --faint:#a3adc2; --line:#e6eaf2; --track:#eef1f6;
-  --head:#0b1d5c; --sky:#2f86d6; --sky-soft:#e8f1fb; --gold:#fdc805; --gold-ink:#8a6700; --gold-soft:#fff7d6;
+:root { --bg:#F4F7FC; --surface:#fff; --ink:#16224A; --muted:#5A6788; --faint:#9DA9C4; --line:#DCE4F2; --track:#EAF1FB;
+  --head:#16224A; --sky:#2F86D6; --sky-soft:#EAF1FB; --gold:#F2B705; --gold-2:#FFD45A; --gold-ink:#9A6F00; --gold-soft:#FFF5D1;
   --ok:#2f9d62; --ok-soft:#e3f4ea; --slip:#f08c2e; --slip-soft:#fdeedd; --bad:#df5a48; --bad-soft:#fbe7e3;
-  --h1:#041350; --h2:#16388a; --hmuted:#aebbe0; --hline:rgba(255,255,255,.14);
-  --shadow:0 1px 2px rgba(15,26,54,.04), 0 8px 24px rgba(15,26,54,.06);
-  --jp:"Zen Kaku Gothic New","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
-  --num:"Barlow","DIN Alternate","Helvetica Neue",Arial,sans-serif; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0a1020; --surface:#111a2e; --ink:#e7ecf7; --muted:#9aa7c4; --faint:#5d6a88; --line:#1f2a44; --track:#1a2440; --head:#d5def5; --sky:#6fb0f0; --sky-soft:#13233f; --gold-ink:#f5cf3c; --gold-soft:#2c2610; --ok:#6fcf97; --ok-soft:#12291d; --slip:#f5a95a; --slip-soft:#2e2112; --bad:#f08a7a; --bad-soft:#331a16; --h1:#071233; --h2:#14336f; --shadow:none; color-scheme:dark; } }
-:root[data-theme="dark"] { --bg:#0a1020; --surface:#111a2e; --ink:#e7ecf7; --muted:#9aa7c4; --faint:#5d6a88; --line:#1f2a44; --track:#1a2440; --head:#d5def5; --sky:#6fb0f0; --sky-soft:#13233f; --gold-ink:#f5cf3c; --gold-soft:#2c2610; --ok:#6fcf97; --ok-soft:#12291d; --slip:#f5a95a; --slip-soft:#2e2112; --bad:#f08a7a; --bad-soft:#331a16; --h1:#071233; --h2:#14336f; --shadow:none; color-scheme:dark; }
+  --h1:#0F1D45; --h2:#1A2F66; --h3:#21408F; --hmuted:#aebbe0; --hline:rgba(255,255,255,.14);
+  --shadow:0 18px 40px -18px rgba(16,32,80,.35);
+  --jp:"Noto Sans JP","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  --num:"Inter","Helvetica Neue",Arial,sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0B1430; --surface:#14204A; --ink:#EEF3FF; --muted:#A9B6D8; --faint:#6A78A0; --line:#26346A; --track:#1A2A5C; --head:#EEF3FF; --sky:#7EA2FF; --sky-soft:#1A2A5C; --gold-ink:#F6C933; --gold-soft:#2c2610; --ok:#6fcf97; --ok-soft:#12291d; --slip:#f5a95a; --slip-soft:#2e2112; --bad:#f08a7a; --bad-soft:#331a16; --h1:#0F1D45; --h2:#7EA2FF; --h3:#21408F; --shadow:0 18px 40px -18px rgba(0,0,0,.7); color-scheme:dark; } }
+:root[data-theme="dark"] { --bg:#0B1430; --surface:#14204A; --ink:#EEF3FF; --muted:#A9B6D8; --faint:#6A78A0; --line:#26346A; --track:#1A2A5C; --head:#EEF3FF; --sky:#7EA2FF; --sky-soft:#1A2A5C; --gold-ink:#F6C933; --gold-soft:#2c2610; --ok:#6fcf97; --ok-soft:#12291d; --slip:#f5a95a; --slip-soft:#2e2112; --bad:#f08a7a; --bad-soft:#331a16; --h1:#0F1D45; --h2:#7EA2FF; --h3:#21408F; --shadow:0 18px 40px -18px rgba(0,0,0,.7); color-scheme:dark; }
 * { box-sizing:border-box; }
 [hidden] { display:none !important; }
 html, body { margin:0; background:var(--bg); }
-body { font-family:var(--jp); color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased; }
+body { font-family:var(--jp); color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased; }
 h2, p { margin:0; }
 :focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
-.n { font-family:var(--num); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
+.n { font-family:var(--num); font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
 .wrap { padding:clamp(12px,2.2vw,22px); max-width:1240px; margin:0 auto; display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; }
 .s12 { grid-column:span 12; } .s7 { grid-column:span 7; } .s5 { grid-column:span 5; }
 @media (max-width:900px) { .s7, .s5 { grid-column:span 12; } }
 
 /* hero */
-.kv { position:relative; overflow:hidden; border-radius:20px; padding:26px 28px 24px; color:#fff;
-  background:radial-gradient(90% 120% at 100% 0%, rgba(253,200,5,.16), transparent 50%), linear-gradient(140deg, var(--h1), var(--h2));
+.kv { position:relative; overflow:hidden; border-radius:28px; padding:34px 34px 30px; color:#fff; box-shadow:var(--shadow);
+  background:radial-gradient(120% 80% at 85% 10%, rgba(242,183,5,.28), transparent 55%), linear-gradient(160deg, #21408F 0%, #1A2F66 45%, #0F1D45 100%);
   display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:22px 36px; align-items:end; }
 @media (max-width:860px) { .kv { grid-template-columns:minmax(0,1fr); padding:22px 18px; } }
 .kv-deco { position:absolute; right:-60px; top:-50px; width:520px; height:260px; pointer-events:none; }
 .kv-deco path { fill:none; stroke:rgba(255,255,255,.07); stroke-width:18; stroke-linecap:round; }
-.kv-deco path.dt { stroke:rgba(253,200,5,.45); stroke-width:1.5; stroke-dasharray:1 8; }
+.kv-deco path.dt { stroke:rgba(242,183,5,.5); stroke-width:1.5; stroke-dasharray:1 8; }
 .kv-l, .kv-r { position:relative; min-width:0; }
 .kv-l { display:grid; gap:14px; }
-.brand { display:flex; align-items:center; gap:12px; }
-.logo { display:grid; place-items:center; width:40px; height:40px; border-radius:11px; background:var(--gold); color:#041350; font:900 11px/1.05 "Noto Sans JP",var(--jp); text-align:center; flex:none; }
-.eye { font:600 11px var(--num); letter-spacing:.22em; color:var(--gold); text-transform:uppercase; }
-.ttl { font-size:17px; font-weight:700; line-height:1.2; }
-.ttl small { font:500 11.5px var(--jp); color:var(--hmuted); margin-left:6px; }
+.brand { display:flex; align-items:center; flex-wrap:wrap; gap:10px; font-weight:900; font-size:15px; letter-spacing:.04em; }
+.brand .go { font-family:var(--num); color:var(--gold); font-style:italic; }
+.brand .pill { font:800 10px var(--num); letter-spacing:.12em; border:1px solid rgba(255,255,255,.5); border-radius:99px; padding:2px 8px; }
+.brand small { font:500 12px var(--jp); color:var(--hmuted); letter-spacing:0; }
+.kv h1 { margin:0; font-size:clamp(28px,4.2vw,44px); font-weight:900; line-height:1.2; letter-spacing:.01em; }
+.kv h1 .word { display:block; font-family:var(--num); font-weight:900; font-size:clamp(58px,10vw,116px); letter-spacing:-.045em; line-height:.9; margin-bottom:6px;
+  background:linear-gradient(180deg,#fff 30%,#FFE59A 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .big { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 12px; }
-.big .lb { font-size:15px; font-weight:700; color:var(--hmuted); width:100%; }
-.big .n.y { font-size:clamp(56px,9vw,88px); line-height:.9; color:var(--gold); }
+.big .lb { font-size:15px; font-weight:700; color:rgba(255,255,255,.78); width:100%; }
+.big .n.y { font-size:clamp(44px,7vw,72px); line-height:.95; color:var(--gold); letter-spacing:-.03em; }
 .big .of { font:600 clamp(18px,2.4vw,24px) var(--jp); color:var(--hmuted); }
 .chips { display:flex; flex-wrap:wrap; gap:8px; }
-.chip { display:inline-flex; align-items:center; gap:7px; padding:5px 12px 5px 10px; border-radius:999px; font-size:13px; font-weight:700; background:rgba(255,255,255,.1); border:1px solid var(--hline); }
+.chip { display:inline-flex; align-items:center; gap:7px; padding:7px 14px 7px 10px; border-radius:999px; font-size:13px; font-weight:700; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.22); backdrop-filter:blur(6px); }
 .chip i { width:8px; height:8px; border-radius:50%; background:var(--gold); }
 .chip.bad i { background:#ff8a78; box-shadow:0 0 0 4px rgba(255,138,120,.18); } .chip.ok i { background:#7ee2a8; box-shadow:0 0 0 4px rgba(126,226,168,.18); }
 .chip .n { font-size:15px; }
@@ -62,17 +65,17 @@ h2, p { margin:0; }
 .kv-r div:nth-child(even) { padding-left:18px; }
 .kv-r div:nth-child(n+3) { border-top:1px solid var(--hline); }
 .kv-r span { font-size:12px; color:var(--hmuted); font-weight:500; }
-.kv-r b { font:700 30px/1.1 var(--num); font-variant-numeric:tabular-nums; }
+.kv-r b { font:800 28px/1.1 var(--num); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
 .kv-r b small { display:block; font:500 12px var(--jp); color:var(--hmuted); margin-top:2px; }
 .kv-r .y { color:var(--gold); }
 .live { display:inline-block; width:7px; height:7px; border-radius:50%; background:#7ee2a8; margin-right:6px; vertical-align:middle; animation:pulse 2s infinite; }
 
 /* card */
-.card { background:var(--surface); border-radius:18px; padding:22px; box-shadow:var(--shadow); border:1px solid var(--line); min-width:0; display:grid; gap:16px; align-content:start; }
+.card { background:var(--surface); border-radius:24px; padding:26px; box-shadow:var(--shadow); border:1px solid var(--line); min-width:0; display:grid; gap:16px; align-content:start; }
 @media (max-width:560px) { .card { padding:16px; } }
 .hd { display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; }
-.hd .e { display:block; font:600 10.5px var(--num); letter-spacing:.2em; color:var(--faint); text-transform:uppercase; margin-bottom:2px; }
-.hd h2 { font-size:17px; font-weight:700; color:var(--head); line-height:1.3; }
+.hd .e { display:block; font:800 12px var(--num); letter-spacing:.16em; color:var(--sky); text-transform:uppercase; margin-bottom:4px; }
+.hd h2 { font-size:clamp(20px,2.4vw,26px); font-weight:900; color:var(--head); line-height:1.3; }
 .hd .r { margin-left:auto; display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--muted); align-items:center; }
 .hd .r span { display:inline-flex; align-items:center; gap:6px; }
 .hd .r i { width:10px; height:10px; border-radius:3px; }
@@ -90,7 +93,7 @@ h2, p { margin:0; }
 .sc { display:grid; gap:12px; padding:18px; border-radius:16px; background:var(--bg); align-content:start; min-width:0; animation:up .6s cubic-bezier(.2,.8,.3,1) both; }
 .sc.warn { background:linear-gradient(180deg,var(--bad-soft),var(--surface)); box-shadow:inset 0 0 0 1.5px var(--bad); }
 .sc .t { display:flex; align-items:center; gap:10px; }
-.bdg { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; background:var(--h1); color:var(--gold); font:700 19px var(--num); flex:none; }
+.bdg { display:grid; place-items:center; width:38px; height:38px; border-radius:50%; background:linear-gradient(180deg,var(--gold-2),var(--gold)); color:#0F1D45; font:900 18px var(--num); flex:none; }
 .bdg.o { background:var(--track); color:var(--muted); font-size:13px; }
 .sc .nm { flex:1; min-width:0; font-weight:700; color:var(--head); font-size:15px; line-height:1.2; }
 .sc .nm small { display:block; font-size:11.5px; color:var(--muted); font-weight:500; }
@@ -116,7 +119,7 @@ h2, p { margin:0; }
 .fld > label { font-size:12.5px; font-weight:700; color:var(--head); }
 .fld .row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .pill { border:1px solid var(--line); background:var(--surface); color:var(--muted); border-radius:999px; padding:5px 11px; font:700 12px var(--jp); cursor:pointer; }
-.pill.on { background:var(--h1); border-color:var(--h1); color:#fff; }
+.pill.on { background:linear-gradient(180deg,var(--gold-2),var(--gold)); border-color:transparent; color:#0F1D45; }
 .inp { width:7.5em; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:10px; padding:6px 10px; font:700 16px var(--num); }
 .inp:focus { border-color:var(--sky); outline:none; }
 .unit { font-size:12px; color:var(--muted); }
@@ -194,6 +197,82 @@ h2, p { margin:0; }
 .foot { grid-column:1 / -1; text-align:center; font-size:11.5px; color:var(--faint); padding:4px 0 10px; }
 .foot button { border:1px solid var(--line); background:var(--surface); color:var(--head); border-radius:9px; padding:4px 11px; font:700 12px var(--jp); cursor:pointer; margin-left:8px; }
 
+
+/* cost: so far */
+.cost-top { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:22px; align-items:center; }
+@media (max-width:860px) { .cost-top { grid-template-columns:minmax(0,1fr); } }
+.ctot { display:grid; gap:4px; }
+.ctot .lb { font-size:13px; font-weight:700; color:var(--muted); }
+.ctot .v { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.ctot .v b { font:900 clamp(44px,6vw,64px)/1 var(--num); letter-spacing:-.04em; color:var(--head); }
+.ctot .v span { font:800 16px var(--num); color:var(--muted); }
+.ctot .sub { font-size:13px; color:var(--muted); }
+.ctot .sub b { font:800 14px var(--num); color:var(--ink); }
+.cbar { display:grid; gap:10px; }
+.cbar .bar { display:flex; height:22px; border-radius:999px; overflow:hidden; background:var(--track); }
+.cbar .bar i { display:block; height:100%; transform-origin:left; animation:grow 1s cubic-bezier(.2,.9,.3,1) both; }
+.cbar .lg { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12.5px; color:var(--muted); }
+.cbar .lg span { display:inline-flex; align-items:center; gap:6px; }
+.cbar .lg i { width:10px; height:10px; border-radius:3px; }
+.cbar .lg b { font:800 13px var(--num); color:var(--ink); }
+.tl { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; position:relative; }
+@media (max-width:1000px) { .tl { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:560px) { .tl { grid-template-columns:minmax(0,1fr); } }
+.ph { position:relative; display:grid; gap:10px; align-content:start; padding:18px; border-radius:18px; background:var(--bg); border:1px solid var(--line); min-width:0; animation:up .6s cubic-bezier(.2,.8,.3,1) both; }
+.ph.paid { background:linear-gradient(180deg,color-mix(in srgb,var(--sky) 10%,var(--surface)),var(--surface)); }
+.ph.best { background:linear-gradient(180deg,var(--gold-soft),var(--surface)); border-color:var(--gold); }
+.ph .when { display:flex; align-items:center; gap:8px; font:800 12px var(--num); letter-spacing:.08em; color:var(--sky); }
+.ph .when i { display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:var(--h3); color:#fff; font:900 12px var(--num); font-style:normal; }
+.ph h3 { margin:0; font-size:16px; font-weight:900; color:var(--head); line-height:1.4; }
+.ph .how { font-size:12.5px; color:var(--muted); line-height:1.6; }
+.ph .yen { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.ph .yen b { font:900 32px/1 var(--num); letter-spacing:-.03em; color:var(--head); }
+.ph .yen span { font:700 12px var(--num); color:var(--muted); }
+.ph .yen em { font:700 11px var(--jp); font-style:normal; color:var(--gold-ink); background:var(--gold-soft); border-radius:6px; padding:1px 7px; }
+.mini { display:flex; height:8px; border-radius:999px; overflow:hidden; background:var(--track); }
+.mini i { display:block; height:100%; }
+.ph dl { margin:0; display:grid; grid-template-columns:auto 1fr; gap:4px 10px; font-size:12.5px; }
+.ph dt { color:var(--muted); }
+.ph dd { margin:0; text-align:right; font:800 13.5px var(--num); color:var(--ink); }
+.ph dd small { font:500 11px var(--jp); color:var(--muted); margin-left:3px; }
+.ph dd.hl { color:var(--gold-ink); }
+/* cost: ahead */
+.rules { display:flex; flex-wrap:wrap; gap:10px; }
+.rule { display:inline-flex; align-items:center; gap:10px; padding:8px 16px 8px 8px; border-radius:99px; background:var(--bg); border:1px solid var(--line); font-size:13.5px; font-weight:700; }
+.rule i { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--h3); color:#fff; font-style:normal; }
+.rule i svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.rule.cap i { background:linear-gradient(180deg,var(--gold-2),var(--gold)); color:#0F1D45; }
+.rule b { font:800 14px var(--num); }
+.ahead { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+@media (max-width:1000px) { .ahead { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:480px) { .ahead { grid-template-columns:minmax(0,1fr); } }
+.ah { border-radius:18px; padding:18px; display:grid; gap:6px; align-content:start; background:linear-gradient(160deg,var(--h2),var(--h1)); color:#fff; position:relative; overflow:hidden; min-width:0; }
+:root[data-theme="dark"] .ah { background:linear-gradient(160deg,#1A2F66,#0F1D45); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ah { background:linear-gradient(160deg,#1A2F66,#0F1D45); } }
+.ah::before { content:attr(data-k); position:absolute; right:12px; top:-14px; font:900 84px/1 var(--num); color:rgba(255,255,255,.07); letter-spacing:-.04em; }
+.ah .e { font:800 11px var(--num); letter-spacing:.14em; color:var(--gold); text-transform:uppercase; }
+.ah h3 { margin:0; font-size:14px; font-weight:700; color:rgba(255,255,255,.82); }
+.ah .v { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.ah .v b { font:900 36px/1 var(--num); letter-spacing:-.03em; }
+.ah .v span { font:700 12.5px var(--num); color:rgba(255,255,255,.7); }
+.ah .s { font-size:12px; color:rgba(255,255,255,.72); line-height:1.6; }
+.ah .s b { color:#fff; font:800 13px var(--num); }
+.ah.gold { background:linear-gradient(180deg,#FFF5D1,#FFE7A0); color:#3D2D00; }
+.ah.gold::before { color:rgba(154,111,0,.12); }
+.ah.gold .e { color:#9A6F00; } .ah.gold h3 { color:#5c4500; } .ah.gold .v span, .ah.gold .s { color:#7a5c00; } .ah.gold .s b { color:#3D2D00; }
+.runout { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+@media (max-width:640px) { .runout { grid-template-columns:minmax(0,1fr); } }
+.ro { border-radius:16px; padding:14px 18px; border:1px solid var(--line); display:flex; align-items:center; gap:14px; }
+.ro .ic { display:grid; place-items:center; width:42px; height:42px; border-radius:50%; flex:none; background:var(--sky-soft); color:var(--sky); }
+.ro .ic svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.ro div { display:grid; gap:2px; min-width:0; }
+.ro span { font-size:12.5px; color:var(--muted); font-weight:700; }
+.ro b { font:900 24px/1.1 var(--num); color:var(--head); letter-spacing:-.02em; }
+.ro b small { font:600 12px var(--jp); color:var(--muted); margin-left:6px; letter-spacing:0; }
+.ro.good .ic { background:var(--ok-soft); color:var(--ok); }
+.tipline { display:flex; gap:10px; align-items:flex-start; font-size:12.5px; color:var(--muted); line-height:1.7; }
+.tipline b.t { flex:none; font:900 11px var(--num); letter-spacing:.1em; color:#0F1D45; background:var(--gold); border-radius:6px; padding:2px 7px; margin-top:3px; }
+
 @keyframes up { from { transform:translateY(14px); opacity:.001; } to { transform:none; opacity:1; } }
 @keyframes grow { from { transform:scaleX(0); } to { transform:scaleX(1); } }
 @keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(126,226,168,.5); } 50% { box-shadow:0 0 0 5px rgba(126,226,168,0); } }
@@ -205,21 +284,21 @@ h2, p { margin:0; }
   <section class="kv s12">
     <svg class="kv-deco" viewBox="0 0 520 260" aria-hidden="true"><path d="M20 240 C 160 120, 300 250, 510 50"/><path class="dt" d="M0 200 C 160 80, 300 210, 520 10"/></svg>
     <div class="kv-l">
-      <div class="brand">
-        <div class="logo">旅<br>キャリ</div>
-        <div><div class="eye">Tabicari Ops · List stock</div><div class="ttl">リスト残量・返信率 <small id="stamp">読み込み中…</small></div></div>
-      </div>
+      <div class="brand"><span>旅キャリ</span><span class="go">OPS</span><span class="pill">LIST</span><small id="stamp">読み込み中…</small></div>
+      <h1><span class="word">List.</span>リストの成果</h1>
       <div class="big">
-        <span class="lb">Aリストは、いまのペースだと</span>
-        <span>あと</span><span class="n y" id="heroDays">—</span><span class="of" id="heroUnit">日</span>
+        <span class="lb" id="heroLb">いまの配るペースだと、Aリストがなくなるのは</span>
+        <span class="n y" id="heroDate">—</span><span class="of" id="heroDays"></span>
       </div>
       <div class="chips" id="heroChips"></div>
     </div>
     <div class="kv-r">
       <div><span>まだ配っていない A</span><b class="y" id="kA">—</b></div>
       <div><span>B・C（予備）</span><b id="kBC">—</b></div>
+      <div><span>1日平均の配布（直近7日）</span><b id="kDist">—</b></div>
       <div><span><i class="live"></i>今日追加された</span><b id="kToday">—</b></div>
-      <div><span>1日に配っている（7日平均）</span><b id="kDist">—</b></div>
+      <div><span>これまでに払った費用</span><b class="y" id="kCost">—</b></div>
+      <div><span>これからの費用（1か月）</span><b id="kCostM">—</b></div>
     </div>
   </section>
 
@@ -228,6 +307,31 @@ h2, p { margin:0; }
       <div class="r"><span><i style="background:var(--gold)"></i>足した</span><span><i style="background:var(--h2)"></i>配った</span><span>直近14日</span></div></div>
     <div class="stk" id="stk"><div class="fail">読み込み中…</div></div>
     <p class="note">「残り」＝まだ配っていない人（送信済・担当つき・メモや送らない理由あり・配布中・共有顧客リストに載っている人を除く）。配布の仕組みと同じ数え方です。「1日に配る」は直近7日に初めて配った人数の平均、「1日に足す」は直近7日（昨日まで）にリストへ追加された数の平均です。</p>
+  </section>
+
+  <section class="card s12">
+    <div class="hd"><div><span class="e">Cost so far</span><h2>これまでのリスト作成にかかった費用</h2></div>
+      <div class="r"><span>1ドル＝<span id="fxLbl">155</span>円で換算</span></div></div>
+    <div class="cost-top">
+      <div class="ctot"><span class="lb">これまでに払った合計（Apify）</span>
+        <div class="v"><b id="cTot">—</b><span id="cTotUsd"></span></div>
+        <div class="sub" id="cTotSub"></div></div>
+      <div class="cbar"><div class="bar" id="cBar"></div><div class="lg" id="cLg"></div></div>
+    </div>
+    <div class="tl" id="costTl"><div class="fail">読み込み中…</div></div>
+    <p class="note" id="costNote"></p>
+  </section>
+
+  <section class="card s12">
+    <div class="hd"><div><span class="e">Cost ahead</span><h2>これからかかる費用と、1件あたり</h2></div></div>
+    <div class="rules">
+      <span class="rule"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i>毎日 <b>23:43</b> 新しい返信・面談者から　1回 <b>$3</b> まで</span>
+      <span class="rule"><i><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></i>日曜 <b>21:13</b> その週の合格者からまとめて　1回 <b>$32</b> まで</span>
+      <span class="rule cap"><i><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></i>上限 月 <b>$250</b>（約<b id="capYen">38,750</b>円）</span>
+    </div>
+    <div class="ahead" id="ahead"></div>
+    <div class="runout" id="runout"></div>
+    <p class="tipline"><b class="t">MEMO</b><span id="aheadNote"></span></p>
   </section>
 
   <section class="card s12">
@@ -290,6 +394,36 @@ h2, p { margin:0; }
   var SHARED = '1UeSu6tEnX1OwPfV_G6rxD4dIX42_jW8EEXveBNb7kH4'; // 共有顧客リスト(旅キャリ)
   var TPL_NAME = { A: 'あなたが必要', B: '経験を仕事に', C: '経験を仕事に（絵文字）', D: '旅行を海外出張に' };  // 旅キャリGo（tg_api）と同じ
   var REFRESH_MIN = 5;
+
+  // ---------- 費用（Apify の請求書・使用額。2026-11-27 時点で Apify コンソールの Billing から転記） ----------
+  // 新しい請求書が来たら INVOICES に1行、まとめて取った日は USE に1行足す。USE より後に足された「Apify」行は UNIT_ROW で推定する。
+  var FX = 155;                                  // 1ドル＝155円
+  var INVOICES = [                               // 実際に払った額（請求書）
+    ['2026-10-12', 19.00, '初回'], ['2026-10-12', 40.21, '超過分'], ['2026-10-13', 174.19, 'Scaleプランへ変更'], ['2026-11-12', 223.52, '月額（前払い$199）']
+  ];
+  var USE = [                                    // 日別の使用額（UTC）
+    ['2026-10-12', 59.21], ['2026-10-13', 58.73], ['2026-10-15', 49.16], ['2026-10-18', 27.42], ['2026-10-19', 34.89], ['2026-10-30', 28.06],
+    ['2026-11-26', 69.37]                        // 11/26 第1弾 約$37・第2弾 約$33.7
+  ];
+  var USE_UNTIL = '2026-11-26';                  // USE に入っている最後の日（リストの追加日）
+  var PREPAID = { left: 129.63, until: '2026-12-11', next: '2026-12-12', plan: 199 };
+  var UNIT_ROW = 69.37 / 1352;                   // 11/26 の実績：1行あたり（推定用）
+  var PLAN = { daily: 3, sunday: 32, cap: 250, row: 0.055, a: 0.2, reply: 0.022 };   // これから：毎日23:43 $3・日曜21:13 $32・月$250、1件$0.055・A1件$0.2、返信率（実績が少ないとき）2.2%
+  var PER_PERSON_MAX = 40;                       // 1人1日の上限（2026-11-27〜）
+  var PHASES = [
+    { k: 'pre', when: '9/1〜10/11', name: 'ハッシュタグ・ブログ村から', how: 'Apify の有料プランを始める前。費用の記録なし', est0: true },
+    { k: 'oct', when: '10/12〜10/30', name: 'Apify でまとめて', how: 'ハッシュタグと、海外在住・駐在系アカウントのフォロワー' },
+    { k: 'free', when: '11/9〜', name: '返信者のフォロー一覧', how: '菊地さんの Mac のブラウザで毎日（無料）' },
+    { k: 'apify', when: '11/26〜', name: 'Apify で面談者の近くから', how: '二次面談・面談・返信した人と、その近いアカウントのフォロー一覧' }
+  ];
+  function phaseOf(add, src) {
+    if (!add) return '';
+    if (add < '2026-10-12') return 'pre';
+    if (add < '2026-11-01') return 'oct';
+    return /apify/i.test(src) ? 'apify' : 'free';
+  }
+  function yen(usd) { return '¥' + Math.round(usd * FX).toLocaleString(); }
+  function usd(v, d) { return '$' + (v >= 100 ? Math.round(v).toLocaleString() : v.toFixed(d == null ? 2 : d)); }
   var $ = function (id) { return document.getElementById(id); };
 
   // ---------- 読み込み ----------
@@ -307,9 +441,9 @@ h2, p { margin:0; }
     if (f || row.length) { row.push(f); rows.push(row); }
     return rows;
   }
-  // 元のリスト：A ユーザー名, E ① 送信, G ランク, L 追加日, N 担当, V メモ, W 送らない理由（W が無いタブは V まで）
+  // 元のリスト：A ユーザー名, E ① 送信, G ランク, L 追加日, N 担当, K 発見元, V メモ, W 送らない理由（W が無いタブは V まで）
   function srcTab(name) {
-    return txt(url(SRC, name, 'select A,E,G,L,N,V,W')).catch(function () { return txt(url(SRC, name, 'select A,E,G,L,N,V')); });
+    return txt(url(SRC, name, 'select A,E,G,L,N,K,V,W')).catch(function () { return txt(url(SRC, name, 'select A,E,G,L,N,K,V')); });
   }
 
   // ---------- 小物 ----------
@@ -331,7 +465,7 @@ h2, p { margin:0; }
   var S = null;   // 在庫まわり
   var R = null;   // 返信まわり（顧客リストの行）
   function build(a) {
-    var cust = parseCsv(a[0]), led = parseCsv(a[1]), tabA = parseCsv(a[2]), tabBC = parseCsv(a[3]);
+    var cust = parseCsv(a[0]), led = parseCsv(a[1]), tabA = parseCsv(a[2]), tabBC = parseCsv(a[3]), dst = a[4] ? parseCsv(a[4]) : [];
     var now = jstNow(), today = ymd(now);
 
     // 共有顧客リスト
@@ -359,7 +493,8 @@ h2, p { margin:0; }
     [tabA, tabBC].forEach(function (t) {
       t.slice(1).forEach(function (r) {
         var u = String(r[0] || '').trim(); if (!u) return;
-        rows.push({ u: nUser(u), sent: String(r[1] || '').trim(), rk: String(r[2] || '').trim().toUpperCase(), add: normDate(r[3]), owner: String(r[4] || '').trim(), memo: String(r[5] || '').trim(), skip: String(r[6] || '').trim() });
+        var add = normDate(r[3]);
+        rows.push({ u: nUser(u), sent: String(r[1] || '').trim(), rk: String(r[2] || '').trim().toUpperCase(), add: add, owner: String(r[4] || '').trim(), ph: phaseOf(add, r[5]), memo: String(r[6] || '').trim(), skip: String(r[7] || '').trim() });
       });
     });
     var contacted = {}; rows.forEach(function (r) { if (r.sent || r.owner) contacted[r.u] = 1; });
@@ -377,6 +512,18 @@ h2, p { margin:0; }
       if (!r.u || firstSeen[r.u] || !r.add || left[r.rk] == null) return; firstSeen[r.u] = 1;
       var x = added[r.add] || (added[r.add] = { A: 0, B: 0, C: 0 }); x[r.rk]++;
     });
+    // 時期ごと（費用の区切り）の件数
+    var ph = {}, phU = {}, phSeen = {};
+    PHASES.forEach(function (p) { ph[p.k] = { A: 0, B: 0, C: 0, n: 0, after: 0, sent: 0, rep: 0, book: 0 }; });
+    rows.forEach(function (r) {
+      if (!r.u || phSeen[r.u] || !ph[r.ph]) return; phSeen[r.u] = 1; phU[r.u] = r.ph;
+      var x = ph[r.ph]; x.n++; if (x[r.rk] != null) x[r.rk]++;
+      if (r.ph === 'apify' && r.add > USE_UNTIL) x.after++;
+    });
+    // 配る人数（配布先：A 名前, B 配る, C 1日の件数）
+    var people = 0, setNow = 0;
+    dst.slice(1).forEach(function (r) { if (!String(r[0] || '').trim() || !ok(r[1])) return; people++; setNow += Math.min(PER_PERSON_MAX, +r[2] || 20); });
+
     // 配った日ごと（初めて配った人だけ＝リストが減った数）
     var dist = {};
     Object.keys(firstDist).forEach(function (u) {
@@ -393,7 +540,7 @@ h2, p { margin:0; }
     }
     var series = [];
     for (var j = 13; j >= 0; j--) { var ds = shift(today, -j); series.push({ d: ds, add: added[ds] || z(), dist: dist[ds] || z() }); }
-    S = { today: today, left: left, addToday: added[today] || z(), dAvg: dAvg, aAvg: aAvg, series: series, distToday: dist[today] || null };
+    S = { ph: ph, people: people, setNow: setNow, today: today, left: left, addToday: added[today] || z(), dAvg: dAvg, aAvg: aAvg, series: series, distToday: dist[today] || null };
 
     // 返信まわり
     var rank = {};
@@ -406,6 +553,8 @@ h2, p { margin:0; }
       var m = String(r[c.m] || '').trim(); if (!m || m.charAt(0) === '未') return;
       var k1 = uKey(r[c.u]), k2 = uKey(r[c.url]); if (!k1 && !k2) return;
       var tp = m.toUpperCase().replace(/[Ａ-Ｄ]/g, function (x) { return String.fromCharCode(x.charCodeAt(0) - 0xFEE0); });
+      var pk = phU[k1] || phU[k2];
+      if (pk) { var px = S.ph[pk]; px.sent++; if (ok(r[c.rep])) px.rep++; if (ok(r[c.book])) px.book++; }
       out.push({ d: normDate(r[c.d]), g: rank[k1] || rank[k2] || '', t: /^[ABCD]$/.test(tp) ? tp : '', rep: ok(r[c.rep]), book: ok(r[c.book]), n1: ok(r[c.n1]), n2: ok(r[c.n2]), won: ok(r[c.won]) });
     });
     R = out;
@@ -416,23 +565,116 @@ h2, p { margin:0; }
   try { var sv = JSON.parse(localStorage.getItem('tc-list-sim') || '{}'); if (sv.N) SIM.N = sv.N; } catch (e) {}
   function daysLeft(stock, use, add) { var net = use - add; return net > 0 ? stock / net : Infinity; }
 
+  // これから毎日足される見込み（自動追加の予定から）
+  function planMonth() { var u = PLAN.daily * 30.4 + PLAN.sunday * 30.4 / 7; return Math.min(PLAN.cap, u); }
+  function planPerDay() { var m = planMonth(); return { all: m / PLAN.row / 30.4, A: m / PLAN.a / 30.4 }; }
+  function untilTxt(d) {
+    if (d === Infinity) return '減らない';
+    var p = S.today.split('-'), t = new Date(+p[0], +p[1] - 1, +p[2] + Math.floor(d));
+    return (t.getFullYear() !== +p[0] ? t.getFullYear() + '年' : '') + (t.getMonth() + 1) + '月' + t.getDate() + '日';
+  }
+  function paidNow() {
+    var paid = 0; INVOICES.forEach(function (x) { paid += x[1]; });
+    // 次の請求日を過ぎたら、月額プラン分を推定で足す（請求書を INVOICES に足すまで）
+    var est = 0, d = PREPAID.next;
+    while (d <= S.today) { est += PREPAID.plan; var q = d.split('-'); d = ymd(new Date(+q[0], +q[1], +q[2])); }
+    return { paid: paid, est: est };
+  }
+  function costOf(k) {
+    var u = 0;
+    USE.forEach(function (x) { var p = x[0] < '2026-11-01' ? 'oct' : 'apify'; if (p === k) u += x[1]; });
+    var est = k === 'apify' ? S.ph.apify.after * UNIT_ROW : 0;
+    return { rec: u, est: est, all: u + est };
+  }
+
   function drawHero() {
-    var L = S.left, use = S.dAvg, add = S.aAvg;
+    var L = S.left, use = S.dAvg, pp = planPerDay();
     var useAll = use.A + use.B + use.C;
-    var dA = daysLeft(L.A, use.A, add.A);
-    $('heroDays').textContent = dA === Infinity ? '∞' : fmt(Math.floor(dA));
-    $('heroUnit').textContent = dA === Infinity ? '（減っていない）' : '日';
-    var total = L.A + L.B + L.C, dAll = daysLeft(total, useAll, add.A + add.B + add.C);
-    var need30 = Math.max(0, Math.ceil(use.A - L.A / 30));
+    var dA = daysLeft(L.A, use.A, pp.A), d0 = daysLeft(L.A, use.A, 0);
+    $('heroDate').textContent = dA === Infinity ? '減っていません' : untilTxt(dA) + 'ごろ';
+    $('heroDays').textContent = dA === Infinity ? '' : 'あと ' + fmt(Math.floor(dA)) + ' 日';
+    var total = L.A + L.B + L.C, dAll = daysLeft(total, useAll, pp.all);
+    var cap = S.people * PER_PERSON_MAX, dCap = daysLeft(total, cap, pp.all);
     $('heroChips').innerHTML =
-      '<span class="chip ' + (dAll < 30 ? 'bad' : 'ok') + '"><i></i>B・Cも使うと あと <span class="n">' + (dAll === Infinity ? '∞' : fmt(Math.floor(dAll))) + '</span> 日</span>' +
-      '<span class="chip"><i></i>減らさないには A を毎日 <span class="n">' + fmt(use.A) + '</span> 件</span>' +
-      '<span class="chip"><i></i>30日もたせるには 毎日 <span class="n">' + fmt(need30) + '</span> 件</span>';
+      '<span class="chip ' + (d0 < 14 ? 'bad' : '') + '"><i></i>追加しないと A は <span class="n">' + daysTxt(d0) + '</span></span>' +
+      '<span class="chip ' + (dAll < 30 ? 'bad' : 'ok') + '"><i></i>B・Cも使うと <span class="n">' + untilTxt(dAll) + '</span>' + (dAll === Infinity ? '' : 'ごろ') + '</span>' +
+      (S.people ? '<span class="chip"><i></i>全員 ' + PER_PERSON_MAX + '件（' + S.people + '人で ' + fmt(cap) + '件/日）なら <span class="n">' + untilTxt(dCap) + '</span>' + (dCap === Infinity ? '' : 'ごろ') + '</span>' : '');
     $('kA').textContent = fmt(L.A);
     $('kBC').innerHTML = fmt(L.B + L.C) + '<small>B ' + fmt(L.B) + '・C ' + fmt(L.C) + '</small>';
     var t = S.addToday;
     $('kToday').innerHTML = fmt(t.A + t.B + t.C) + '<small>A ' + fmt(t.A) + (t.B + t.C ? '・B/C ' + fmt(t.B + t.C) : '') + '</small>';
-    var dt = S.distToday; $('kDist').innerHTML = fmt(useAll) + '<small>件 / 日' + (dt ? '・今日 ' + fmt(dt.A + dt.B + dt.C) : '') + '</small>';
+    var dt = S.distToday; $('kDist').innerHTML = fmt(useAll) + '<small>件 / 日（A ' + fmt(use.A) + '）' + (dt ? '・今日 ' + fmt(dt.A + dt.B + dt.C) : '') + '</small>';
+    var pn = paidNow();
+    $('kCost').innerHTML = yen(pn.paid + pn.est) + '<small>' + usd(pn.paid + pn.est) + (pn.est ? '（請求書＋推定）' : '（請求書の合計）') + '</small>';
+    var m = planMonth();
+    $('kCostM').innerHTML = '約' + yen(m) + '<small>$' + Math.round(m) + ' / 月・上限 $' + PLAN.cap + '</small>';
+  }
+
+  function drawCost() {
+    var pn = paidNow(), paid = pn.paid + pn.est;
+    var used = 0; PHASES.forEach(function (p) { used += costOf(p.k).all; });
+    var left = Math.max(0, paid - used);
+    $('cTot').textContent = yen(paid);
+    $('cTotUsd').textContent = usd(paid);
+    $('cTotSub').innerHTML = 'リストに使った分 <b>' + yen(used) + '</b>（' + usd(used) + '）／ 前払いの残り <b>' + yen(left) + '</b>（' + PREPAID.until.slice(5).replace('-', '/') + 'まで使える）';
+    var oct = costOf('oct').all, nov = costOf('apify').all, col = { oct: 'var(--h3)', nov: 'var(--sky)', left: 'var(--gold)' };
+    function seg(v, c, i) { return v > 0 ? '<i style="width:' + (v / paid * 100).toFixed(2) + '%;background:' + c + ';animation-delay:' + i * .12 + 's"></i>' : ''; }
+    $('cBar').innerHTML = seg(oct, col.oct, 0) + seg(nov, col.nov, 1) + seg(left, col.left, 2);
+    $('cLg').innerHTML = '<span><i style="background:' + col.oct + '"></i>10月 Apify <b>' + yen(oct) + '</b></span>' +
+      '<span><i style="background:' + col.nov + '"></i>11/26〜 Apify <b>' + yen(nov) + '</b></span>' +
+      '<span><i style="background:' + col.left + '"></i>前払いの残り <b>' + yen(left) + '</b></span>';
+
+    // 時期ごと
+    var bestK = '', bestV = Infinity;
+    PHASES.forEach(function (p) { var x = S.ph[p.k], c = costOf(p.k).all; if (c > 0 && x.rep >= 3 && c / x.rep < bestV) { bestV = c / x.rep; bestK = p.k; } });
+    $('costTl').innerHTML = PHASES.map(function (p, i) {
+      var x = S.ph[p.k], c = costOf(p.k), n = x.n || 1;
+      var bar = ['A', 'B', 'C'].map(function (g, gi) { return x[g] ? '<i style="width:' + (x[g] / n * 100).toFixed(1) + '%;background:' + ['var(--gold)', 'var(--h3)', 'var(--faint)'][gi] + '"></i>' : ''; }).join('');
+      var per = function (den) { return c.all > 0 && den ? yen(c.all / den) + '<small>' + usd(c.all / den, 3) + '</small>' : c.all > 0 ? '—' : '¥0'; };
+      var rr = x.sent ? pct(x.rep, x.sent) : '—';
+      return '<div class="ph' + (c.all > 0 ? ' paid' : '') + (p.k === bestK ? ' best' : '') + '" style="animation-delay:' + i * .06 + 's">' +
+        '<div class="when"><i>' + (i + 1) + '</i>' + p.when + '</div>' +
+        '<h3>' + p.name + '</h3><p class="how">' + p.how + '</p>' +
+        '<div class="yen"><b>' + yen(c.all) + '</b><span>' + usd(c.all) + '</span>' + (p.est0 ? '<em>推定</em>' : c.est ? '<em>うち推定 ' + yen(c.est) + '</em>' : '') + '</div>' +
+        '<div class="mini" title="A ' + x.A + '・B ' + x.B + '・C ' + x.C + '">' + bar + '</div>' +
+        '<dl><dt>足した件数</dt><dd>' + fmt(x.n) + '<small>A ' + fmt(x.A) + '</small></dd>' +
+        '<dt>1件あたり</dt><dd>' + per(x.n) + '</dd>' +
+        '<dt>A 1件あたり</dt><dd>' + per(x.A) + '</dd>' +
+        '<dt>送信 → 返信</dt><dd>' + fmt(x.sent) + '<small>→ ' + fmt(x.rep) + '（' + rr + '）</small></dd>' +
+        '<dt>返信1件あたり</dt><dd class="' + (p.k === bestK ? 'hl' : '') + '">' + (c.all > 0 ? (x.rep ? yen(c.all / x.rep) : 'まだ返信なし') : '¥0') + '</dd></dl>' +
+      '</div>';
+    }).join('');
+    $('costNote').innerHTML = '金額は Apify の請求書（' + INVOICES.map(function (x) { return x[0].slice(5).replace('-', '/') + ' ' + usd(x[1]); }).join('・') + '）と日別の使用額から。' +
+      '9/1〜10/11 の分は Apify の有料プランを始める前で、費用の記録が見つからないため ¥0 と推定しています。返信者のフォロー一覧（11/9〜）はブラウザで取っているので Apify の費用はかかっていません。' +
+      USE_UNTIL.slice(5).replace('-', '/') + 'より後に Apify で足した行は、11/26 の実績（1行 ' + usd(UNIT_ROW, 3) + '）で推定しています。' +
+      '「送信 → 返信」は共有顧客リストに載った人を、どの時期に足したリストの人かで分けたもの（全期間）。10月にまとめて取ったリストは安い代わりに返信率が低く、返信1件あたりで比べると差がはっきり出ます。';
+  }
+
+  function drawAhead() {
+    var m = planMonth(), pp = planPerDay(), L = S.left, use = S.dAvg;
+    var ap = S.ph.apify, fr = S.ph.free, c = costOf('apify').all;
+    var rr = (ap.sent >= 200 ? ap.rep / ap.sent : 0) || ((ap.sent + fr.sent) >= 200 ? (ap.rep + fr.rep) / (ap.sent + fr.sent) : 0) || PLAN.reply;
+    var rrSrc = ap.sent >= 200 ? 'Apifyで足したリストの実績' : (ap.sent + fr.sent) >= 200 ? '面談者・返信者の近くから足したリストの実績' : '返信者のフォロー一覧の実績';
+    var realRow = ap.n ? c / ap.n : 0, realA = ap.A ? c / ap.A : 0;
+    $('capYen').textContent = Math.round(PLAN.cap * FX).toLocaleString();
+    $('ahead').innerHTML =
+      '<div class="ah" data-k="$"><span class="e">Per month</span><h3>1か月の費用</h3><div class="v"><b>' + yen(m) + '</b><span>$' + Math.round(m) + '</span></div>' +
+        '<p class="s">リストが 1か月に約 <b>' + fmt(m / PLAN.row) + '</b> 件（1日 約' + fmt(pp.all) + '件）、うち A 約 <b>' + fmt(m / PLAN.a) + '</b> 件（1日 約' + fmt(pp.A) + '件）増える見込み</p></div>' +
+      '<div class="ah" data-k="1"><span class="e">Per list</span><h3>良いリスト 1件あたり</h3><div class="v"><b>' + yen(PLAN.row) + '</b><span>$' + PLAN.row + '</span></div>' +
+        '<p class="s">面談・返信した人の近くから取ったリスト（A・B・C）' + (realRow ? '。11/26〜の実績 <b>' + yen(realRow) + '</b>' : '') + '</p></div>' +
+      '<div class="ah" data-k="A"><span class="e">Per A</span><h3>A 1件あたり</h3><div class="v"><b>' + yen(PLAN.a) + '</b><span>$' + PLAN.a.toFixed(2) + '</span></div>' +
+        '<p class="s">取ったうち A になるのは約 ' + Math.round(PLAN.row / PLAN.a * 100) + '%' + (realA ? '。実績 <b>' + yen(realA) + '</b>' : '') + '</p></div>' +
+      '<div class="ah gold" data-k="✉"><span class="e">Per reply</span><h3>返信 1件あたり（見込み）</h3><div class="v"><b>' + yen(PLAN.row / rr) + '</b><span>返信率 ' + pct(rr, 1) + '</span></div>' +
+        '<p class="s">1件 $' + PLAN.row + ' ÷ 返信率（' + rrSrc + '）</p></div>';
+    var dA = daysLeft(L.A, use.A, pp.A), all = L.A + L.B + L.C, uAll = use.A + use.B + use.C, dAll = daysLeft(all, uAll, pp.all);
+    var IC = '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+    function ro(label, d, sub) { return '<div class="ro' + (d === Infinity || d >= 60 ? ' good' : '') + '"><span class="ic">' + IC + '</span><div><span>' + label + '</span><b>' + untilTxt(d) + (d === Infinity ? '' : 'ごろ') + '<small>' + sub + '</small></b></div></div>'; }
+    $('runout').innerHTML =
+      ro('この追加が続くと、A がなくなるのは', dA, 'A を1日 ' + fmt(use.A) + '件配って ' + fmt(pp.A) + '件足す') +
+      ro('A・B・C ぜんぶがなくなるのは', dAll, '1日 ' + fmt(uAll) + '件配って ' + fmt(pp.all) + '件足す');
+    $('aheadNote').innerHTML = 'Apify は Scale プラン（月 $' + PREPAID.plan + '、同じ額の使用枠つき）。使用枠を超えた分だけ追加で払うので、月の支払いは $' + PREPAID.plan + '〜$' + PLAN.cap + '。' +
+      '毎回 Apify の請求期間（12日〜翌11日）の使用額を見て、$' + PLAN.cap + ' を超えそうなら止めます。' + PREPAID.until.slice(5).replace('-', '/') + 'までは前払いの残り（' + usd(PREPAID.left) + '）の中に収まる見込みです。' +
+      '1日の配布は 1人 ' + PER_PERSON_MAX + '件が上限（11/27〜）' + (S.people ? '、いま配っている ' + S.people + '人の設定の合計は 1日 ' + fmt(S.setNow) + '件' : '') + '。';
   }
 
   function spark(series, g) {
@@ -474,7 +716,10 @@ h2, p { margin:0; }
     var use = S.dAvg, useAll = Math.round(use.A + use.B + use.C);
     if (SIM.D == null) SIM.D = useAll;
     if (SIM.add == null) SIM.add = Math.round(S.aAvg.A);
-    presetRow('presetD', [{ v: useAll, l: 'いま ' + fmt(useAll) }, { v: 450, l: '450（30〜50通がまざる）' }, { v: 630, l: '630（11人が50通）' }, { v: 750, l: '750（全員50通）' }], SIM.D);
+    var pd = [{ v: useAll, l: 'いま ' + fmt(useAll) }];
+    if (S.setNow && S.setNow !== useAll) pd.push({ v: S.setNow, l: '今の設定 ' + fmt(S.setNow) });
+    if (S.people) pd.push({ v: S.people * PER_PERSON_MAX, l: '全員' + PER_PERSON_MAX + '件 ' + fmt(S.people * PER_PERSON_MAX) });
+    presetRow('presetD', pd, SIM.D);
     presetRow('presetN', [{ v: 14, l: '2週間' }, { v: 30, l: '30日' }, { v: 60, l: '60日' }, { v: 90, l: '90日' }], SIM.N);
     if (document.activeElement !== $('simD')) $('simD').value = SIM.D;
     if (document.activeElement !== $('simAdd')) $('simAdd').value = SIM.add;
@@ -489,7 +734,7 @@ h2, p { margin:0; }
     }
     $('simOut').innerHTML = card('A だけで配る', dA, needA, '') + card('B・C も使い切る', dAll, needAll, 'B・C は ' + fmt(bc) + ' 件（いまは足していない）');
     $('simNote').innerHTML = 'ずっと減らさずに続けるには、<b>配る数と同じだけ（1日 ' + fmt(D) + ' 件）</b>足す必要があります。いまの A の追加は 1日 約' + fmt(S.aAvg.A) + ' 件です。' +
-      '40・50通に上がるには3日ずつクリアが要るので、実際の減り方は少しゆるやかになります。';
+      '1人の上限は ' + PER_PERSON_MAX + '件で、上がるには3日ずつクリアが要るので、実際の減り方は少しゆるやかになります。';
     try { localStorage.setItem('tc-list-sim', JSON.stringify({ N: SIM.N })); } catch (e) {}
   }
   function bindSim() {
@@ -606,7 +851,7 @@ h2, p { margin:0; }
   });
 
   // ---------- 実行 ----------
-  function drawAll() { drawHero(); drawStock(); drawSim(); drawDaily(); drawResults(); }
+  function drawAll() { drawHero(); drawStock(); drawCost(); drawAhead(); drawSim(); drawDaily(); drawResults(); }
   var bound = false;
   function load() {
     $('stamp').textContent = '読み込み中…';
@@ -614,7 +859,8 @@ h2, p { margin:0; }
       txt(url(SHARED, '顧客リスト')),
       txt(url(SRC, '配布台帳', 'select B,D,F,G')),
       srcTab('リスト'),
-      srcTab('リスト（B・C）')
+      srcTab('リスト（B・C）'),
+      txt(url(SRC, '配布先', 'select A,B,C')).catch(function () { return ''; })
     ]).then(function (a) {
       build(a);
       if (!bound) { bindSim(); bound = true; }
@@ -624,7 +870,7 @@ h2, p { margin:0; }
     }).catch(function (e) {
       console.error(e);
       $('stamp').textContent = '読み込めませんでした';
-      if (!S) ['stk', 'daily', 'ov', 'byRank', 'byTpl', 'mx'].forEach(function (id) { $(id).innerHTML = '<div class="fail"><i></i>読み込めませんでした（少し待って「今すぐ読み直す」を押してください）</div>'; });
+      if (!S) ['stk', 'costTl', 'daily', 'ov', 'byRank', 'byTpl', 'mx'].forEach(function (id) { $(id).innerHTML = '<div class="fail"><i></i>読み込めませんでした（少し待って「今すぐ読み直す」を押してください）</div>'; });
     });
   }
   $('reload').addEventListener('click', load);
