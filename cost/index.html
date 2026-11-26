@@ -83,6 +83,9 @@ h1, h2, h3, p { margin:0; }
 .pl span { font-size:11.5px; color:var(--hmuted); font-weight:500; white-space:nowrap; }
 .pl b { font:800 clamp(17px,2vw,22px)/1.15 var(--num); font-variant-numeric:tabular-nums; letter-spacing:-.01em; white-space:nowrap; }
 .pl .op { font:800 13px var(--num); color:var(--hmuted); }
+.srcl { font-size:12.5px; color:var(--hmuted); display:flex; flex-wrap:wrap; gap:4px 14px; }
+.srcl b { font:800 14px var(--num); color:#fff; margin-left:4px; }
+.srcl i { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
 .kv-r h3 { font-size:13px; font-weight:700; color:var(--hmuted); display:flex; justify-content:space-between; align-items:baseline; }
 .kv-r h3 b { font:800 20px var(--num); color:#fff; }
 
@@ -221,11 +224,12 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
         <span class="lb" id="lb">純利益</span>
         <div class="v"><small id="netY">¥</small><span class="n pos" id="net">0</span></div>
         <div class="pl">
-          <div><span>売上</span><b id="hSale">¥0</b></div>
-          <div><span>利益（売上の70%）</span><b id="hProfit">¥0</b></div>
+          <div><span>Cheers mateの利益</span><b id="hProfit">¥0</b></div>
+          <div><span>LIBERTYの売上</span><b id="hLib">¥0</b></div>
           <div><span>費用</span><b id="hCost">¥0</b></div>
-          <div><span>入金済み</span><b id="hPaid">¥0</b></div>
+          <div><span>旅キャリ経由の契約</span><b id="hSale">¥0</b></div>
         </div>
+        <p class="srcl" id="hSrc"></p>
         <div class="chips" id="chips"></div>
       </div>
     </div>
@@ -258,7 +262,7 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
   <section class="card">
     <div class="hd">
       <div><span class="e">Sales &amp; Profit</span><h2>売上と純利益</h2></div>
-      <div class="r"><span>純利益＝利益（売上の70%）−その月の費用</span></div>
+      <div class="r"><span>純利益＝Cheers mateの利益＋LIBERTYの売上−その月の費用</span></div>
     </div>
     <div class="sales">
       <div class="pay-box" id="payBox"></div>
@@ -307,13 +311,13 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
 
   function init(data) {
     D = data;
-    var get = function (m) { return B[m] || (B[m] = { list: 0, fol: 0, pay: 0, co: [], ap: [], p: null, sale: 0, paid: 0, deals: [] }); };
+    var get = function (m) { return B[m] || (B[m] = { list: 0, fol: 0, pay: 0, co: [], ap: [], p: null, sale: 0, paid: 0, deals: [], cm: 0, cmPaid: 0, lib: 0, libPaid: 0 }); };
     D.coconala.forEach(function (o) { var b = get(o.date.slice(0, 7)); b.fol += o.yen; b.co.push(o); });
     D.apify.forEach(function (o) { var b = get(o.date.slice(0, 7)); o.yen = Math.round(o.usd * D.usdJpy); b.list += o.yen; b.ap.push(o); });
     Object.keys(D.payout).forEach(function (m) { var p = D.payout[m], b = get(m); b.pay += p.send + p.apo + p.won; b.p = p; });
-    (D.sales || []).forEach(function (o) { var b = get(o.date.slice(0, 7)); b.sale += o.yen; b.paid += o.paid; b.deals.push(o); });
+    (D.sales || []).forEach(function (o) { var b = get(o.date.slice(0, 7)); b.sale += o.yen; b.paid += o.paid; b.deals.push(o); b.cm += o.cm; b.cmPaid += o.cmPaid; b.lib += o.lib; b.libPaid += o.libPaid; });
     M = Object.keys(B).sort();
-    M.forEach(function (m) { var b = B[m]; b.total = b.list + b.fol + b.pay; b.profit = Math.round(b.sale * D.profitRate); b.net = b.profit - b.total; });
+    M.forEach(function (m) { var b = B[m]; b.total = b.list + b.fol + b.pay; b.profit = b.cm + b.lib; b.net = b.profit - b.total; });
 
     $('month').innerHTML = M.slice().reverse().map(function (m) { return '<option value="' + m + '">' + mL(m) + '</option>'; }).join('') + '<option value="all">これまでの合計</option>';
     var saved = null; try { saved = localStorage.getItem('tc-cost-month'); } catch (e) {}
@@ -335,8 +339,8 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
 
   function sum(m) {
     if (m !== ALL) return B[m];
-    var s = { list: 0, fol: 0, pay: 0, total: 0, sale: 0, paid: 0, profit: 0, net: 0, deals: [], co: [], ap: [], p: { send: 0, sendCount: 0, apo: 0, apoCount: 0, won: 0, wonCount: 0 } };
-    M.forEach(function (k) { var b = B[k]; ['list', 'fol', 'pay', 'total', 'sale', 'paid', 'profit', 'net'].forEach(function (f) { s[f] += b[f]; }); s.co = s.co.concat(b.co); s.ap = s.ap.concat(b.ap); s.deals = s.deals.concat(b.deals);
+    var s = { list: 0, fol: 0, pay: 0, total: 0, sale: 0, paid: 0, profit: 0, net: 0, deals: [], cm: 0, cmPaid: 0, lib: 0, libPaid: 0, co: [], ap: [], p: { send: 0, sendCount: 0, apo: 0, apoCount: 0, won: 0, wonCount: 0 } };
+    M.forEach(function (k) { var b = B[k]; ['list', 'fol', 'pay', 'total', 'sale', 'paid', 'profit', 'net', 'cm', 'cmPaid', 'lib', 'libPaid'].forEach(function (f) { s[f] += b[f]; }); s.co = s.co.concat(b.co); s.ap = s.ap.concat(b.ap); s.deals = s.deals.concat(b.deals);
       if (b.p) ['send', 'sendCount', 'apo', 'apoCount', 'won', 'wonCount'].forEach(function (f) { s.p[f] += b.p[f] || 0; }); });
     return s;
   }
@@ -358,8 +362,9 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
     count($('net'), s.net, first ? 1300 : 750);
     var neg = s.net < 0;
     $('net').className = 'n ' + (neg ? 'neg' : 'pos'); $('netY').textContent = neg ? '−¥' : '¥'; $('netY').className = neg ? 'neg' : '';
-    $('hSale').textContent = '¥' + yen(s.sale); $('hProfit').textContent = '¥' + yen(s.profit);
-    $('hCost').textContent = '−¥' + yen(s.total); $('hPaid').textContent = '¥' + yen(s.paid);
+    $('hSale').textContent = '¥' + yen(s.sale); $('hProfit').textContent = '¥' + yen(s.cm); $('hLib').textContent = '¥' + yen(s.lib);
+    $('hCost').textContent = '−¥' + yen(s.total);
+    $('hSrc').innerHTML = '<span><i style="background:#7ee2a8"></i>純利益＝Cheers mateの利益＋LIBERTYの売上−費用</span><span>入金済みベースでは<b>' + sign(s.cmPaid + s.libPaid - s.total) + '</b></span>';
     $('costLb').textContent = all ? '費用の内訳（これまで）' : mS(cur) + 'の費用の内訳';
     count($('total'), s.total, first ? 1200 : 700);
     drawSales(s, all);
@@ -435,21 +440,25 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
   }
   function sign(v) { return (v < 0 ? '−¥' : '¥') + yen(Math.abs(v)); }
   function drawSales(s, all) {
-    var rest = s.sale - s.paid, pct = s.sale ? Math.round(s.paid / s.sale * 100) : 0;
     var h = '<p class="ttl">' + (all ? 'これまでの入金状況' : mL(cur) + 'の契約の入金状況') + '</p>';
     if (!s.sale) { $('payBox').innerHTML = h + '<p class="empty">この月の旅キャリ経由の契約はありません</p>'; return; }
-    h += '<div class="big2"><b>' + pct + '%</b><span>入金済み（' + s.deals.length + '件）</span></div><div class="prog"><i id="progI"></i></div>' +
-      '<div class="row"><span>入金済み <b>¥' + yen(s.paid) + '</b></span><span>残り <b>¥' + yen(rest) + '</b></span></div>' +
-      s.deals.map(function (o) { return '<div class="deal"><span>' + dL(o.date) + ' 契約　<b>¥' + yen(o.yen) + '</b>（入金 ¥' + yen(o.paid) + '）</span><span>' + esc(o.status) + '</span></div>'; }).join('');
+    var pct = Math.round(s.paid / s.sale * 100);
+    h += '<div class="big2"><b>' + pct + '%</b><span>入金済み（' + s.deals.length + '件・契約金 ¥' + yen(s.sale) + '）</span></div><div class="prog"><i data-w="' + pct + '"></i></div>' +
+      '<div class="row"><span>入金済み <b>¥' + yen(s.paid) + '</b></span><span>残り <b>¥' + yen(s.sale - s.paid) + '</b></span></div>';
+    [['Cheers mateの利益', s.cm, s.cmPaid], ['LIBERTYの売上', s.lib, s.libPaid]].forEach(function (x) {
+      var q = x[1] ? Math.round(x[2] / x[1] * 100) : 0;
+      h += '<div class="deal"><span><b style="font-family:var(--jp)">' + x[0] + '</b>　契約金ベース <b>¥' + yen(x[1]) + '</b></span><div class="prog" style="height:8px"><i data-w="' + q + '"></i></div><span>入金済みベース ¥' + yen(x[2]) + '（' + q + '%）</span></div>';
+    });
+    h += s.deals.map(function (o) { return '<div class="deal"><span>' + dL(o.date) + ' 契約　<b>¥' + yen(o.yen) + '</b>（入金 ¥' + yen(o.paid) + '）</span><span>' + esc(o.status) + '</span></div>'; }).join('');
     $('payBox').innerHTML = h;
-    requestAnimationFrame(function () { requestAnimationFrame(function () { var el = $('progI'); if (el) el.style.width = pct + '%'; }); });
+    requestAnimationFrame(function () { requestAnimationFrame(function () { [].forEach.call(document.querySelectorAll('#payBox .prog i'), function (el) { el.style.width = el.dataset.w + '%'; }); }); });
     [].forEach.call(document.querySelectorAll('#st tbody tr'), function (el) { el.classList.toggle('on', el.dataset.m === cur); });
   }
   function drawSalesTable() {
     var t = sum(ALL);
-    var row = function (lab, b, m) { return '<tr' + (m ? ' data-m="' + m + '"' : ' class="sum"') + '><td>' + lab + '</td><td>' + (b.sale ? '¥' + yen(b.sale) : '—') + '</td><td>' + (b.profit ? '¥' + yen(b.profit) : '—') +
+    var row = function (lab, b, m) { return '<tr' + (m ? ' data-m="' + m + '"' : ' class="sum"') + '><td>' + lab + '</td><td>' + (b.sale ? '¥' + yen(b.sale) : '—') + '</td><td>' + (b.cm ? '¥' + yen(b.cm) : '—') + '</td><td>' + (b.lib ? '¥' + yen(b.lib) : '—') +
       '</td><td>' + (b.sale ? '¥' + yen(b.paid) : '—') + '</td><td>−¥' + yen(b.total) + '</td><td class="tt ' + (b.net < 0 ? 'neg' : 'pos') + '">' + sign(b.net) + '</td></tr>'; };
-    $('st').innerHTML = '<thead><tr><th>月</th><th>売上</th><th>利益</th><th>入金済み</th><th>費用</th><th>純利益</th></tr></thead><tbody>' +
+    $('st').innerHTML = '<thead><tr><th>月</th><th>契約金</th><th>Cheers mate利益</th><th>LIBERTY売上</th><th>入金済み</th><th>費用</th><th>純利益</th></tr></thead><tbody>' +
       M.map(function (m) { return row(mL(m), B[m], m); }).join('') + '</tbody><tfoot>' + row('合計', t) + '</tfoot>';
   }
 
@@ -469,7 +478,7 @@ details td.it { font-family:var(--jp); font-weight:500; text-align:left; white-s
       { k: 'wonFee', l: '成約1件の報酬', u: '円', st: 1000 } ] },
     { g: 'sale', t: '売上・期間', c: 'var(--gold)', f: [
       { k: 'salePrice', l: '成約1件の売上', s: '税込の契約金', u: '円', st: 10000 },
-      { k: 'profitRate', l: '利益率', u: '%', st: 1 },
+      { k: 'profitRate', l: '利益率', s: 'Cheers mate＋LIBERTYで契約金の70%', u: '%', st: 1 },
       { k: 'months', l: '何か月分を見るか', u: 'か月', st: 1 } ] }
   ];
   var SV = {};
